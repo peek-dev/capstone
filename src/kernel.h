@@ -25,9 +25,32 @@
  http://users.ece.utexas.edu/~valvano/
  */
 
+#define THREADS_MAX     16
+#define STACK_SIZE      64      // maximum number of 32-bit words in a thread's stack. Effectively marks a 2 KiB maximum stack per thread.
+
 #define THREAD_ALIVE    ((int8_t) 1)
 #define THREAD_SLEEPING ((int8_t) -1)
 #define THREAD_EXITED   ((int8_t) 0)
+#define THREAD_BLANK    THREAD_EXITED
+
+// By default, set macros based on the use of the maximum-speed 80 MHz clock
+// on the MSPM0G3507.
+#ifndef (USE_80MHZ_CLK)
+    #ifndef (USE_32MHZ_CLK)
+        #define USE_80MHZ_CLK 1
+    #endif
+#endif
+
+// Define time slice macros for easy reference based on selected clock speed.
+#ifdef (USE_80MHZ_CLK)
+#define TIMESLICE_1MS   ((uint32_t) 80000)
+#elif defined (USE_32MHZ_CLK)
+#define TIMESLICE_1MS   ((uint32_t) 32000)
+#endif
+
+#define TIMESLICE_2MS   (2 * TIMESLICE_1MS)
+#define TIMESLICE_5MS   (5 * TIMESLICE_1MS)
+#define TIMESLICE_10MS  (10 * TIMESLICE_1MS)
 
 /*
  * The thread control block struct, defining a thread's stack pointer, 
@@ -41,7 +64,13 @@ typedef struct tcb_struct {
     tcb* prev;
     tcb* next; 
     uint32_t sleep_ct;
-    int8_t status; // One of three thread statuses possible: alive (available to be scheduled), sleeping (available to be scheduled at some point in the future but currently unavailable), or dead (exited and unavailable to ever be scheduled again)
+    /**
+     * One of three thread statuses possible: 
+     * - alive (available to be scheduled); 
+     * - sleeping (available to be scheduled at some point in the future but currently unavailable); 
+     * - dead (exited and unavailable to ever be scheduled again)
+     */
+    int8_t status; 
 } tcb;
 
 /** 
@@ -104,6 +133,14 @@ void ThreadExit(void);
  * NOTE: this function does not return in the caller.
  */
 void ThreadSleep(uint32_t ms);
+
+/**
+ * A wrapper function to set up OS state, utilities, and timing, then begin 
+ * executing a thread.
+ *
+ * NOTE: this function never returns.
+ */
+void OS_Launch(uint32_t TimeSlice);
 
 /**
  * A "sentinel" routine to unambiguously signal an unrecoverable machine state/
