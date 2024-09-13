@@ -35,14 +35,14 @@
 
 // By default, set macros based on the use of the maximum-speed 80 MHz clock
 // on the MSPM0G3507.
-#ifndef (USE_80MHZ_CLK)
-    #ifndef (USE_32MHZ_CLK)
+#ifndef USE_80MHZ_CLK
+    #ifndef USE_32MHZ_CLK
         #define USE_80MHZ_CLK 1
     #endif
 #endif
 
 // Define time slice macros for easy reference based on selected clock speed.
-#ifdef (USE_80MHZ_CLK)
+#ifdef USE_80MHZ_CLK
 #define TIMESLICE_1MS   ((uint32_t) 80000)
 #elif defined (USE_32MHZ_CLK)
 #define TIMESLICE_1MS   ((uint32_t) 32000)
@@ -60,7 +60,7 @@
 typedef struct tcb_struct tcb;
 
 typedef struct tcb_struct {
-    uint32_t* thread_sp;
+    uint32_t* sp;
     tcb* prev;
     tcb* next; 
     uint32_t sleep_ct;

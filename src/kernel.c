@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include "kernel.h"
-#include <ti/driverlib/m0p/sysctl/dl_systick.h> // Include TI driver header for SysTick
+#include "ti/driverlib/m0p/dl_systick.h" // Include TI driver header for SysTick
 
 // Code here is inspired by/reused from Jonathan Valvano's "Embedded Systems:
 // Real Time Interfacing to ARM Cortex M Microcontrollers".
@@ -71,7 +71,7 @@ void Scheduler(void) {
 // Presumably used from Valvano's textbook; copyright notices given here and 
 // in kernel.h as such.
 void SetInitialStack(int ThreadIndex){
-  SystemThreads[ThreadIndex].sp = &ThreadStacks[i][STACK_SIZE-16]; // thread stack pointer
+  SystemThreads[ThreadIndex].sp = &ThreadStacks[ThreadIndex][STACK_SIZE-16]; // thread stack pointer
   ThreadStacks[ThreadIndex][STACK_SIZE-1] = 0x01000000;   // thumb bit
   ThreadStacks[ThreadIndex][STACK_SIZE-3] = 0x14141414;   // R14
   ThreadStacks[ThreadIndex][STACK_SIZE-4] = 0x12121212;   // R12
@@ -107,7 +107,7 @@ int8_t AddThread(void (*task)(void)) {
 
     for (int index = 0; index < THREADS_MAX; index += 1) {
         if ((SystemThreads[index].status == THREAD_BLANK) || (SystemThreads[index].status == THREAD_EXITED)) {
-            tcb* NewThread = SystemThreads[index];
+            tcb* NewThread = &(SystemThreads[index]);
             SetInitialStack(index); 
             ThreadStacks[index][STACK_SIZE - 2] = (int32_t)(task); // Copy new thread task PC (function pointer value) to new thread stack
                                                     
