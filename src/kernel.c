@@ -111,7 +111,7 @@ int8_t AddThread(void (*task)(void)) {
             SetInitialStack(index); 
             ThreadStacks[index][STACK_SIZE - 2] = (int32_t)(task); // Copy new thread task PC (function pointer value) to new thread stack
                                                     
-            NewThread.status = THREAD_ALIVE;
+            NewThread->status = THREAD_ALIVE;
             NewThread->prev = CurrentThread;
 
             // Ensure CurrentThread (pointer to currently running thread's TCB)
@@ -183,6 +183,12 @@ void ThreadSleep(uint32_t ms) {
  * A "private" function to initialize OS data structures and related state.
  */
 void OS_Init(void) {
+    DisableInterrupts();
+    // Stop SysTick from counting and generating interrupts during OS 
+    // initialization
+    DL_SYSTICK_disable(); 
+    // Clear SysTick to ensure counting from zero on re-enable
+    DL_SYSTICK_resetValue();
     for (int index = 0; index < THREADS_MAX; index += 1) {
         SystemThreads[index].sp = NULL;
         SystemThreads[index].prev = NULL;
@@ -200,8 +206,12 @@ void OS_Init(void) {
  * NOTE: this function never returns.
  */
 void OS_Launch(uint32_t TimeSlice) {
-    // TODO: program SysTick with TimeSlice
-    // TODO: jump to first thread
+    // Pass TimeSlice to the TI wrapper, which will subtract one to account for
+    // SysTick being zero-indexed
+    DL_SYSTICK_init(TimeSlice); 
+    DL_SYSTICK_enable(); // Allow SysTick to count up and generate interrupts
+    EnableInterrupts(); // Allow general system interrupts since setup complete
+    StartOS(); // jump to first thread.
 }
 
 /**
@@ -216,8 +226,10 @@ void OS_Launch(uint32_t TimeSlice) {
  * reset/brownout reset/etc. on the board to be exited from.
  */
 void Panic(void) {
+    // Specifically lock the system within this function
     DisableInterrupts();
-    // TODO: potentially set LEDs to all-on or some other visual indicator
-    while (1);
+    // Set RGB pins high (produces white light) as visual indicator/"alarm"
+    DL_GPIO_setPins(LEDS_GRP, LP_RED_LED | LP_GREEN_LED | LP_BLUE_LED);
+    while (1); // Hang the system 
 }
 
