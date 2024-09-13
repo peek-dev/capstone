@@ -5,6 +5,7 @@
 
 #ifndef NULL
 #define NULL ((void*) 0)
+#endif
 
 // Code here is inspired by/reused from Jonathan Valvano's "Embedded Systems:
 // Real Time Interfacing to ARM Cortex M Microcontrollers".
@@ -60,7 +61,7 @@
 typedef struct tcb_struct tcb;
 
 typedef struct tcb_struct {
-    uint32_t* sp;
+    int32_t* sp;
     tcb* prev;
     tcb* next; 
     uint32_t sleep_ct;
