@@ -32,6 +32,9 @@ static uint8_t ActiveThreads;
 
 int32_t ThreadStacks[THREADS_MAX][STACK_SIZE];
 
+/**
+ * Disable system interrupts.
+ */
 void DisableInterrupts(void) {
     __asm(
             "\
@@ -41,6 +44,9 @@ void DisableInterrupts(void) {
          );
 }
 
+/**
+ * Enable system interrupts.
+ */
 void EnableInterrupts(void) {
     __asm(
             "\
@@ -83,6 +89,12 @@ void SetInitialStack(int ThreadIndex){
   ThreadStacks[ThreadIndex][STACK_SIZE-16] = 0x04040404;  // R4
 }
 
+/**
+ * Add a thread to the system's list of thread control blocks (TCBs), giving 
+ * the thread a function pointer for its relevant "main" to execute.
+ *
+ * Returns: 0 if successful or -1 if unsuccessful.
+ */
 int8_t AddThread(void (*task)(void)) {
     DisableInterrupts();
 
@@ -126,12 +138,25 @@ int8_t AddThread(void (*task)(void)) {
     return -1;
 }
 
+/**
+ * Manually trigger a context switch and run the scheduler to potentially allow
+ * another thread to run.
+ *
+ * NOTE: this function does not return in the calling thread.
+ */
 void ThreadYield(void) {
     // Invoke the MSPM0-specific TI driver to clear SysTick (and trigger a 
     // SysTick interrupt)
     DL_SYSTICK_resetValue();
 }
 
+/**
+ * Mark the calling thread as "dead" (i.e., exited), then trigger a context 
+ * switch to allow the kernel to reclaim bookkeeping resources for this thread
+ * and possibly run another thread.
+ *
+ * NOTE: this function does not return.
+ */
 void ThreadExit(void) {
     DisableInterrupts();
     CurrentThread->prev->next = CurrentThread->next;
@@ -141,6 +166,11 @@ void ThreadExit(void) {
     ThreadYield(); // yield the CPU and provoke a context switch
 }
 
+/**
+ * Mark the calling thread as asleep for `ms` milliseconds, then invoke a context switch to allow another thread to potentially run.
+ *
+ * NOTE: this function does not return in the caller.
+ */
 void ThreadSleep(uint32_t ms) {
     DisableInterrupts();
     CurrentThread->sleep_ct = ms;
@@ -163,11 +193,28 @@ void OS_Init(void) {
     ActiveThreads = 0;
 }
 
+/**
+ * A wrapper function to set up OS state, utilities, and timing, then begin 
+ * executing a thread.
+ *
+ * NOTE: this function never returns.
+ */
 void OS_Launch(uint32_t TimeSlice) {
     // TODO: program SysTick with TimeSlice
     // TODO: jump to first thread
 }
 
+/**
+ * A "sentinel" routine to unambiguously signal an unrecoverable machine state/
+ * fault, etc.
+ *
+ * Primarily for debugging purposes. Functions can call this to indicate a 
+ * fault condition in more broadly definitions than the onboard fault handlers
+ * allow.
+ *
+ * NOTE: this function will never return and will require a power 
+ * reset/brownout reset/etc. on the board to be exited from.
+ */
 void Panic(void) {
     DisableInterrupts();
     // TODO: potentially set LEDs to all-on or some other visual indicator
