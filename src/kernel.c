@@ -21,6 +21,10 @@
  http://users.ece.utexas.edu/~valvano/
  */
 
+// Prototypes for assembly-implemented functions
+void SysTick_Handler(void);
+void StartOS(void);
+
 tcb SystemThreads[THREADS_MAX];
 tcb* CurrentThread;
 
@@ -229,7 +233,7 @@ void Panic(void) {
     // Specifically lock the system within this function
     DisableInterrupts();
     // Set RGB pins high (produces white light) as visual indicator/"alarm"
-    DL_GPIO_setPins(LEDS_GRP, LP_RED_LED | LP_GREEN_LED | LP_BLUE_LED);
+    // DL_GPIO_setPins(LEDS_GRP, LP_RED_LED | LP_GREEN_LED | LP_BLUE_LED);
     while (1); // Hang the system 
 }
 
