@@ -1,0 +1,11 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "adc_singlechannel_LP_MSPM0G3507_freertos_ticlang",
+            "type": "ccs-debug",
+            "request": "launch",
+            "project": "adc_singlechannel_LP_MSPM0G3507_freertos_ticlang"
+        }
+    ]
+}
