@@ -52,7 +52,7 @@
  * Scheduler will run highest priority task in Ready state but won't switch
  * between tasks of equal priority just because a tick interrupt occured
  */
-#define configUSE_TIME_SLICING 1
+#define configUSE_TIME_SLICING 0
 /*
  * The number of priorities available to application tasks. Any number of
  * tasks can share the same priority. Low priority numbers denote low priority
