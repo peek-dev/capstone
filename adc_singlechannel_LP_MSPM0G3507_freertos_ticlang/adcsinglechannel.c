@@ -41,15 +41,13 @@
 #include <FreeRTOS.h>
 #include <queue.h>
 
-/* POSIX Header files */
-#include <pthread.h>
-
 /* Driver Header files */
 #include <ti/display/DisplayUart.h>
 #include <ti/drivers/ADC.h>
 #include <ti/drivers/GPIO.h>
 
 /* Driver configuration */
+#include "FreeRTOSConfig.h"
 #include "portmacro.h"
 #include "projdefs.h"
 #include "ti/display/Display.h"
@@ -59,8 +57,8 @@
 #define ADC_SAMPLE_COUNT (10)
 
 #define THREADSTACKSIZE (768)
-#define MSG_STR_SIZE (64)
-#define QUEUE_SIZE 8
+#define MSG_STR_SIZE (32)
+#define QUEUE_SIZE 2
 
 /* ADC conversion result variables */
 uint16_t adcValue0;
@@ -73,19 +71,20 @@ static QueueHandle_t displayQueue;
 
 typedef struct msg_struct {
     char fmtStr[MSG_STR_SIZE];
-    uint16_t param1;
-    uint16_t param2;
+    uint32_t param1;
+    uint32_t param2;
 } DisplayMsg;
-
+#if QUEUE_STATIC
 static uint8_t queue_storage[QUEUE_SIZE*sizeof(DisplayMsg)];
 static StaticQueue_t queue_struct;
+#endif
 
-void send_printf(char *fmt, uint16_t param1, uint16_t param2);
+void send_printf(char *fmt, uint32_t param1, uint32_t param2);
 /*
  *  ======== threadFxn0 ========
  *  Open an ADC instance and get a sampling result from a one-shot conversion.
  */
-void *threadFxn0(void *arg0)
+void threadFxn0(void *arg0)
 {
     ADC_Handle adc;
     ADC_Params params;
@@ -95,7 +94,7 @@ void *threadFxn0(void *arg0)
     adc = ADC_open(CONFIG_ADC_0, &params);
 
     if (adc == NULL) {
-        send_printf("Error initializing CONFIG_ADC_0\n", 0, 0);
+        send_printf("Error initializing A0\n", 0, 0);
         while (1) {
         }
     }
@@ -106,15 +105,14 @@ void *threadFxn0(void *arg0)
     if (res == ADC_STATUS_SUCCESS) {
         adcValue0MicroVolt = ADC_convertRawToMicroVolts(adc, adcValue0);
 
-        send_printf("CONFIG_ADC_0 raw result: %d\n", adcValue0, 0);
-        send_printf("CONFIG_ADC_0 convert result: %d uV\n", adcValue0MicroVolt, 0);
+        send_printf("A0 raw: %d\n", adcValue0, 0);
+        send_printf("A0 convert: %d uV\n", adcValue0MicroVolt, 0);
     } else {
-        send_printf("CONFIG_ADC_0 convert failed\n", 0, 0);
+        send_printf("A0 failed\n", 0, 0);
     }
 
     ADC_close(adc);
-
-    return (NULL);
+    vTaskDelete(NULL);
 }
 
 /*
@@ -122,7 +120,7 @@ void *threadFxn0(void *arg0)
  *  Open a ADC handle and get an array of sampling results after
  *  calling several conversions.
  */
-void *threadFxn1(void *arg0)
+void threadFxn1(void *arg0)
 {
     uint16_t i;
     ADC_Handle adc;
@@ -133,7 +131,7 @@ void *threadFxn1(void *arg0)
     adc = ADC_open(CONFIG_ADC_1, &params);
 
     if (adc == NULL) {
-        send_printf("Error initializing CONFIG_ADC_1\n", 0, 0);
+        send_printf("Error initializing A1\n", 0, 0);
         while (1) {
         }
     }
@@ -144,19 +142,18 @@ void *threadFxn1(void *arg0)
         if (res == ADC_STATUS_SUCCESS) {
             adcValue1MicroVolt[i] = ADC_convertToMicroVolts(adc, adcValue1[i]);
 
-            send_printf("CONFIG_ADC_1 raw result (%d): %d\n", i, adcValue1[i]);
-            send_printf("CONFIG_ADC_1 convert result (%d): %d uV\n", i, adcValue1MicroVolt[i]);
+            send_printf("A1 raw (%d): %d\n", i, adcValue1[i]);
+            send_printf("A1 convert (%d): %d uV\n", i, adcValue1MicroVolt[i]);
         } else {
-            send_printf("CONFIG_ADC_1 convert failed (%d)\n", i, 0);
+            send_printf("A1 failed (%d)\n", i, 0);
         }
     }
 
     ADC_close(adc);
-
-    return (NULL);
+    vTaskDelete(NULL);
 }
 
-void send_printf(char *fmt, uint16_t param1, uint16_t param2) {
+void send_printf(char *fmt, uint32_t param1, uint32_t param2) {
     DisplayMsg m;
     m.param1 = param1;
     m.param2 = param2;
@@ -164,26 +161,22 @@ void send_printf(char *fmt, uint16_t param1, uint16_t param2) {
     xQueueSend(displayQueue, &m, portMAX_DELAY);
 }
 
-void *msgThread(void *arg0) {
+void msgThread(void *arg0) {
     DisplayMsg message;
     while (1) {
         if (xQueueReceive(displayQueue, &message, portMAX_DELAY) == pdTRUE) {
             Display_printf(display, 0, 0, message.fmtStr, message.param1, message.param2);
         }
     }
-
 }
 
 /*
  *  ======== mainThread ========
  */
-void *mainThread(void *arg0)
+void mainThread(void *arg0)
 {
-    pthread_t thread0, thread1, threadm;
-    pthread_attr_t attrs;
-    struct sched_param priParam;
-    int retc;
-    int detachState;
+    TaskHandle_t thread0, thread1, threadm;
+    BaseType_t xReturned;
 
     /* Call driver init functions */
     Display_init();
@@ -195,7 +188,11 @@ void *mainThread(void *arg0)
         GPIO_CFG_OUT_STD | GPIO_CFG_OUT_HIGH | CONFIG_GPIO_LED_0_IOMUX);
     
     // Initialize the queue
+#if QUEUE_STATIC
     displayQueue = xQueueCreateStatic(QUEUE_SIZE, sizeof(DisplayMsg), queue_storage, &queue_struct);
+#else
+    displayQueue = xQueueCreate(QUEUE_SIZE, sizeof(DisplayMsg));
+#endif
     if (displayQueue == NULL) {
         while (1) {}
     }
@@ -212,54 +209,19 @@ void *mainThread(void *arg0)
     GPIO_write(CONFIG_GPIO_LED_0, CONFIG_LED_ON);
     Display_printf(display, 0, 0, "Starting the adcsinglechannel example\n");
 
-    /* Create application threads */
-    pthread_attr_init(&attrs);
+    // Make a thread to recieve messages.
+    xReturned = xTaskCreate(msgThread, "Message", 2*configMINIMAL_STACK_SIZE, NULL, 2, &threadm);
+    // Loop and get stuck here if we fail.
+    while (xReturned != pdPASS) {}
+    xReturned = xPortGetFreeHeapSize();
 
-    detachState = PTHREAD_CREATE_DETACHED;
-    /* Set priority and stack size attributes */
-    retc = pthread_attr_setdetachstate(&attrs, detachState);
-    if (retc != 0) {
-        /* pthread_attr_setdetachstate() failed */
-        while (1) {
-        }
-    }
-
-    retc |= pthread_attr_setstacksize(&attrs, THREADSTACKSIZE);
-    if (retc != 0) {
-        /* pthread_attr_setstacksize() failed */
-        while (1) {
-        }
-    }
-
-    /* Create msgThread thread */
-    priParam.sched_priority = 2;
-    pthread_attr_setschedparam(&attrs, &priParam);
-
-    retc = pthread_create(&threadm, &attrs, msgThread, NULL);
-    if (retc != 0) {
-        /* pthread_create() failed */
-        while (1) {
-        }
-    }
-
-    /* Create threadFxn0 thread */
-    priParam.sched_priority = 1;
-    pthread_attr_setschedparam(&attrs, &priParam);
-
-    retc = pthread_create(&thread0, &attrs, threadFxn0, NULL);
-    if (retc != 0) {
-        /* pthread_create() failed */
-        while (1) {
-        }
-    }
-
-    /* Create threadFxn1 thread */
-    retc = pthread_create(&thread1, &attrs, threadFxn1, (void *) 0);
-    if (retc != 0) {
-        /* pthread_create() failed */
-        while (1) {
-        }
-    }
-
-    return (NULL);
+    // The first ADC thread.
+    xReturned = xTaskCreate(threadFxn0, "ADC0", configMINIMAL_STACK_SIZE, NULL, 1, &thread0);
+    while (xReturned != pdPASS) {}
+    xReturned = xPortGetFreeHeapSize();
+    // The second ADC thread.
+    xReturned = xTaskCreate(threadFxn1, "ADC1", configMINIMAL_STACK_SIZE, NULL, 1, &thread1);
+    while (xReturned != pdPASS) {}
+    xReturned = xPortGetFreeHeapSize();
+    vTaskDelete(NULL);
 }
