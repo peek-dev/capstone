@@ -74,7 +74,7 @@
 /* Smallest stack size allowed in words */
 #define configMINIMAL_STACK_SIZE ((unsigned short) 128)
 #define configMAX_TASK_NAME_LEN (12)
-#define configTOTAL_HEAP_SIZE ((size_t)(3 * 1024))
+#define configTOTAL_HEAP_SIZE ((size_t)(27 * 1024))
 
 /*
  * If static allocation is used (as well as timers, configUSE_TIMERS = 1),
@@ -86,6 +86,7 @@
  * They are example implementations taken from the FreeRTOS config docs
  */
 #define configSUPPORT_STATIC_ALLOCATION 1
+#define configSUPPORT_DYNAMIC_ALLOCATION 1
 
 /* Idle task stack size in words */
 #define configIDLE_TASK_STACK_DEPTH (configMINIMAL_STACK_SIZE)
