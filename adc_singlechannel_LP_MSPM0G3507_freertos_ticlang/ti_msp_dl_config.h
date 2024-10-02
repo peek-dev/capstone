@@ -34,11 +34,14 @@
  *  ============ ti_msp_dl_config.h =============
  *  Configured MSPM0 DriverLib module declarations
  *
+ *  DO NOT EDIT - This file is generated for the LP_MSPM0G3507
+ *  by the SysConfig tool.
  */
 #ifndef ti_msp_dl_config_h
 #define ti_msp_dl_config_h
 
 #define CONFIG_LP_MSPM0G3507
+#define CONFIG_MSPM0G3507
 
 #if defined(__ti_version__) || defined(__TI_COMPILER_VERSION__)
 #define SYSCONFIG_WEAK __attribute__((weak))
@@ -51,11 +54,88 @@
 #include <ti/devices/msp/msp.h>
 #include <ti/driverlib/driverlib.h>
 #include <ti/driverlib/m0p/dl_core.h>
-#include "ti_drivers_config.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/*
+ *  ======== SYSCFG_DL_init ========
+ *  Perform all required MSP DL initialization
+ *
+ *  This function should be called once at a point before any use of
+ *  MSP DL.
+ */
+
 
 /* clang-format off */
 
 #define POWER_STARTUP_DELAY                                                (16)
+
+
+#define CPUCLK_FREQ                                                     32000000
+
+
+
+/* Defines for UART_1 */
+#define UART_1_INST                                                        UART1
+#define UART_1_INST_FREQUENCY                                           32000000
+#define UART_1_INST_IRQHandler                                  UART1_IRQHandler
+#define UART_1_INST_INT_IRQN                                      UART1_INT_IRQn
+#define GPIO_UART_1_RX_PORT                                                GPIOA
+#define GPIO_UART_1_TX_PORT                                                GPIOA
+#define GPIO_UART_1_RX_PIN                                         DL_GPIO_PIN_9
+#define GPIO_UART_1_TX_PIN                                         DL_GPIO_PIN_8
+#define GPIO_UART_1_IOMUX_RX                                     (IOMUX_PINCM20)
+#define GPIO_UART_1_IOMUX_TX                                     (IOMUX_PINCM19)
+#define GPIO_UART_1_IOMUX_RX_FUNC                      IOMUX_PINCM20_PF_UART1_RX
+#define GPIO_UART_1_IOMUX_TX_FUNC                      IOMUX_PINCM19_PF_UART1_TX
+#define UART_1_BAUD_RATE                                                (115200)
+#define UART_1_IBRD_32_MHZ_115200_BAUD                                      (17)
+#define UART_1_FBRD_32_MHZ_115200_BAUD                                      (23)
+
+
+
+
+/* Defines for SPI_0 */
+#define SPI_0_INST                                                         SPI0
+#define SPI_0_INST_IRQHandler                                   SPI0_IRQHandler
+#define SPI_0_INST_INT_IRQN                                       SPI0_INT_IRQn
+#define GPIO_SPI_0_PICO_PORT                                              GPIOB
+#define GPIO_SPI_0_PICO_PIN                                      DL_GPIO_PIN_17
+#define GPIO_SPI_0_IOMUX_PICO                                   (IOMUX_PINCM43)
+#define GPIO_SPI_0_IOMUX_PICO_FUNC                   IOMUX_PINCM43_PF_SPI0_PICO
+/* GPIO configuration for SPI_0 */
+#define GPIO_SPI_0_SCLK_PORT                                              GPIOA
+#define GPIO_SPI_0_SCLK_PIN                                      DL_GPIO_PIN_12
+#define GPIO_SPI_0_IOMUX_SCLK                                   (IOMUX_PINCM34)
+#define GPIO_SPI_0_IOMUX_SCLK_FUNC                   IOMUX_PINCM34_PF_SPI0_SCLK
+/* Defines for SPI_1 */
+#define SPI_1_INST                                                         SPI1
+#define SPI_1_INST_IRQHandler                                   SPI1_IRQHandler
+#define SPI_1_INST_INT_IRQN                                       SPI1_INT_IRQn
+#define GPIO_SPI_1_PICO_PORT                                              GPIOB
+#define GPIO_SPI_1_PICO_PIN                                       DL_GPIO_PIN_8
+#define GPIO_SPI_1_IOMUX_PICO                                   (IOMUX_PINCM25)
+#define GPIO_SPI_1_IOMUX_PICO_FUNC                   IOMUX_PINCM25_PF_SPI1_PICO
+/* GPIO configuration for SPI_1 */
+#define GPIO_SPI_1_SCLK_PORT                                              GPIOB
+#define GPIO_SPI_1_SCLK_PIN                                       DL_GPIO_PIN_9
+#define GPIO_SPI_1_IOMUX_SCLK                                   (IOMUX_PINCM26)
+#define GPIO_SPI_1_IOMUX_SCLK_FUNC                   IOMUX_PINCM26_PF_SPI1_SCLK
+
+
+
+/* Defines for ADC_0 */
+#define ADC_0_INST                                                          ADC0
+#define ADC_0_INST_IRQHandler                                    ADC0_IRQHandler
+#define ADC_0_INST_INT_IRQN                                      (ADC0_INT_IRQn)
+#define ADC_0_ADCMEM_7                                        DL_ADC12_MEM_IDX_0
+#define ADC_0_ADCMEM_7_REF                       DL_ADC12_REFERENCE_VOLTAGE_VDDA
+#define ADC_0_ADCMEM_7_REF_VOLTAGE_V                                         3.3
+#define GPIO_ADC_0_C7_PORT                                                 GPIOA
+#define GPIO_ADC_0_C7_PIN                                         DL_GPIO_PIN_22
+
 
 /* clang-format on */
 
@@ -63,6 +143,16 @@ void SYSCFG_DL_init(void);
 void SYSCFG_DL_initPower(void);
 void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
-void SYSCFG_DL_SYSCTL_CLK_init(void);
+void SYSCFG_DL_UART_1_init(void);
+void SYSCFG_DL_SPI_0_init(void);
+void SYSCFG_DL_SPI_1_init(void);
+void SYSCFG_DL_ADC_0_init(void);
+
+bool SYSCFG_DL_saveConfiguration(void);
+bool SYSCFG_DL_restoreConfiguration(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ti_msp_dl_config_h */
