@@ -5,7 +5,20 @@
             "name": "adc_singlechannel_LP_MSPM0G3507_freertos_ticlang",
             "type": "ccs-debug",
             "request": "launch",
-            "project": "adc_singlechannel_LP_MSPM0G3507_freertos_ticlang"
+            "project": "adc_singlechannel_LP_MSPM0G3507_freertos_ticlang",
+            "debuggerSettings": {
+                "targetConfigs/MSPM0G3507.ccxml": {
+                    "Texas Instruments XDS110 USB Debug Probe/CORTEX_M0P": {
+                        "data": "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n<PropertyValues/>\n"
+                    }
+                }
+            }
+        },
+        {
+            "name": "freertos_builds_LP_MSPM0G3507_release_ticlang",
+            "type": "ccs-debug",
+            "request": "launch",
+            "project": "freertos_builds_LP_MSPM0G3507_release_ticlang"
         }
     ]
 }

@@ -39,7 +39,6 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
-#include "ti_drivers_config.h"
 #include "ti_msp_dl_config.h"
 
 extern void mainThread(void *arg0);
