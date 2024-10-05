@@ -5,18 +5,23 @@
  * @v2CliArgs --board "/ti/boards/LP_MSPM0G3507" --product "mspm0_sdk@2.02.00.05"
  * @versions {"tool":"1.21.1+3772"}
  */
+scripting.excludeFromBuild("device_linker.lds");
+scripting.excludeFromBuild("device.cmd.genlibs");
+scripting.excludeFromBuild("device.lds.genlibs");
+scripting.excludeFromBuild("Event.dot");
 
 /**
  * Import the modules used in this configuration.
  */
-const ADC12  = scripting.addModule("/ti/driverlib/ADC12", {}, false);
-const ADC121 = ADC12.addInstance();
-const SPI    = scripting.addModule("/ti/driverlib/SPI", {}, false);
-const SPI1   = SPI.addInstance();
-const SPI2   = SPI.addInstance();
-const SYSCTL = scripting.addModule("/ti/driverlib/SYSCTL");
-const UART   = scripting.addModule("/ti/driverlib/UART", {}, false);
-const UART1  = UART.addInstance();
+const ADC12         = scripting.addModule("/ti/driverlib/ADC12", {}, false);
+const ADC121        = ADC12.addInstance();
+const SPI           = scripting.addModule("/ti/driverlib/SPI", {}, false);
+const SPI1          = SPI.addInstance();
+const SPI2          = SPI.addInstance();
+const SYSCTL        = scripting.addModule("/ti/driverlib/SYSCTL");
+const UART          = scripting.addModule("/ti/driverlib/UART", {}, false);
+const UART1         = UART.addInstance();
+const ProjectConfig = scripting.addModule("/ti/project_config/ProjectConfig");
 
 /**
  * Write custom configuration values to the imported modules.
@@ -36,7 +41,6 @@ mux8.inputSelect = "HSCLKMUX_SYSPLL2X";
 ADC121.enableDMA                  = false;
 ADC121.sampClkSrc                 = "DL_ADC12_CLOCK_ULPCLK";
 ADC121.repeatMode                 = true;
-ADC121.enabledInterrupts          = ["DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED"];
 ADC121.$name                      = "ADC_0";
 ADC121.adcMem0chansel             = "DL_ADC12_INPUT_CHAN_7";
 ADC121.adcMem0_name               = "7";
@@ -44,6 +48,7 @@ ADC121.sampleTime0                = "62.5ns";
 ADC121.adcMem0avgen               = true;
 ADC121.hwNumerator                = "DL_ADC12_HW_AVG_NUM_ACC_4";
 ADC121.hwDenominator              = "DL_ADC12_HW_AVG_DEN_DIV_BY_4";
+ADC121.enabledInterrupts          = ["DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED"];
 ADC121.peripheral.$assign         = "ADC0";
 ADC121.peripheral.adcPin7.$assign = "boosterpack.24";
 ADC121.adcPin7Config.$name        = "ti_driverlib_gpio_GPIOPinGeneric6";
