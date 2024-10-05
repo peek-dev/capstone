@@ -55,7 +55,6 @@ ADC121.adcPin7Config.$name        = "ti_driverlib_gpio_GPIOPinGeneric6";
 
 const Board = scripting.addModule("/ti/driverlib/Board", {}, false);
 
-SPI1.targetBitRate                      = 16000000;
 SPI1.enableDMAEvent1                    = false;
 SPI1.enableDMAEvent2                    = false;
 SPI1.frameFormat                        = "MOTO3";
@@ -65,6 +64,7 @@ SPI1.dataSize                           = 16;
 SPI1.direction                          = "PICO";
 SPI1.enablePacking                      = true;
 SPI1.$name                              = "LED_SPI";
+SPI1.targetBitRate                      = 16000;
 SPI1.peripheral.$assign                 = "SPI0";
 SPI1.peripheral.sclkPin.$assign         = "boosterpack.32";
 SPI1.peripheral.mosiPin.$assign         = "boosterpack.18";
