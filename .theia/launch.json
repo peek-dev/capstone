@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "adc_singlechannel_LP_MSPM0G3507_freertos_ticlang",
+            "name": "capstone",
             "type": "ccs-debug",
             "request": "launch",
-            "project": "adc_singlechannel_LP_MSPM0G3507_freertos_ticlang",
+            "project": "capstone",
             "debuggerSettings": {
                 "targetConfigs/MSPM0G3507.ccxml": {
                     "Texas Instruments XDS110 USB Debug Probe/CORTEX_M0P": {
