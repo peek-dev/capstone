@@ -76,10 +76,10 @@ BaseType_t xLED_commit() {
 void prvTransmitFrame(uint32_t frame) {
     // My own reimplementation of DL_SPI_transmitDataBlocking32,
     // but using yield instead of busy-wait.
-    while (DL_SPI_isTXFIFOFull(SPI_1_INST)) {
+    while (DL_SPI_isTXFIFOFull(LED_SPI_INST)) {
         taskYIELD();
     }
-    DL_SPI_transmitData32(SPI_1_INST, frame);
+    DL_SPI_transmitData32(LED_SPI_INST, frame);
 }
 void prvLED_commit() {
     // As documented here: https://cpldcpu.wordpress.com/2016/12/13/sk9822-a-clone-of-the-apa102/

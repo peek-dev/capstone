@@ -40,8 +40,8 @@
 
 #include "ti_msp_dl_config.h"
 
-DL_SPI_backupConfig gSPI_0Backup;
-DL_SPI_backupConfig gSPI_1Backup;
+DL_SPI_backupConfig gLED_SPIBackup;
+DL_SPI_backupConfig gCLOCK_SPIBackup;
 
 /*
  *  ======== SYSCFG_DL_init ========
@@ -53,14 +53,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_GPIO_init();
     /* Module-Specific Initializations*/
     SYSCFG_DL_SYSCTL_init();
-    SYSCFG_DL_UART_1_init();
-    SYSCFG_DL_SPI_0_init();
-    SYSCFG_DL_SPI_1_init();
+    SYSCFG_DL_RPI_UART_init();
+    SYSCFG_DL_LED_SPI_init();
+    SYSCFG_DL_CLOCK_SPI_init();
     SYSCFG_DL_ADC_0_init();
     /* Ensure backup structures have no valid state */
 
-	gSPI_0Backup.backupRdy 	= false;
-	gSPI_1Backup.backupRdy 	= false;
+	gLED_SPIBackup.backupRdy 	= false;
+	gCLOCK_SPIBackup.backupRdy 	= false;
 
 }
 /*
@@ -71,8 +71,8 @@ SYSCONFIG_WEAK bool SYSCFG_DL_saveConfiguration(void)
 {
     bool retStatus = true;
 
-	retStatus &= DL_SPI_saveConfiguration(SPI_0_INST, &gSPI_0Backup);
-	retStatus &= DL_SPI_saveConfiguration(SPI_1_INST, &gSPI_1Backup);
+	retStatus &= DL_SPI_saveConfiguration(LED_SPI_INST, &gLED_SPIBackup);
+	retStatus &= DL_SPI_saveConfiguration(CLOCK_SPI_INST, &gCLOCK_SPIBackup);
 
     return retStatus;
 }
@@ -82,8 +82,8 @@ SYSCONFIG_WEAK bool SYSCFG_DL_restoreConfiguration(void)
 {
     bool retStatus = true;
 
-	retStatus &= DL_SPI_restoreConfiguration(SPI_0_INST, &gSPI_0Backup);
-	retStatus &= DL_SPI_restoreConfiguration(SPI_1_INST, &gSPI_1Backup);
+	retStatus &= DL_SPI_restoreConfiguration(LED_SPI_INST, &gLED_SPIBackup);
+	retStatus &= DL_SPI_restoreConfiguration(CLOCK_SPI_INST, &gCLOCK_SPIBackup);
 
     return retStatus;
 }
@@ -92,16 +92,16 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 {
     DL_GPIO_reset(GPIOA);
     DL_GPIO_reset(GPIOB);
-    DL_UART_Main_reset(UART_1_INST);
-    DL_SPI_reset(SPI_0_INST);
-    DL_SPI_reset(SPI_1_INST);
+    DL_UART_Main_reset(RPI_UART_INST);
+    DL_SPI_reset(LED_SPI_INST);
+    DL_SPI_reset(CLOCK_SPI_INST);
     DL_ADC12_reset(ADC_0_INST);
 
     DL_GPIO_enablePower(GPIOA);
     DL_GPIO_enablePower(GPIOB);
-    DL_UART_Main_enablePower(UART_1_INST);
-    DL_SPI_enablePower(SPI_0_INST);
-    DL_SPI_enablePower(SPI_1_INST);
+    DL_UART_Main_enablePower(RPI_UART_INST);
+    DL_SPI_enablePower(LED_SPI_INST);
+    DL_SPI_enablePower(CLOCK_SPI_INST);
     DL_ADC12_enablePower(ADC_0_INST);
     delay_cycles(POWER_STARTUP_DELAY);
 }
@@ -110,18 +110,18 @@ SYSCONFIG_WEAK void SYSCFG_DL_GPIO_init(void)
 {
 
     DL_GPIO_initPeripheralOutputFunction(
-        GPIO_UART_1_IOMUX_TX, GPIO_UART_1_IOMUX_TX_FUNC);
+        GPIO_RPI_UART_IOMUX_TX, GPIO_RPI_UART_IOMUX_TX_FUNC);
     DL_GPIO_initPeripheralInputFunction(
-        GPIO_UART_1_IOMUX_RX, GPIO_UART_1_IOMUX_RX_FUNC);
+        GPIO_RPI_UART_IOMUX_RX, GPIO_RPI_UART_IOMUX_RX_FUNC);
 
     DL_GPIO_initPeripheralOutputFunction(
-        GPIO_SPI_0_IOMUX_SCLK, GPIO_SPI_0_IOMUX_SCLK_FUNC);
+        GPIO_LED_SPI_IOMUX_SCLK, GPIO_LED_SPI_IOMUX_SCLK_FUNC);
     DL_GPIO_initPeripheralOutputFunction(
-        GPIO_SPI_0_IOMUX_PICO, GPIO_SPI_0_IOMUX_PICO_FUNC);
+        GPIO_LED_SPI_IOMUX_PICO, GPIO_LED_SPI_IOMUX_PICO_FUNC);
     DL_GPIO_initPeripheralOutputFunction(
-        GPIO_SPI_1_IOMUX_SCLK, GPIO_SPI_1_IOMUX_SCLK_FUNC);
+        GPIO_CLOCK_SPI_IOMUX_SCLK, GPIO_CLOCK_SPI_IOMUX_SCLK_FUNC);
     DL_GPIO_initPeripheralOutputFunction(
-        GPIO_SPI_1_IOMUX_PICO, GPIO_SPI_1_IOMUX_PICO_FUNC);
+        GPIO_CLOCK_SPI_IOMUX_PICO, GPIO_CLOCK_SPI_IOMUX_PICO_FUNC);
 
 }
 
@@ -140,12 +140,12 @@ SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
 
 
 
-static const DL_UART_Main_ClockConfig gUART_1ClockConfig = {
+static const DL_UART_Main_ClockConfig gRPI_UARTClockConfig = {
     .clockSel    = DL_UART_MAIN_CLOCK_BUSCLK,
     .divideRatio = DL_UART_MAIN_CLOCK_DIVIDE_RATIO_1
 };
 
-static const DL_UART_Main_Config gUART_1Config = {
+static const DL_UART_Main_Config gRPI_UARTConfig = {
     .mode        = DL_UART_MAIN_MODE_NORMAL,
     .direction   = DL_UART_MAIN_DIRECTION_TX_RX,
     .flowControl = DL_UART_MAIN_FLOW_CONTROL_NONE,
@@ -154,25 +154,25 @@ static const DL_UART_Main_Config gUART_1Config = {
     .stopBits    = DL_UART_MAIN_STOP_BITS_ONE
 };
 
-SYSCONFIG_WEAK void SYSCFG_DL_UART_1_init(void)
+SYSCONFIG_WEAK void SYSCFG_DL_RPI_UART_init(void)
 {
-    DL_UART_Main_setClockConfig(UART_1_INST, (DL_UART_Main_ClockConfig *) &gUART_1ClockConfig);
+    DL_UART_Main_setClockConfig(RPI_UART_INST, (DL_UART_Main_ClockConfig *) &gRPI_UARTClockConfig);
 
-    DL_UART_Main_init(UART_1_INST, (DL_UART_Main_Config *) &gUART_1Config);
+    DL_UART_Main_init(RPI_UART_INST, (DL_UART_Main_Config *) &gRPI_UARTConfig);
     /*
      * Configure baud rate by setting oversampling and baud rate divisors.
      *  Target baud rate: 115200
      *  Actual baud rate: 115211.52
      */
-    DL_UART_Main_setOversampling(UART_1_INST, DL_UART_OVERSAMPLING_RATE_16X);
-    DL_UART_Main_setBaudRateDivisor(UART_1_INST, UART_1_IBRD_32_MHZ_115200_BAUD, UART_1_FBRD_32_MHZ_115200_BAUD);
+    DL_UART_Main_setOversampling(RPI_UART_INST, DL_UART_OVERSAMPLING_RATE_16X);
+    DL_UART_Main_setBaudRateDivisor(RPI_UART_INST, RPI_UART_IBRD_32_MHZ_115200_BAUD, RPI_UART_FBRD_32_MHZ_115200_BAUD);
 
 
 
-    DL_UART_Main_enable(UART_1_INST);
+    DL_UART_Main_enable(RPI_UART_INST);
 }
 
-static const DL_SPI_Config gSPI_0_config = {
+static const DL_SPI_Config gLED_SPI_config = {
     .mode        = DL_SPI_MODE_CONTROLLER,
     .frameFormat = DL_SPI_FRAME_FORMAT_MOTO3_POL1_PHA1,
     .parity      = DL_SPI_PARITY_NONE,
@@ -180,15 +180,15 @@ static const DL_SPI_Config gSPI_0_config = {
     .bitOrder    = DL_SPI_BIT_ORDER_MSB_FIRST,
 };
 
-static const DL_SPI_ClockConfig gSPI_0_clockConfig = {
+static const DL_SPI_ClockConfig gLED_SPI_clockConfig = {
     .clockSel    = DL_SPI_CLOCK_BUSCLK,
     .divideRatio = DL_SPI_CLOCK_DIVIDE_RATIO_1
 };
 
-SYSCONFIG_WEAK void SYSCFG_DL_SPI_0_init(void) {
-    DL_SPI_setClockConfig(SPI_0_INST, (DL_SPI_ClockConfig *) &gSPI_0_clockConfig);
+SYSCONFIG_WEAK void SYSCFG_DL_LED_SPI_init(void) {
+    DL_SPI_setClockConfig(LED_SPI_INST, (DL_SPI_ClockConfig *) &gLED_SPI_clockConfig);
 
-    DL_SPI_init(SPI_0_INST, (DL_SPI_Config *) &gSPI_0_config);
+    DL_SPI_init(LED_SPI_INST, (DL_SPI_Config *) &gLED_SPI_config);
 
     /* Configure Controller mode */
     /*
@@ -196,16 +196,16 @@ SYSCONFIG_WEAK void SYSCFG_DL_SPI_0_init(void) {
      *     outputBitRate = (spiInputClock) / ((1 + SCR) * 2)
      *     16000000 = (32000000)/((1 + 0) * 2)
      */
-    DL_SPI_setBitRateSerialClockDivider(SPI_0_INST, 0);
+    DL_SPI_setBitRateSerialClockDivider(LED_SPI_INST, 0);
     /* Enable packing feature */
-    DL_SPI_enablePacking(SPI_0_INST);
+    DL_SPI_enablePacking(LED_SPI_INST);
     /* Set RX and TX FIFO threshold levels */
-    DL_SPI_setFIFOThreshold(SPI_0_INST, DL_SPI_RX_FIFO_LEVEL_1_2_FULL, DL_SPI_TX_FIFO_LEVEL_1_2_EMPTY);
+    DL_SPI_setFIFOThreshold(LED_SPI_INST, DL_SPI_RX_FIFO_LEVEL_1_2_FULL, DL_SPI_TX_FIFO_LEVEL_1_2_EMPTY);
 
     /* Enable module */
-    DL_SPI_enable(SPI_0_INST);
+    DL_SPI_enable(LED_SPI_INST);
 }
-static const DL_SPI_Config gSPI_1_config = {
+static const DL_SPI_Config gCLOCK_SPI_config = {
     .mode        = DL_SPI_MODE_CONTROLLER,
     .frameFormat = DL_SPI_FRAME_FORMAT_MOTO3_POL0_PHA1,
     .parity      = DL_SPI_PARITY_NONE,
@@ -213,15 +213,15 @@ static const DL_SPI_Config gSPI_1_config = {
     .bitOrder    = DL_SPI_BIT_ORDER_MSB_FIRST,
 };
 
-static const DL_SPI_ClockConfig gSPI_1_clockConfig = {
+static const DL_SPI_ClockConfig gCLOCK_SPI_clockConfig = {
     .clockSel    = DL_SPI_CLOCK_BUSCLK,
     .divideRatio = DL_SPI_CLOCK_DIVIDE_RATIO_1
 };
 
-SYSCONFIG_WEAK void SYSCFG_DL_SPI_1_init(void) {
-    DL_SPI_setClockConfig(SPI_1_INST, (DL_SPI_ClockConfig *) &gSPI_1_clockConfig);
+SYSCONFIG_WEAK void SYSCFG_DL_CLOCK_SPI_init(void) {
+    DL_SPI_setClockConfig(CLOCK_SPI_INST, (DL_SPI_ClockConfig *) &gCLOCK_SPI_clockConfig);
 
-    DL_SPI_init(SPI_1_INST, (DL_SPI_Config *) &gSPI_1_config);
+    DL_SPI_init(CLOCK_SPI_INST, (DL_SPI_Config *) &gCLOCK_SPI_config);
 
     /* Configure Controller mode */
     /*
@@ -229,14 +229,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_SPI_1_init(void) {
      *     outputBitRate = (spiInputClock) / ((1 + SCR) * 2)
      *     1000000 = (32000000)/((1 + 15) * 2)
      */
-    DL_SPI_setBitRateSerialClockDivider(SPI_1_INST, 15);
+    DL_SPI_setBitRateSerialClockDivider(CLOCK_SPI_INST, 15);
     /* Enable packing feature */
-    DL_SPI_enablePacking(SPI_1_INST);
+    DL_SPI_enablePacking(CLOCK_SPI_INST);
     /* Set RX and TX FIFO threshold levels */
-    DL_SPI_setFIFOThreshold(SPI_1_INST, DL_SPI_RX_FIFO_LEVEL_1_2_FULL, DL_SPI_TX_FIFO_LEVEL_1_2_EMPTY);
+    DL_SPI_setFIFOThreshold(CLOCK_SPI_INST, DL_SPI_RX_FIFO_LEVEL_1_2_FULL, DL_SPI_TX_FIFO_LEVEL_1_2_EMPTY);
 
     /* Enable module */
-    DL_SPI_enable(SPI_1_INST);
+    DL_SPI_enable(CLOCK_SPI_INST);
 }
 
 /* ADC_0 Initialization */

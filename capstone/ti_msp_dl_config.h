@@ -77,52 +77,52 @@ extern "C" {
 
 
 
-/* Defines for UART_1 */
-#define UART_1_INST                                                        UART1
-#define UART_1_INST_FREQUENCY                                           32000000
-#define UART_1_INST_IRQHandler                                  UART1_IRQHandler
-#define UART_1_INST_INT_IRQN                                      UART1_INT_IRQn
-#define GPIO_UART_1_RX_PORT                                                GPIOA
-#define GPIO_UART_1_TX_PORT                                                GPIOA
-#define GPIO_UART_1_RX_PIN                                         DL_GPIO_PIN_9
-#define GPIO_UART_1_TX_PIN                                         DL_GPIO_PIN_8
-#define GPIO_UART_1_IOMUX_RX                                     (IOMUX_PINCM20)
-#define GPIO_UART_1_IOMUX_TX                                     (IOMUX_PINCM19)
-#define GPIO_UART_1_IOMUX_RX_FUNC                      IOMUX_PINCM20_PF_UART1_RX
-#define GPIO_UART_1_IOMUX_TX_FUNC                      IOMUX_PINCM19_PF_UART1_TX
-#define UART_1_BAUD_RATE                                                (115200)
-#define UART_1_IBRD_32_MHZ_115200_BAUD                                      (17)
-#define UART_1_FBRD_32_MHZ_115200_BAUD                                      (23)
+/* Defines for RPI_UART */
+#define RPI_UART_INST                                                      UART1
+#define RPI_UART_INST_FREQUENCY                                         32000000
+#define RPI_UART_INST_IRQHandler                                UART1_IRQHandler
+#define RPI_UART_INST_INT_IRQN                                    UART1_INT_IRQn
+#define GPIO_RPI_UART_RX_PORT                                              GPIOA
+#define GPIO_RPI_UART_TX_PORT                                              GPIOA
+#define GPIO_RPI_UART_RX_PIN                                       DL_GPIO_PIN_9
+#define GPIO_RPI_UART_TX_PIN                                       DL_GPIO_PIN_8
+#define GPIO_RPI_UART_IOMUX_RX                                   (IOMUX_PINCM20)
+#define GPIO_RPI_UART_IOMUX_TX                                   (IOMUX_PINCM19)
+#define GPIO_RPI_UART_IOMUX_RX_FUNC                    IOMUX_PINCM20_PF_UART1_RX
+#define GPIO_RPI_UART_IOMUX_TX_FUNC                    IOMUX_PINCM19_PF_UART1_TX
+#define RPI_UART_BAUD_RATE                                              (115200)
+#define RPI_UART_IBRD_32_MHZ_115200_BAUD                                    (17)
+#define RPI_UART_FBRD_32_MHZ_115200_BAUD                                    (23)
 
 
 
 
-/* Defines for SPI_0 */
-#define SPI_0_INST                                                         SPI0
-#define SPI_0_INST_IRQHandler                                   SPI0_IRQHandler
-#define SPI_0_INST_INT_IRQN                                       SPI0_INT_IRQn
-#define GPIO_SPI_0_PICO_PORT                                              GPIOB
-#define GPIO_SPI_0_PICO_PIN                                      DL_GPIO_PIN_17
-#define GPIO_SPI_0_IOMUX_PICO                                   (IOMUX_PINCM43)
-#define GPIO_SPI_0_IOMUX_PICO_FUNC                   IOMUX_PINCM43_PF_SPI0_PICO
-/* GPIO configuration for SPI_0 */
-#define GPIO_SPI_0_SCLK_PORT                                              GPIOA
-#define GPIO_SPI_0_SCLK_PIN                                      DL_GPIO_PIN_12
-#define GPIO_SPI_0_IOMUX_SCLK                                   (IOMUX_PINCM34)
-#define GPIO_SPI_0_IOMUX_SCLK_FUNC                   IOMUX_PINCM34_PF_SPI0_SCLK
-/* Defines for SPI_1 */
-#define SPI_1_INST                                                         SPI1
-#define SPI_1_INST_IRQHandler                                   SPI1_IRQHandler
-#define SPI_1_INST_INT_IRQN                                       SPI1_INT_IRQn
-#define GPIO_SPI_1_PICO_PORT                                              GPIOB
-#define GPIO_SPI_1_PICO_PIN                                       DL_GPIO_PIN_8
-#define GPIO_SPI_1_IOMUX_PICO                                   (IOMUX_PINCM25)
-#define GPIO_SPI_1_IOMUX_PICO_FUNC                   IOMUX_PINCM25_PF_SPI1_PICO
-/* GPIO configuration for SPI_1 */
-#define GPIO_SPI_1_SCLK_PORT                                              GPIOB
-#define GPIO_SPI_1_SCLK_PIN                                       DL_GPIO_PIN_9
-#define GPIO_SPI_1_IOMUX_SCLK                                   (IOMUX_PINCM26)
-#define GPIO_SPI_1_IOMUX_SCLK_FUNC                   IOMUX_PINCM26_PF_SPI1_SCLK
+/* Defines for LED_SPI */
+#define LED_SPI_INST                                                       SPI0
+#define LED_SPI_INST_IRQHandler                                 SPI0_IRQHandler
+#define LED_SPI_INST_INT_IRQN                                     SPI0_INT_IRQn
+#define GPIO_LED_SPI_PICO_PORT                                            GPIOB
+#define GPIO_LED_SPI_PICO_PIN                                    DL_GPIO_PIN_17
+#define GPIO_LED_SPI_IOMUX_PICO                                 (IOMUX_PINCM43)
+#define GPIO_LED_SPI_IOMUX_PICO_FUNC                 IOMUX_PINCM43_PF_SPI0_PICO
+/* GPIO configuration for LED_SPI */
+#define GPIO_LED_SPI_SCLK_PORT                                            GPIOA
+#define GPIO_LED_SPI_SCLK_PIN                                    DL_GPIO_PIN_12
+#define GPIO_LED_SPI_IOMUX_SCLK                                 (IOMUX_PINCM34)
+#define GPIO_LED_SPI_IOMUX_SCLK_FUNC                 IOMUX_PINCM34_PF_SPI0_SCLK
+/* Defines for CLOCK_SPI */
+#define CLOCK_SPI_INST                                                     SPI1
+#define CLOCK_SPI_INST_IRQHandler                               SPI1_IRQHandler
+#define CLOCK_SPI_INST_INT_IRQN                                   SPI1_INT_IRQn
+#define GPIO_CLOCK_SPI_PICO_PORT                                          GPIOB
+#define GPIO_CLOCK_SPI_PICO_PIN                                   DL_GPIO_PIN_8
+#define GPIO_CLOCK_SPI_IOMUX_PICO                               (IOMUX_PINCM25)
+#define GPIO_CLOCK_SPI_IOMUX_PICO_FUNC               IOMUX_PINCM25_PF_SPI1_PICO
+/* GPIO configuration for CLOCK_SPI */
+#define GPIO_CLOCK_SPI_SCLK_PORT                                          GPIOB
+#define GPIO_CLOCK_SPI_SCLK_PIN                                   DL_GPIO_PIN_9
+#define GPIO_CLOCK_SPI_IOMUX_SCLK                               (IOMUX_PINCM26)
+#define GPIO_CLOCK_SPI_IOMUX_SCLK_FUNC               IOMUX_PINCM26_PF_SPI1_SCLK
 
 
 
@@ -143,9 +143,9 @@ void SYSCFG_DL_init(void);
 void SYSCFG_DL_initPower(void);
 void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
-void SYSCFG_DL_UART_1_init(void);
-void SYSCFG_DL_SPI_0_init(void);
-void SYSCFG_DL_SPI_1_init(void);
+void SYSCFG_DL_RPI_UART_init(void);
+void SYSCFG_DL_LED_SPI_init(void);
+void SYSCFG_DL_CLOCK_SPI_init(void);
 void SYSCFG_DL_ADC_0_init(void);
 
 bool SYSCFG_DL_saveConfiguration(void);
