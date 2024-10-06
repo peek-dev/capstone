@@ -11,7 +11,7 @@
 // TODO check that I counted right. 28 is how many squares should be lit for a queen in the middle.
 // So 28 + 2 (clear and commit) + 1 (leeway/different light for current square) should be good.
 #define QUEUE_SIZE (28+1+2)
-#define NUM_LEDS (64)
+#define NUM_LEDS (144)
 // Opt: SIMD-style set color by component, send multiple numbers? Possibly half as mem-intensive.
 static QueueHandle_t ledQueue;
 static Color state[NUM_LEDS];
@@ -29,7 +29,7 @@ typedef struct {
     Color color;
 } LED_Message;
 
-uint32_t prvPackFrame(Color *pColor) {
+__attribute__((noinline)) uint32_t prvPackFrame(Color *pColor) {
     // Initial frame tag, see the SK9822 datasheet.
     uint32_t result = 0b111 << (24+5);
     // Datasheet says: blue, green, red.
@@ -38,7 +38,8 @@ uint32_t prvPackFrame(Color *pColor) {
     result |= pColor->green      << 8;
     result |= pColor->red        << 0;
 
-    return result;
+    // Somehow the two chunks are getting flipped in transmission?
+    return (result >> 16) | (result << 16);
 }
 
 
@@ -73,7 +74,7 @@ BaseType_t xLED_commit() {
     m.type = led_commit;
     return xQueueSend(ledQueue, &m, portMAX_DELAY);
 }
-void prvTransmitFrame(uint32_t frame) {
+__attribute__((noinline)) void prvTransmitFrame(uint32_t frame) {
     // My own reimplementation of DL_SPI_transmitDataBlocking32,
     // but using yield instead of busy-wait.
     while (DL_SPI_isTXFIFOFull(LED_SPI_INST)) {
@@ -85,6 +86,7 @@ void prvLED_commit() {
     // As documented here: https://cpldcpu.wordpress.com/2016/12/13/sk9822-a-clone-of-the-apa102/
     // First, send a zero frame.
     prvTransmitFrame(0);
+    uint32_t temp;
     // Then, send a frame for every LED.
     for (uint8_t i = 0; i < NUM_LEDS; i++) {
         prvTransmitFrame(prvPackFrame(&state[i]));
@@ -101,6 +103,7 @@ void prvLED_commit() {
 
 BaseType_t xLED_Init(void) {
     prvLED_clear_board();
+    prvLED_commit();
 
     ledQueue = xQueueCreate(QUEUE_SIZE, sizeof(LED_Message));
     if (ledQueue == NULL) {

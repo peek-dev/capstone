@@ -24,10 +24,57 @@ void mainThread(void *arg0)
 
     xReturned = xLED_clear_board();
     while (xReturned != pdPASS) {}
-    Color color = {.brightness = 31, .red=255,.blue=0,.green=0};
-    for (uint8_t i = 0; i < 8; i++) {
+    Color color = {.brightness = 15, .red=255,.blue=0,.green=0};
+    for (uint8_t i = 0; i < 12; i++) {
+        if (i == 4) {
+            color.red = 0;
+            color.green = 255;
+            color.brightness = 15;
+        } else if (i == 8) {
+            color.green = 0;
+            color.blue = 255;
+            color.brightness = 15;
+        }
         xReturned = xLED_set_color(i, &color);
         while (xReturned != pdPASS) {}
+        color.brightness = (color.brightness + 1)/2 - 1;
+    }
+    xReturned = xLED_commit();
+
+    color.brightness = 15;
+    while (xReturned != pdPASS) {}
+    for (uint8_t i = 0; i < 12; i++) {
+        if (i == 4) {
+            color.blue = 0;
+            color.red = 255;
+            color.brightness = 15;
+        } else if (i == 8) {
+            color.red = 0;
+            color.green = 255;
+            color.brightness = 15;
+        }
+        xReturned = xLED_set_color(i, &color);
+        while (xReturned != pdPASS) {}
+        color.brightness = (color.brightness + 1)/2 - 1;
+    }
+    xReturned = xLED_commit();
+    while (xReturned != pdPASS) {}
+
+    color.brightness = 15;
+    while (xReturned != pdPASS) {}
+    for (uint8_t i = 0; i < 12; i++) {
+        if (i == 4) {
+            color.green = 0;
+            color.blue = 255;
+            color.brightness = 15;
+        } else if (i == 8) {
+            color.blue = 0;
+            color.red = 255;
+            color.brightness = 15;
+        }
+        xReturned = xLED_set_color(i, &color);
+        while (xReturned != pdPASS) {}
+        color.brightness = (color.brightness + 1)/2 - 1;
     }
     xReturned = xLED_commit();
     while (xReturned != pdPASS) {}
