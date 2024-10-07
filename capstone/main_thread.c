@@ -2,6 +2,7 @@
 #include <task.h>
 
 #include "led.h"
+#include "portmacro.h"
 
 void mainThread(void *arg0)
 {
@@ -22,62 +23,33 @@ void mainThread(void *arg0)
     while (xReturned != pdPASS) {}
     xReturned = xPortGetFreeHeapSize();
 
-    xReturned = xLED_clear_board();
-    while (xReturned != pdPASS) {}
-    Color color = {.brightness = 15, .red=255,.blue=0,.green=0};
-    for (uint8_t i = 0; i < 12; i++) {
-        if (i == 4) {
-            color.red = 0;
-            color.green = 255;
-            color.brightness = 15;
-        } else if (i == 8) {
-            color.green = 0;
-            color.blue = 255;
-            color.brightness = 15;
+    Color color = {.brightness = 31, .red=255,.blue=0,.green=0};
+    int8_t masks[3][3] = {{-1, 1, 0}, {0, -1, 1}, {1, 0, -1}};
+    uint8_t i = 0;
+    while (1) {
+        if (i == 3) {
+            i = 0;
         }
-        xReturned = xLED_set_color(i, &color);
-        while (xReturned != pdPASS) {}
-        color.brightness = (color.brightness + 1)/2 - 1;
-    }
-    xReturned = xLED_commit();
+        for (uint16_t j = 0; j < 255; j++) {
+            color.red += masks[i][0];
+            color.green += masks[i][1];
+            color.blue += masks[i][2];
+            color.brightness = 31;
 
-    color.brightness = 15;
-    while (xReturned != pdPASS) {}
-    for (uint8_t i = 0; i < 12; i++) {
-        if (i == 4) {
-            color.blue = 0;
-            color.red = 255;
-            color.brightness = 15;
-        } else if (i == 8) {
-            color.red = 0;
-            color.green = 255;
-            color.brightness = 15;
+            xReturned = xLED_clear_board();
+            while (xReturned != pdPASS) {}
+
+            for (uint8_t k = 0; k < 8; k++) {
+                xReturned = xLED_set_color(k, &color);
+                while (xReturned != pdPASS) {}
+                color.brightness -= 4;
+            }
+            xReturned = xLED_commit();
+            while (xReturned != pdPASS) {}
+
+            vTaskDelay(5 / portTICK_PERIOD_MS);
         }
-        xReturned = xLED_set_color(i, &color);
-        while (xReturned != pdPASS) {}
-        color.brightness = (color.brightness + 1)/2 - 1;
+        i++;
     }
-    xReturned = xLED_commit();
-    while (xReturned != pdPASS) {}
-
-    color.brightness = 15;
-    while (xReturned != pdPASS) {}
-    for (uint8_t i = 0; i < 12; i++) {
-        if (i == 4) {
-            color.green = 0;
-            color.blue = 255;
-            color.brightness = 15;
-        } else if (i == 8) {
-            color.blue = 0;
-            color.red = 255;
-            color.brightness = 15;
-        }
-        xReturned = xLED_set_color(i, &color);
-        while (xReturned != pdPASS) {}
-        color.brightness = (color.brightness + 1)/2 - 1;
-    }
-    xReturned = xLED_commit();
-    while (xReturned != pdPASS) {}
-
     vTaskDelete(NULL);
 }

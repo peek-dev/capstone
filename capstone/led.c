@@ -11,7 +11,7 @@
 // TODO check that I counted right. 28 is how many squares should be lit for a queen in the middle.
 // So 28 + 2 (clear and commit) + 1 (leeway/different light for current square) should be good.
 #define QUEUE_SIZE (28+1+2)
-#define NUM_LEDS (144)
+#define NUM_LEDS (8)
 // Opt: SIMD-style set color by component, send multiple numbers? Possibly half as mem-intensive.
 static QueueHandle_t ledQueue;
 static Color state[NUM_LEDS];
@@ -65,7 +65,7 @@ BaseType_t xLED_set_color(uint8_t num, Color *pColor) {
     m.color = *pColor;
     return xQueueSend(ledQueue, &m, portMAX_DELAY);
 }
-void prvLED_set_color(LED_Message *pMsg) {
+static void prvLED_set_color(LED_Message *pMsg) {
     state[pMsg->led_num] = pMsg->color;
 }
 
@@ -82,7 +82,7 @@ __attribute__((noinline)) void prvTransmitFrame(uint32_t frame) {
     }
     DL_SPI_transmitData32(LED_SPI_INST, frame);
 }
-void prvLED_commit() {
+static void prvLED_commit() {
     // As documented here: https://cpldcpu.wordpress.com/2016/12/13/sk9822-a-clone-of-the-apa102/
     // First, send a zero frame.
     prvTransmitFrame(0);
