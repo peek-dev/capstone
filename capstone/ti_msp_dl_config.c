@@ -40,9 +40,6 @@
 
 #include "ti_msp_dl_config.h"
 
-DL_SPI_backupConfig gLED_SPIBackup;
-DL_SPI_backupConfig gCLOCK_SPIBackup;
-
 /*
  *  ======== SYSCFG_DL_init ========
  *  Perform any initialization needed before using any board APIs
@@ -57,36 +54,9 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_LED_SPI_init();
     SYSCFG_DL_CLOCK_SPI_init();
     SYSCFG_DL_ADC_0_init();
-    /* Ensure backup structures have no valid state */
-
-	gLED_SPIBackup.backupRdy 	= false;
-	gCLOCK_SPIBackup.backupRdy 	= false;
-
-}
-/*
- * User should take care to save and restore register configuration in application.
- * See Retention Configuration section for more details.
- */
-SYSCONFIG_WEAK bool SYSCFG_DL_saveConfiguration(void)
-{
-    bool retStatus = true;
-
-	retStatus &= DL_SPI_saveConfiguration(LED_SPI_INST, &gLED_SPIBackup);
-	retStatus &= DL_SPI_saveConfiguration(CLOCK_SPI_INST, &gCLOCK_SPIBackup);
-
-    return retStatus;
 }
 
 
-SYSCONFIG_WEAK bool SYSCFG_DL_restoreConfiguration(void)
-{
-    bool retStatus = true;
-
-	retStatus &= DL_SPI_restoreConfiguration(LED_SPI_INST, &gLED_SPIBackup);
-	retStatus &= DL_SPI_restoreConfiguration(CLOCK_SPI_INST, &gCLOCK_SPIBackup);
-
-    return retStatus;
-}
 
 SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 {
@@ -174,7 +144,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_RPI_UART_init(void)
 
 static const DL_SPI_Config gLED_SPI_config = {
     .mode        = DL_SPI_MODE_CONTROLLER,
-    .frameFormat = DL_SPI_FRAME_FORMAT_MOTO3_POL1_PHA1,
+    .frameFormat = DL_SPI_FRAME_FORMAT_MOTO3_POL0_PHA0,
     .parity      = DL_SPI_PARITY_NONE,
     .dataSize    = DL_SPI_DATA_SIZE_16,
     .bitOrder    = DL_SPI_BIT_ORDER_MSB_FIRST,
@@ -194,9 +164,9 @@ SYSCONFIG_WEAK void SYSCFG_DL_LED_SPI_init(void) {
     /*
      * Set the bit rate clock divider to generate the serial output clock
      *     outputBitRate = (spiInputClock) / ((1 + SCR) * 2)
-     *     16000 = (32000000)/((1 + 999) * 2)
+     *     16000000 = (32000000)/((1 + 0) * 2)
      */
-    DL_SPI_setBitRateSerialClockDivider(LED_SPI_INST, 999);
+    DL_SPI_setBitRateSerialClockDivider(LED_SPI_INST, 0);
     /* Enable packing feature */
     DL_SPI_enablePacking(LED_SPI_INST);
     /* Set RX and TX FIFO threshold levels */
