@@ -29,7 +29,7 @@ typedef struct {
     Color color;
 } LED_Message;
 
-__attribute__((noinline)) uint32_t prvPackFrame(Color *pColor) {
+static uint32_t prvPackFrame(Color *pColor) {
     // Initial frame tag, see the SK9822 datasheet.
     uint32_t result = 0b111 << (24+5);
     // Datasheet says: blue, green, red.
@@ -74,7 +74,7 @@ BaseType_t xLED_commit() {
     m.type = led_commit;
     return xQueueSend(ledQueue, &m, portMAX_DELAY);
 }
-__attribute__((noinline)) void prvTransmitFrame(uint32_t frame) {
+static void prvTransmitFrame(uint32_t frame) {
     // My own reimplementation of DL_SPI_transmitDataBlocking32,
     // but using yield instead of busy-wait.
     while (DL_SPI_isTXFIFOFull(LED_SPI_INST)) {
