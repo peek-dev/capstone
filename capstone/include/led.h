@@ -1,8 +1,8 @@
 #ifndef CAPSTONE_LED_H
 #define CAPSTONE_LED_H
 
-// Unlike the APA102c, the SK9822 brightness option changes the current (and hence the power draw :D)
-// so it doesn't cause flickering.
+// Unlike the APA102c, the SK9822 brightness option changes the current (and
+// hence the power draw :D) so it doesn't cause flickering.
 typedef struct {
     // Warning: only 5 bits! Top 3 bits ignored.
     uint8_t brightness;

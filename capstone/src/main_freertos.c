@@ -51,16 +51,17 @@ static void prvSetupHardware(void);
 /*
  *  ======== main ========
  */
-int main(void)
-{
+int main(void) {
     TaskHandle_t thread;
     int xReturned;
 
     /* Prepare the hardware to run this demo. */
     prvSetupHardware();
 
-    xReturned = xTaskCreate(mainThread, "main", configMINIMAL_STACK_SIZE, NULL, 1, &thread);
-    while (xReturned != pdPASS) {}
+    xReturned = xTaskCreate(mainThread, "main", configMINIMAL_STACK_SIZE, NULL,
+                            1, &thread);
+    while (xReturned != pdPASS) {
+    }
     xReturned = xPortGetFreeHeapSize();
 
     /* Start the FreeRTOS scheduler */
@@ -68,14 +69,10 @@ int main(void)
 
     return (0);
 }
-static void prvSetupHardware(void)
-{
-    SYSCFG_DL_init();
-}
+static void prvSetupHardware(void) { SYSCFG_DL_init(); }
 /*-----------------------------------------------------------*/
 
-void vApplicationMallocFailedHook(void)
-{
+void vApplicationMallocFailedHook(void) {
     /*
      * vApplicationMallocFailedHook() will only be called if
      * configUSE_MALLOC_FAILED_HOOK is set to 1 in FreeRTOSConfig.h. It is a
@@ -95,8 +92,7 @@ void vApplicationMallocFailedHook(void)
 }
 /*-----------------------------------------------------------*/
 
-void vApplicationIdleHook(void)
-{
+void vApplicationIdleHook(void) {
     /*
      * vApplicationIdleHook() will only be called if configUSE_IDLE_HOOK is set
      * to 1 in FreeRTOSConfig.h.  It will be called on each iteration of the
@@ -114,25 +110,24 @@ void vApplicationIdleHook(void)
 
 #if (configCHECK_FOR_STACK_OVERFLOW)
 /*
-     *  ======== vApplicationStackOverflowHook ========
-     *  When stack overflow checking is enabled the application must provide a
-     *  stack overflow hook function. This default hook function is declared as
-     *  weak, and will be used by default, unless the application specifically
-     *  provides its own hook function.
-     */
+ *  ======== vApplicationStackOverflowHook ========
+ *  When stack overflow checking is enabled the application must provide a
+ *  stack overflow hook function. This default hook function is declared as
+ *  weak, and will be used by default, unless the application specifically
+ *  provides its own hook function.
+ */
 #if defined(__IAR_SYSTEMS_ICC__)
-__weak void vApplicationStackOverflowHook(
-    TaskHandle_t pxTask, char *pcTaskName)
+__weak void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName)
 #elif (defined(__TI_COMPILER_VERSION__))
 #pragma WEAK(vApplicationStackOverflowHook)
 void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName)
 #elif (defined(__GNUC__) || defined(__ti_version__))
-void __attribute__((weak))
-vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName)
+void __attribute__((weak)) vApplicationStackOverflowHook(TaskHandle_t pxTask,
+                                                         char *pcTaskName)
 #endif
 {
-    (void) pcTaskName;
-    (void) pxTask;
+    (void)pcTaskName;
+    (void)pxTask;
 
     /*
      * Run time stack overflow checking is performed if
