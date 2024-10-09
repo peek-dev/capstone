@@ -135,9 +135,15 @@ void ThreadExit(void);
  */
 void ThreadSleep(uint32_t ms);
 
-/**
- * A wrapper function to set up OS state, utilities, and timing, then begin 
- * executing a thread.
+/** 
+ * A wrapper function to set up critical OS device and state. Must be called
+ * **before** OS_Launch().
+ */
+void OS_Init(void);
+
+/** 
+ * A wrapper function to set up OS utilities and timing, then begin executing
+ * a thread. Must be called **after** OS_Init() and adding at least one task.
  *
  * NOTE: this function never returns.
  */
