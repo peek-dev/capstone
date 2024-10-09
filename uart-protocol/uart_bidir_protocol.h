@@ -17,6 +17,19 @@
 #define PACKET_TOTAL_SHIFT      1
 #define BEST_MOVE_SHIFT         0
 
+#define BW_FLAG_MASK            0x1
+#define SRC_FILE_MASK           0x7
+#define SRC_RANK_MASK           0x7
+#define SRC_PIECE_MASK          0x7
+#define DEST_FILE_MASK          0x7
+#define DEST_RANK_MASK          0x7
+#define DEST_PIECE_MASK         0x7
+#define CHECK_INFO_MASK         0x3
+
+#define PACKET_NUM_MASK         0x1f
+#define PACKET_TOTAL_MASK       0x1f
+#define BEST_MOVE_MASK          0x1
+
 typedef uint8_t chess_rank;
 
 /** 
@@ -71,10 +84,10 @@ typedef struct chess_uart_message {
     uint8_t best_move;
 } chess_message;
 
+uint32_t xencode_move(chess_message* message);
+
 chess_message* xdecode_for_rpi5(uint32_t bitstring);
 
 void vdecode_for_mspm0(uint32_t bitstring, chess_message* decoded_message);
-
-uint32_t xencode_move(chess_message* message);
 
 #endif
