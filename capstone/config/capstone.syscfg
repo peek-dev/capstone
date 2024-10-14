@@ -58,17 +58,17 @@ ADC121.adcPin2Config.$name = "ti_driverlib_gpio_GPIOPinGeneric6";
 
 GPIO1.$name                         = "MUX_GPIO";
 GPIO1.associatedPins.create(6);
-GPIO1.associatedPins[0].$name       = "PIN_0";
+GPIO1.associatedPins[0].$name       = "PIN_R_A0";
 GPIO1.associatedPins[0].pin.$assign = "boosterpack.40";
-GPIO1.associatedPins[1].$name       = "PIN_1";
+GPIO1.associatedPins[1].$name       = "PIN_R_A1";
 GPIO1.associatedPins[1].pin.$assign = "boosterpack.39";
-GPIO1.associatedPins[2].$name       = "PIN_2";
+GPIO1.associatedPins[2].$name       = "PIN_R_A2";
 GPIO1.associatedPins[2].pin.$assign = "boosterpack.38";
-GPIO1.associatedPins[3].$name       = "PIN_3";
+GPIO1.associatedPins[3].$name       = "PIN_C_A0";
 GPIO1.associatedPins[3].pin.$assign = "boosterpack.37";
-GPIO1.associatedPins[4].$name       = "PIN_4";
+GPIO1.associatedPins[4].$name       = "PIN_C_A1";
 GPIO1.associatedPins[4].pin.$assign = "boosterpack.36";
-GPIO1.associatedPins[5].$name       = "PIN_5";
+GPIO1.associatedPins[5].$name       = "PIN_C_A2";
 GPIO1.associatedPins[5].pin.$assign = "boosterpack.35";
 
 GPIO2.$name                               = "BUTTON_GPIO";

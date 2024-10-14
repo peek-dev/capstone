@@ -138,30 +138,30 @@ extern "C" {
 
 
 
-/* Defines for PIN_0: GPIOB.4 with pinCMx 17 on package pin 52 */
-#define MUX_GPIO_PIN_0_PORT                                              (GPIOB)
-#define MUX_GPIO_PIN_0_PIN                                       (DL_GPIO_PIN_4)
-#define MUX_GPIO_PIN_0_IOMUX                                     (IOMUX_PINCM17)
-/* Defines for PIN_1: GPIOB.1 with pinCMx 13 on package pin 48 */
-#define MUX_GPIO_PIN_1_PORT                                              (GPIOB)
-#define MUX_GPIO_PIN_1_PIN                                       (DL_GPIO_PIN_1)
-#define MUX_GPIO_PIN_1_IOMUX                                     (IOMUX_PINCM13)
-/* Defines for PIN_2: GPIOA.28 with pinCMx 3 on package pin 35 */
-#define MUX_GPIO_PIN_2_PORT                                              (GPIOA)
-#define MUX_GPIO_PIN_2_PIN                                      (DL_GPIO_PIN_28)
-#define MUX_GPIO_PIN_2_IOMUX                                      (IOMUX_PINCM3)
-/* Defines for PIN_3: GPIOA.31 with pinCMx 6 on package pin 39 */
-#define MUX_GPIO_PIN_3_PORT                                              (GPIOA)
-#define MUX_GPIO_PIN_3_PIN                                      (DL_GPIO_PIN_31)
-#define MUX_GPIO_PIN_3_IOMUX                                      (IOMUX_PINCM6)
-/* Defines for PIN_4: GPIOB.20 with pinCMx 48 on package pin 19 */
-#define MUX_GPIO_PIN_4_PORT                                              (GPIOB)
-#define MUX_GPIO_PIN_4_PIN                                      (DL_GPIO_PIN_20)
-#define MUX_GPIO_PIN_4_IOMUX                                     (IOMUX_PINCM48)
-/* Defines for PIN_5: GPIOB.13 with pinCMx 30 on package pin 1 */
-#define MUX_GPIO_PIN_5_PORT                                              (GPIOB)
-#define MUX_GPIO_PIN_5_PIN                                      (DL_GPIO_PIN_13)
-#define MUX_GPIO_PIN_5_IOMUX                                     (IOMUX_PINCM30)
+/* Defines for PIN_R_A0: GPIOB.4 with pinCMx 17 on package pin 52 */
+#define MUX_GPIO_PIN_R_A0_PORT                                           (GPIOB)
+#define MUX_GPIO_PIN_R_A0_PIN                                    (DL_GPIO_PIN_4)
+#define MUX_GPIO_PIN_R_A0_IOMUX                                  (IOMUX_PINCM17)
+/* Defines for PIN_R_A1: GPIOB.1 with pinCMx 13 on package pin 48 */
+#define MUX_GPIO_PIN_R_A1_PORT                                           (GPIOB)
+#define MUX_GPIO_PIN_R_A1_PIN                                    (DL_GPIO_PIN_1)
+#define MUX_GPIO_PIN_R_A1_IOMUX                                  (IOMUX_PINCM13)
+/* Defines for PIN_R_A2: GPIOA.28 with pinCMx 3 on package pin 35 */
+#define MUX_GPIO_PIN_R_A2_PORT                                           (GPIOA)
+#define MUX_GPIO_PIN_R_A2_PIN                                   (DL_GPIO_PIN_28)
+#define MUX_GPIO_PIN_R_A2_IOMUX                                   (IOMUX_PINCM3)
+/* Defines for PIN_C_A0: GPIOA.31 with pinCMx 6 on package pin 39 */
+#define MUX_GPIO_PIN_C_A0_PORT                                           (GPIOA)
+#define MUX_GPIO_PIN_C_A0_PIN                                   (DL_GPIO_PIN_31)
+#define MUX_GPIO_PIN_C_A0_IOMUX                                   (IOMUX_PINCM6)
+/* Defines for PIN_C_A1: GPIOB.20 with pinCMx 48 on package pin 19 */
+#define MUX_GPIO_PIN_C_A1_PORT                                           (GPIOB)
+#define MUX_GPIO_PIN_C_A1_PIN                                   (DL_GPIO_PIN_20)
+#define MUX_GPIO_PIN_C_A1_IOMUX                                  (IOMUX_PINCM48)
+/* Defines for PIN_C_A2: GPIOB.13 with pinCMx 30 on package pin 1 */
+#define MUX_GPIO_PIN_C_A2_PORT                                           (GPIOB)
+#define MUX_GPIO_PIN_C_A2_PIN                                   (DL_GPIO_PIN_13)
+#define MUX_GPIO_PIN_C_A2_IOMUX                                  (IOMUX_PINCM30)
 /* Defines for PIN_HINT: GPIOA.27 with pinCMx 60 on package pin 31 */
 #define BUTTON_GPIO_PIN_HINT_PORT                                        (GPIOA)
 // pins affected by this interrupt request:["PIN_HINT","PIN_START_RESTART","PIN_CLOCK_MODE","PIN_BLACK_MOVE","PIN_WHITE_MOVE"]
