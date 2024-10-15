@@ -1,6 +1,7 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include "config.h"
 #include "led.h"
 #include "portmacro.h"
 

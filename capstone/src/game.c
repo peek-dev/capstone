@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "config.h"
 #include "game.h"
 #include "assert.h"
 
