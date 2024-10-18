@@ -6,7 +6,7 @@
 /**
  * Constants for chessboard files.
  */
-typedef CHESS_FILE uint8_t;
+typedef uint8_t CHESS_FILE;
 
 #define FILE_A  ((uint8_t) 0)
 #define FILE_B  ((uint8_t) 1)
@@ -20,7 +20,7 @@ typedef CHESS_FILE uint8_t;
 /**
  * Constants for chessboard ranks.
  */
-typedef CHESS_RANK uint8_t;
+typedef uint8_t CHESS_RANK;
 
 #define RANK_1  ((uint8_t) 0)
 #define RANK_2  ((uint8_t) 1)
@@ -34,7 +34,7 @@ typedef CHESS_RANK uint8_t;
 /**
  * Constants for chess piece types ("ptypes")
  */
-typedef PTYPE uint8_t;
+typedef uint8_t PTYPE;
 
 #define PTYPE_NULL      ((uint8_t) 0x0)
 #define PTYPE_NULL_ALT  ((uint8_t) 0x4)
@@ -58,7 +58,7 @@ typedef PTYPE uint8_t;
 /**
  * Constants for encoded move types ("mtypes")
  */
-typedef MTYPE uint8_t;
+typedef uint8_t MTYPE;
 
 #define MTYPE_NORMAL            ((uint8_t) 0)
 #define MTYPE_CHECK             ((uint8_t) 1)
@@ -68,7 +68,7 @@ typedef MTYPE uint8_t;
 /**
  * Constants for button events
  */
-typedef BUTTON_EVENT uint8_t;
+typedef uint8_t BUTTON_EVENT;
 
 #define BUTTON_START    ((uint8_t) 0)
 #define BUTTON_RESTART  ((uint8_t) 1)
@@ -81,27 +81,27 @@ typedef BUTTON_EVENT uint8_t;
  */
 #define SRC_FILE_SHIFT                  29
 #define SRC_FILE_MASK                   (((uint32_t) 0x7) << SRC_FILE_SHIFT)
-#define GET_SRC_FILE((uint32_t) word)   (uint8_t) ( ((word & SRC_FILE_MASK) >> SRC_FILE_SHIFT) & 0x7 )
+#define GET_SRC_FILE(word)   (uint8_t) ( ((word & SRC_FILE_MASK) >> SRC_FILE_SHIFT) & 0x7 )
 
 #define SRC_RANK_SHIFT                  26
 #define SRC_RANK_MASK                   (((uint32_t) 0x7) << SRC_RANK_SHIFT)
-#define GET_SRC_RANK((uint32_t) word)   (uint8_t) ( ((word & SRC_RANK_MASK) >> SRC_RANK_SHIFT) & 0x7 )
+#define GET_SRC_RANK(word)   (uint8_t) ( ((word & SRC_RANK_MASK) >> SRC_RANK_SHIFT) & 0x7 )
 
 #define DEST_FILE_SHIFT                 23
 #define DEST_FILE_MASK                  (((uint32_t) 0x7) << DEST_FILE_SHIFT)
-#define GET_DEST_FILE((uint32_t) word)  (uint8_t) ( ((word & DEST_FILE_MASK) >> DEST_FILE_SHIFT) & 0x7 )
+#define GET_DEST_FILE(word)  (uint8_t) ( ((word & DEST_FILE_MASK) >> DEST_FILE_SHIFT) & 0x7 )
 
 #define DEST_RANK_SHIFT                 20
 #define DEST_RANK_MASK                  (((uint32_t) 0x7) << DEST_RANK_SHIFT)
-#define GET_DEST_RANK((uint32_t) word)  (uint8_t) ( ((word & DEST_RANK_MASK) >> DEST_RANK_SHIFT) & 0x7 )
+#define GET_DEST_RANK(word)  (uint8_t) ( ((word & DEST_RANK_MASK) >> DEST_RANK_SHIFT) & 0x7 )
 
 #define PTYPE_SHIFT                     17
 #define PTYPE_MASK                      (((uint32_t) 0x7) << PTYPE_SHIFT)
-#define GET_PTYPE((uint32_t) word)      (uint8_t) ( ((word & PTYPE_MASK) >> PTYPE_SHIFT) & 0x7 )
+#define GET_PTYPE(word)      (uint8_t) ( ((word & PTYPE_MASK) >> PTYPE_SHIFT) & 0x7 )
 
 #define M2_SHIFT                        16
 #define M2_MASK                         ((uint32_t) 0x1 << M2_SHIFT)
-#define GET_M2((uint32_t) word)         (uint8_t) ( ((word & M2_MASK) >> M2_SHIFT) & 0x1 )
+#define GET_M2(word)         (uint8_t) ( ((word & M2_MASK) >> M2_SHIFT) & 0x1 )
 
 /** 
  * Constants (shifts and masks) for parts of lower 16 bits of 32-bit UART
@@ -109,19 +109,19 @@ typedef BUTTON_EVENT uint8_t;
  */
 #define M2_SRC_FILE_SHIFT       13
 #define M2_SRC_FILE_MASK        ((uint32_t) 0x7 << M2_SRC_FILE_SHIFT)
-#define GET_M2_SRC_FILE((uint32_t) word)        (uint8_t) ( ((word & M2_SRC_FILE_MASK) >> M2_SRC_FILE_SHIFT) & 0x7)
+#define GET_M2_SRC_FILE(word)        (uint8_t) ( ((word & M2_SRC_FILE_MASK) >> M2_SRC_FILE_SHIFT) & 0x7)
 
 #define M2_SRC_RANK_SHIFT       10
 #define M2_SRC_RANK_MASK        ((uint32_t) 0x7 << M2_SRC_RANK_SHIFT)
-#define GET_M2_SRC_RANK((uint32_t) word)        (uint8_t) ( ((word & M2_SRC_RANK_MASK) >> M2_SRC_RANK_SHIFT) & 0x7)
+#define GET_M2_SRC_RANK(word)        (uint8_t) ( ((word & M2_SRC_RANK_MASK) >> M2_SRC_RANK_SHIFT) & 0x7)
 
 #define M2_DEST_FILE_SHIFT      7
 #define M2_DEST_FILE_MASK       ((uint32_t) 0x7 << M2_DEST_FILE_SHIFT)
-#define GET_M2_DEST_FILE((uint32_t) word)        (uint8_t) ( ((word & M2_DEST_FILE_MASK) >> M2_DEST_FILE_SHIFT) & 0x7)
+#define GET_M2_DEST_FILE(word)        (uint8_t) ( ((word & M2_DEST_FILE_MASK) >> M2_DEST_FILE_SHIFT) & 0x7)
 
 #define M2_DEST_RANK_SHIFT      4
 #define M2_DEST_RANK_MASK       ((uint32_t) 0x7 << M2_DEST_RANK_SHIFT)
-#define GET_M2_DEST_RANK((uint32_t) word)        (uint8_t) ( ((word & M2_DEST_RANK_MASK) >> M2_DEST_RANK_SHIFT) & 0x7)
+#define GET_M2_DEST_RANK(word)        (uint8_t) ( ((word & M2_DEST_RANK_MASK) >> M2_DEST_RANK_SHIFT) & 0x7)
 
 /** 
  * Constants (shifts and masks) and associated macros for lowest-order 4 bits
@@ -132,19 +132,19 @@ typedef BUTTON_EVENT uint8_t;
  */
 #define MTYPE_SHIFT                             2
 #define MTYPE_MASK                              ((uint32_t) 0x3 << MTYPE_SHIFT)
-#define GET_MTYPE((uint32_t) word)              (uint32_t) ( ((word & MTYPE_MASK) >> MTYPE_SHIFT) & 0x3 )
+#define GET_MTYPE(word)              (uint8_t) ( ((word & MTYPE_MASK) >> MTYPE_SHIFT) & 0x3 )
 
 #define M2_PTYPE_SHIFT                          1
 #define M2_PTYPE_MASK                           ((uint32_t) 0x2)
-#define GET_M2_PTYPE((uint32_t) word)           (uint8_t) ( ((word & M2_PTYPE_MASK) >> 1) & 0x1 )
+#define GET_M2_PTYPE(word)           (uint8_t) ( ((word & M2_PTYPE_MASK) >> 1) & 0x1 )
 
-#define IS_LAST_MOVE((uint32_t) word)           ((uint8_t) word & 0x1)
+#define IS_LAST_MOVE(word)           ((uint8_t) word & 0x1)
 
-#define CHECK_UNDO_BW((uint32_t) word)          (((uint8_t) word >> 3) & 0x1)
+#define CHECK_UNDO_BW(word)          (((uint8_t) word >> 3) & 0x1)
 
-#define GET_UNDO_PTYPE((uint32_t) word)         ((uint8_t) word & 0x7)
+#define GET_UNDO_PTYPE(word)         ((uint8_t) word & 0x7)
 
-#define CHECK_BTN_EVENT((uint32_t) word)        ((uint8_t) word & 0x3)
+#define CHECK_BTN_EVENT(word)        ((uint8_t) word & 0x3)
 
 /**
  * Encoding and decoding interface for MSPM0
@@ -206,7 +206,9 @@ void vdecode_move_for_msp(uint32_t word, rpi_move* move);
 
 void vdecode_undo_for_msp(uint32_t word, rpi_undo* undo);
 
-void vsend_packet_to_rpi(uint32_t word);
+void vsend_packet_common(uint32_t word, int fd);
+
+uint32_t xrecv_packet_common(int fd);
 
 /**
  * Encoding and decoding interface for RPi5
@@ -218,6 +220,6 @@ uint32_t xencode_undo_for_msp(rpi_undo* undo);
 
 void vdecode_packet_for_rpi(uint32_t word, msp_packet* packet);
 
-void vsend_packet_to_msp(uint32_t word);
+void vsend_packet_to_msp(uint32_t word, int fd);
 
 #endif

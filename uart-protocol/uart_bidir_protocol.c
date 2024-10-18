@@ -1,5 +1,5 @@
 #include "uart_bidir_protocol.h"
-#include <stdlib.h>
+#include <unistd.h>
 
 /**
  * MSPM0 interface implementation
@@ -71,9 +71,24 @@ void vdecode_undo_for_msp(uint32_t word, rpi_undo* undo) {
     undo->undone_ptype = GET_UNDO_PTYPE(word);
 }
 
-void vsend_packet_to_rpi(uint32_t word) {
-    // TODO: modify for testing to include fd/FILE*
-    return; 
+void vsend_packet_common(uint32_t word, int fd) {
+    for (int i = 0; i < 4; i += 1) {
+        uint8_t next_word = (uint8_t) (word & 0xFF);
+        write(fd, &next_word, 1); // Placeholder for device-specific UART write callback
+        word >>= 8;
+    }
+}
+
+uint32_t xrecv_packet_common(int fd) {
+    uint32_t received_word = 0;
+
+    uint8_t next_word = 0;
+    for (int i = 0; i < 4; i += 1) {
+        read(fd, &next_word, 1); // Placeholder for device-specific UART read callback
+        received_word = (received_word | next_word) << 8;
+    }
+
+    return received_word;
 }
 
 /**
@@ -93,24 +108,24 @@ uint32_t xencode_move_for_msp(rpi_move* move) {
     encoded_word |= ( ((uint32_t) move->m2_dest_rank) << M2_DEST_RANK_SHIFT );
     encoded_word |= ( ((uint32_t) move->mtype) << MTYPE_SHIFT );
     encoded_word |= ( ((uint32_t) move->m2_ptype) << M2_PTYPE_SHIFT );
-    encoded_word |= last;
+    encoded_word |= move->last;
     return encoded_word;
 }
 
 uint32_t xencode_undo_for_msp(rpi_undo* undo) {
     uint32_t encoded_word = 0;
-    encoded_word |= ( ((uint32_t) move->src_file) << SRC_FILE_SHIFT );
-    encoded_word |= ( ((uint32_t) move->src_rank) << SRC_RANK_SHIFT );
-    encoded_word |= ( ((uint32_t) move->dest_file) << DEST_FILE_SHIFT );
-    encoded_word |= ( ((uint32_t) move->dest_rank) << DEST_RANK_SHIFT );
-    encoded_word |= ( ((uint32_t) move->ptype) << PTYPE_SHIFT );
-    encoded_word |= ( ((uint32_t) move->m2) << M2_SHIFT );
-    encoded_word |= ( ((uint32_t) move->m2_src_file) << M2_SRC_FILE_SHIFT );
-    encoded_word |= ( ((uint32_t) move->m2_src_rank) << M2_SRC_RANK_SHIFT );
-    encoded_word |= ( ((uint32_t) move->m2_dest_file) << M2_DEST_FILE_SHIFT );
-    encoded_word |= ( ((uint32_t) move->m2_dest_rank) << M2_DEST_RANK_SHIFT );
-    encoded_word |= ( ((uint32_t) move->bw_flag) << 0x3 );
-    encoded_word |= ((uint32_t) move->undone_ptype);
+    encoded_word |= ( ((uint32_t) undo->src_file) << SRC_FILE_SHIFT );
+    encoded_word |= ( ((uint32_t) undo->src_rank) << SRC_RANK_SHIFT );
+    encoded_word |= ( ((uint32_t) undo->dest_file) << DEST_FILE_SHIFT );
+    encoded_word |= ( ((uint32_t) undo->dest_rank) << DEST_RANK_SHIFT );
+    encoded_word |= ( ((uint32_t) undo->ptype) << PTYPE_SHIFT );
+    encoded_word |= ( ((uint32_t) undo->m2) << M2_SHIFT );
+    encoded_word |= ( ((uint32_t) undo->m2_src_file) << M2_SRC_FILE_SHIFT );
+    encoded_word |= ( ((uint32_t) undo->m2_src_rank) << M2_SRC_RANK_SHIFT );
+    encoded_word |= ( ((uint32_t) undo->m2_dest_file) << M2_DEST_FILE_SHIFT );
+    encoded_word |= ( ((uint32_t) undo->m2_dest_rank) << M2_DEST_RANK_SHIFT );
+    encoded_word |= ( ((uint32_t) undo->bw_flag) << 0x3 );
+    encoded_word |= ((uint32_t) undo->undone_ptype);
     return encoded_word;
 }
 
@@ -124,7 +139,3 @@ void vdecode_packet_for_rpi(uint32_t word, msp_packet* packet) {
     packet->button_event = CHECK_BTN_EVENT(word);
 }
 
-void vsend_packet_to_msp(uint32_t word) {
-    // TODO: modify for testing to include fd/FILE*
-    return;
-}
