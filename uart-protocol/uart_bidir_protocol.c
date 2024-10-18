@@ -71,20 +71,24 @@ void vdecode_undo_for_msp(uint32_t word, rpi_undo* undo) {
     undo->undone_ptype = GET_UNDO_PTYPE(word);
 }
 
-void vsend_packet_common(uint32_t word, int fd) {
+ssize_t xsend_packet_common(uint32_t word, int fd) {
+    ssize_t transmitted = 0;
+
     for (int i = 0; i < 4; i += 1) {
         uint8_t next_word = (uint8_t) (word & 0xFF);
-        write(fd, &next_word, 1); // Placeholder for device-specific UART write callback
+        transmitted += write(fd, &next_word, 1); // Placeholder for device-specific UART write callback
         word >>= 8;
     }
+
+    return transmitted;
 }
 
-uint32_t xrecv_packet_common(int fd) {
+uint32_t xrecv_packet_common(int fd, ssize_t* received) {
     uint32_t received_word = 0;
 
     uint8_t next_word = 0;
     for (int i = 0; i < 4; i += 1) {
-        read(fd, &next_word, 1); // Placeholder for device-specific UART read callback
+        *received += read(fd, &next_word, 1); // Placeholder for device-specific UART read callback
         received_word = (received_word | next_word) << 8;
     }
 

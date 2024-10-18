@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <stdlib.h> // for ssize_t
 
 #ifndef __MSPM0_RPI5_UART_BIDIR_PROTOCOL_H__
 #define __MSPM0_RPI5_UART_BIDIR_PROTOCOL_H__
@@ -206,9 +207,9 @@ void vdecode_move_for_msp(uint32_t word, rpi_move* move);
 
 void vdecode_undo_for_msp(uint32_t word, rpi_undo* undo);
 
-void vsend_packet_common(uint32_t word, int fd);
+ssize_t xsend_packet_common(uint32_t word, int fd);
 
-uint32_t xrecv_packet_common(int fd);
+uint32_t xrecv_packet_common(int fd, ssize_t* received);
 
 /**
  * Encoding and decoding interface for RPi5
@@ -219,7 +220,5 @@ uint32_t xencode_move_for_msp(rpi_move* move);
 uint32_t xencode_undo_for_msp(rpi_undo* undo);
 
 void vdecode_packet_for_rpi(uint32_t word, msp_packet* packet);
-
-void vsend_packet_to_msp(uint32_t word, int fd);
 
 #endif

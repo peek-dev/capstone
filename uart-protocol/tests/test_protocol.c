@@ -153,19 +153,21 @@ int main() {
         int pi_write_end = msp_via_pi_fds[1];
 
         /* BEGIN next testing */
+        ssize_t received = 0;
 
         /* Test 9c: read start packet from MSP */
-        uint32_t recvd_start_packet = xrecv_packet_common(pi_read_end);
+        uint32_t recvd_start_packet = xrecv_packet_common(pi_read_end, &received);
 
         for (int i = 0; i < 20; i += 1) { fprintf(stderr, "="); } fprintf(stderr, "\n");
-        fprintf(stderr, "PI: received 0x%08x.\n", recvd_start_packet);
+        fprintf(stderr, "PI: received 0x%08x (%ld byte(s)).\n", recvd_start_packet, received);
         for (int i = 0; i < 20; i += 1) { fprintf(stderr, "="); } fprintf(stderr, "\n");
 
         /* Test 10c: read restart packet from MSP */
-        uint32_t recvd_restart_packet = xrecv_packet_common(pi_read_end);
+        received = 0;
+        uint32_t recvd_restart_packet = xrecv_packet_common(pi_read_end, &received);
 
         for (int i = 0; i < 20; i += 1) { fprintf(stderr, "="); } fprintf(stderr, "\n");
-        fprintf(stderr, "PI: received 0x%08x.\n", recvd_restart_packet);
+        fprintf(stderr, "PI: received 0x%08x (%ld byte(s)).\n", recvd_restart_packet, received);
         for (int i = 0; i < 20; i += 1) { fprintf(stderr, "="); } fprintf(stderr, "\n");
 
         // Epilogue code: close remaining resources and exit
@@ -181,7 +183,8 @@ int main() {
         int msp_write_end = pi_via_msp_fds[1];
 
         /* BEGIN next testing */
-        
+        ssize_t sent = 0;
+
         /* Case 9p: write start packet to RPI */
         uint32_t tested_start_packet = xencode_start_for_rpi();
 
@@ -189,7 +192,10 @@ int main() {
         fprintf(stderr, "MSP: sending 0x%08x.\n", tested_start_packet);
         for (int i = 0; i < 20; i += 1) { fprintf(stderr, "="); } fprintf(stderr, "\n");
 
-        vsend_packet_common(tested_start_packet, msp_write_end);
+        sent = xsend_packet_common(tested_start_packet, msp_write_end);
+        for (int i = 0; i < 20; i += 1) { fprintf(stderr, "="); } fprintf(stderr, "\n");
+        fprintf(stderr, "MSP: wrote %ld byte(s).\n", sent);
+        for (int i = 0; i < 20; i += 1) { fprintf(stderr, "="); } fprintf(stderr, "\n");
 
         /* Case 10p: write restart packet to RPI */
         uint32_t tested_restart_packet = xencode_restart_for_rpi();
@@ -198,7 +204,10 @@ int main() {
         fprintf(stderr, "MSP: sending 0x%08x.\n", tested_restart_packet);
         for (int i = 0; i < 20; i += 1) { fprintf(stderr, "="); } fprintf(stderr, "\n");
 
-        vsend_packet_common(tested_restart_packet, msp_write_end);
+        sent = xsend_packet_common(tested_restart_packet, msp_write_end);
+        for (int i = 0; i < 20; i += 1) { fprintf(stderr, "="); } fprintf(stderr, "\n");
+        fprintf(stderr, "MSP: wrote %ld byte(s).\n", sent);
+        for (int i = 0; i < 20; i += 1) { fprintf(stderr, "="); } fprintf(stderr, "\n");
 
         // Epilogue code: close remaining resources and wait on child
         close(msp_read_end);
