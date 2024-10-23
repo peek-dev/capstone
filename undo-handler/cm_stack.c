@@ -54,7 +54,7 @@ uint32_t cm_stack_pop(cm_stack_t* stack) {
     return popped_data;
 }
 
-void cm_stack_destroy(cm_stack* stack) {
+void cm_stack_destroy(cm_stack_t* stack) {
     stack->nodecount = 0;
 
     if (stack->top == NULL) {

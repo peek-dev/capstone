@@ -27,7 +27,7 @@ typedef struct cm_stack_t_struct cm_stack_t;
  * containing fields for the top node (for easy constant-time pushing/popping)
  * and nodecount (for corner case handling).
  */
-typedef struct cm_stack_t_struct cm_stack_t {
+typedef struct cm_stack_t_struct {
     cm_node_t* top;
     int nodecount;
 } cm_stack_t;
@@ -53,6 +53,6 @@ uint32_t cm_stack_pop(cm_stack_t* stack);
 /**
  * Clean up and free a stack and its associated heap space.
  */
-void cm_stack_destroy(cm_stack* stack);
+void cm_stack_destroy(cm_stack_t* stack);
 
 #endif
