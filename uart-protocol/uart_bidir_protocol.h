@@ -207,9 +207,9 @@ void vdecode_move_for_msp(uint32_t word, rpi_move* move);
 
 void vdecode_undo_for_msp(uint32_t word, rpi_undo* undo);
 
-ssize_t xsend_packet_common(uint32_t word, int fd);
+void vsend_packet_common(void* arg, uint32_t word, void (*send_func)(void*, uint32_t));
 
-uint32_t xrecv_packet_common(int fd, ssize_t* received);
+uint32_t xrecv_packet_common(void* arg, uint32_t(*recv_func)(void*));
 
 /**
  * Encoding and decoding interface for RPi5

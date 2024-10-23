@@ -71,5 +71,6 @@ void cm_stack_destroy(cm_stack_t* stack) {
         destroyed_node = next_node;
     } while (destroyed_node != NULL);
 
+    stack->top = NULL;
     free(stack);
 }

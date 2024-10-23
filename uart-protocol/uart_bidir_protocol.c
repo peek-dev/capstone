@@ -1,5 +1,65 @@
 #include "uart_bidir_protocol.h"
-#include <unistd.h>
+
+#ifdef IS_MSP
+// TODO: include TI driverlib "dl_uart.h"
+#endif
+
+#ifdef IS_RPI
+#include <stdio.h>
+#endif
+
+extern void DL_UART_transmitDataBlocking(UART_Regs* uart, uint8_t data);
+
+extern uint8_t DL_UART_receiveDataBlocking(UART_Regs* uart);
+
+/**
+ * Wrapper functions for MSP UART transmit and receive
+ */
+static void vMSP_UART_xmit_wrapper(void* uart_ptr, uint32_t word) {
+    UART_Regs* regs = (UART_Regs*) uart_ptr;
+    uint8_t next_word = 0;
+
+    for (int i = 0; i < 4; i += 1) {
+        next_word = (uint8_t) ((word >> (i*8)) & 0xFF);
+        DL_UART_transmitDataBlocking(regs, word);
+    }
+}
+
+static uint32_t xMSP_UART_recv_wrapper(void* uart_ptr) {
+    UART_Regs* regs = (UART_Regs*) uart_ptr;
+    uint32_t full_word = 0;
+    uint8_t next_word = 0;
+
+    for (int i = 0; i < 4; i += 1) {
+        next_word = DL_UART_receiveDataBlocking(regs);
+        full_word |= (((uint32_t) next_word) & 0xFF) << (i * 8);
+    }
+
+    return full_word;
+}
+
+static void vRPI5_UART_xmit_wrapper(void* uart_fileptr, uint32_t word) {
+    FILE* uart_filestream = (FILE*) uart_fileptr;
+    uint8_t next_word = 0;
+
+    for (int i = 0; i < 4; i += 1) {
+        next_word = (uint8_t) ((word >> (i*8)) & 0xFF);
+        fwrite(&next_word, sizeof(char), 1, uart_filestream);
+    }
+}
+
+static uint32_t vRPI5_UART_recv_wrapper(void* uart_fileptr) {
+    FILE* uart_filestream = (FILE*) uart_fileptr;
+    uint32_t full_word = 0;
+    uint8_t next_word = 0;
+
+    for (int i = 0; i < 4; i += 1) {
+        fread(&next_word, sizeof(char), 1, uart_filestream);
+        full_word |= (((uint32_t) next_word) & 0xFF) << (i * 8);
+    }
+
+    return full_word;
+}
 
 /**
  * MSPM0 interface implementation
@@ -71,28 +131,12 @@ void vdecode_undo_for_msp(uint32_t word, rpi_undo* undo) {
     undo->undone_ptype = GET_UNDO_PTYPE(word);
 }
 
-ssize_t xsend_packet_common(uint32_t word, int fd) {
-    ssize_t transmitted = 0;
-
-    for (int i = 0; i < 4; i += 1) {
-        uint8_t next_word = (uint8_t) (word & 0xFF);
-        transmitted += write(fd, &next_word, 1); // Placeholder for device-specific UART write callback
-        word >>= 8;
-    }
-
-    return transmitted;
+void vsend_packet_common(void* arg, uint32_t word, (void)(*send_func)(void*, uint32_t)) {
+    send_func(arg, word);
 }
 
-uint32_t xrecv_packet_common(int fd, ssize_t* received) {
-    uint32_t received_word = 0;
-
-    uint8_t next_word = 0;
-    for (int i = 0; i < 4; i += 1) {
-        *received += read(fd, &next_word, 1); // Placeholder for device-specific UART read callback
-        received_word = (received_word | next_word) << 8;
-    }
-
-    return received_word;
+uint32_t xrecv_packet_common(void* arg, uint32_t (*recv_func)(void*)) {
+    return recv_func(arg);
 }
 
 /**
