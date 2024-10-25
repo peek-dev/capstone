@@ -24,6 +24,8 @@ const SPI           = scripting.addModule("/ti/driverlib/SPI", {}, false);
 const SPI1          = SPI.addInstance();
 const SPI2          = SPI.addInstance();
 const SYSCTL        = scripting.addModule("/ti/driverlib/SYSCTL");
+const TIMER         = scripting.addModule("/ti/driverlib/TIMER", {}, false);
+const TIMER1        = TIMER.addInstance();
 const UART          = scripting.addModule("/ti/driverlib/UART", {}, false);
 const UART1         = UART.addInstance();
 const ProjectConfig = scripting.addModule("/ti/project_config/ProjectConfig");
@@ -171,6 +173,11 @@ SPI2.mosiPinConfig.onlyInternalResistor = scripting.forceWrite(false);
 SPI2.mosiPinConfig.passedPeripheralType = scripting.forceWrite("Digital");
 SPI2.mosiPinConfig.$name                = "ti_driverlib_gpio_GPIOPinGeneric5";
 
+
+TIMER1.$name              = "SENSOR_DELAY_TIMER";
+TIMER1.timerPeriod        = "150 us";
+TIMER1.interrupts         = ["ZERO"];
+TIMER1.peripheral.$assign = "TIMG0";
 
 UART1.targetBaudRate                   = 115200;
 UART1.$name                            = "RPI_UART";

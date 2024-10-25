@@ -77,6 +77,14 @@ extern "C" {
 
 
 
+/* Defines for SENSOR_DELAY_TIMER */
+#define SENSOR_DELAY_TIMER_INST                                          (TIMG0)
+#define SENSOR_DELAY_TIMER_INST_IRQHandler                        TIMG0_IRQHandler
+#define SENSOR_DELAY_TIMER_INST_INT_IRQN                        (TIMG0_INT_IRQn)
+#define SENSOR_DELAY_TIMER_INST_LOAD_VALUE                                 (4799U)
+
+
+
 /* Defines for RPI_UART */
 #define RPI_UART_INST                                                      UART0
 #define RPI_UART_INST_FREQUENCY                                         32000000
@@ -219,6 +227,7 @@ void SYSCFG_DL_init(void);
 void SYSCFG_DL_initPower(void);
 void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
+void SYSCFG_DL_SENSOR_DELAY_TIMER_init(void);
 void SYSCFG_DL_RPI_UART_init(void);
 void SYSCFG_DL_LED_SPI_init(void);
 void SYSCFG_DL_CLOCK_SPI_init(void);

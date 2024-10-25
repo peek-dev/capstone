@@ -50,6 +50,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_GPIO_init();
     /* Module-Specific Initializations*/
     SYSCFG_DL_SYSCTL_init();
+    SYSCFG_DL_SENSOR_DELAY_TIMER_init();
     SYSCFG_DL_RPI_UART_init();
     SYSCFG_DL_LED_SPI_init();
     SYSCFG_DL_CLOCK_SPI_init();
@@ -62,6 +63,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 {
     DL_GPIO_reset(GPIOA);
     DL_GPIO_reset(GPIOB);
+    DL_TimerG_reset(SENSOR_DELAY_TIMER_INST);
     DL_UART_Main_reset(RPI_UART_INST);
     DL_SPI_reset(LED_SPI_INST);
     DL_SPI_reset(CLOCK_SPI_INST);
@@ -69,6 +71,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 
     DL_GPIO_enablePower(GPIOA);
     DL_GPIO_enablePower(GPIOB);
+    DL_TimerG_enablePower(SENSOR_DELAY_TIMER_INST);
     DL_UART_Main_enablePower(RPI_UART_INST);
     DL_SPI_enablePower(LED_SPI_INST);
     DL_SPI_enablePower(CLOCK_SPI_INST);
@@ -189,6 +192,45 @@ SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
     DL_SYSCTL_setMCLKDivider(DL_SYSCTL_MCLK_DIVIDER_DISABLE);
     /* INT_GROUP1 Priority */
     NVIC_SetPriority(GPIOA_INT_IRQn, 3);
+
+}
+
+
+
+/*
+ * Timer clock configuration to be sourced by BUSCLK /  (32000000 Hz)
+ * timerClkFreq = (timerClkSrc / (timerClkDivRatio * (timerClkPrescale + 1)))
+ *   32000000 Hz = 32000000 Hz / (1 * (0 + 1))
+ */
+static const DL_TimerG_ClockConfig gSENSOR_DELAY_TIMERClockConfig = {
+    .clockSel    = DL_TIMER_CLOCK_BUSCLK,
+    .divideRatio = DL_TIMER_CLOCK_DIVIDE_1,
+    .prescale    = 0U,
+};
+
+/*
+ * Timer load value (where the counter starts from) is calculated as (timerPeriod * timerClockFreq) - 1
+ * SENSOR_DELAY_TIMER_INST_LOAD_VALUE = (150 us * 32000000 Hz) - 1
+ */
+static const DL_TimerG_TimerConfig gSENSOR_DELAY_TIMERTimerConfig = {
+    .period     = SENSOR_DELAY_TIMER_INST_LOAD_VALUE,
+    .timerMode  = DL_TIMER_TIMER_MODE_ONE_SHOT,
+    .startTimer = DL_TIMER_STOP,
+};
+
+SYSCONFIG_WEAK void SYSCFG_DL_SENSOR_DELAY_TIMER_init(void) {
+
+    DL_TimerG_setClockConfig(SENSOR_DELAY_TIMER_INST,
+        (DL_TimerG_ClockConfig *) &gSENSOR_DELAY_TIMERClockConfig);
+
+    DL_TimerG_initTimerMode(SENSOR_DELAY_TIMER_INST,
+        (DL_TimerG_TimerConfig *) &gSENSOR_DELAY_TIMERTimerConfig);
+    DL_TimerG_enableInterrupt(SENSOR_DELAY_TIMER_INST , DL_TIMERG_INTERRUPT_ZERO_EVENT);
+    DL_TimerG_enableClock(SENSOR_DELAY_TIMER_INST);
+
+
+
+
 
 }
 
