@@ -203,6 +203,15 @@ extern "C" {
 #define BUTTON_GPIO_PIN_WHITE_MOVE_IIDX                     (DL_GPIO_IIDX_DIO15)
 #define BUTTON_GPIO_PIN_WHITE_MOVE_PIN                          (DL_GPIO_PIN_15)
 #define BUTTON_GPIO_PIN_WHITE_MOVE_IOMUX                         (IOMUX_PINCM37)
+/* Port definition for Pin Group MISC_GPIO */
+#define MISC_GPIO_PORT                                                   (GPIOB)
+
+/* Defines for CLOCK_LOAD: GPIOB.0 with pinCMx 12 on package pin 47 */
+#define MISC_GPIO_CLOCK_LOAD_PIN                                 (DL_GPIO_PIN_0)
+#define MISC_GPIO_CLOCK_LOAD_IOMUX                               (IOMUX_PINCM12)
+/* Defines for BUTTON_ENABLE: GPIOB.9 with pinCMx 26 on package pin 61 */
+#define MISC_GPIO_BUTTON_ENABLE_PIN                              (DL_GPIO_PIN_9)
+#define MISC_GPIO_BUTTON_ENABLE_IOMUX                            (IOMUX_PINCM26)
 
 /* clang-format on */
 
