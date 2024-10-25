@@ -1,0 +1,2 @@
+#ifndef CAPSTONE_BUTTON_H
+#define CAPSTONE_BUTTON_H

@@ -23,5 +23,7 @@ typedef uint32_t[8] BoardState;
 // OPT compact row and column into one field.
 PieceType xGetSquare(BoardState *board, uint8_t row, uint8_t column);
 void vSetSquare(BoardState *board, uint8_t row, uint8_t column, PieceType type);
+BaseType_t isWhite(PieceType p);
+PieceType xChangeColor(PieceType p);
 
 #endif
