@@ -5,10 +5,13 @@
 #include <stdlib.h>
 
 static int uart_fd = -1;
-static FILE* uart_fileptr = NULL;
+static FILE* uart_filestream = NULL;
 
 static PyObject* uart_init(PyObject* self, PyObject* args) {
-    /* TODO: add code to open UART (potentially as FILE*) and initialize this module's state */
+    // Open a file handle to file-mapped UART
+    // TODO: swap current "dummy handle" with real valid handle for file-mapped
+    // UART.
+    uart_filestream = fopen("./sample.txt", "a+");
     Py_RETURN_NONE;
 }
 
@@ -19,14 +22,34 @@ static PyObject* uart_sendpacket(PyObject* self, PyObject* args) {
         return NULL;
     }
 
+    // Ensure that we are appending to UART, not overwriting data at an 
+    // intermediate position
+    fseek(uart_filestream, 0, SEEK_END);
+
+    uint8_t next_byte = 0;
+
+    for (int i = 0; i < 4; i += 1) {
+        next_byte = (uint8_t) ((packet >> (i*8)) & 0xFF);
+        fwrite(&next_byte, sizeof(char), 1, uart_filestream);
+    }
+
     Py_RETURN_NONE;
 }
 
 static PyObject* uart_recvpacket(PyObject* self, PyObject* args) {
-    char received_packet[5] = {0};
-    /* TODO: add code to actually read from UART; */
-    /* TODO: add low-level C library call(s) to parse char data as 32-bit unsigned int */
-    return PyLong_FromString((const char*) received_packet, NULL, 10); // TODO: potentially modify to PyLong_FromUnsignedLong(unsigned long v)
+    uint32_t full_packet = 0;
+    uint8_t next_byte = 0;
+
+    // TODO: verify fread() behavior (specifically offset) when dealing with 
+    // "actual" file-mapped UART on Raspberry Pi OS
+    fseek(uart_filestream, -4, SEEK_END);
+
+    for (int i = 0; i < 4; i += 1) {
+        fread(&next_byte, sizeof(char), 1, uart_filestream);
+        full_packet |= ( ((uint32_t) next_byte) & 0xFF ) << (i * 8);
+    }
+
+    return PyLong_FromUnsignedLong(full_packet); 
 }
 
 static PyMethodDef uart_methods[] = {
