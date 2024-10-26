@@ -1,3 +1,4 @@
+#include "config.h"
 #include "inttypes.h"
 #include "portmacro.h"
 #include <FreeRTOS.h>

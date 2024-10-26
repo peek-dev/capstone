@@ -1,6 +1,8 @@
 #ifndef CAPSTONE_LED_H
 #define CAPSTONE_LED_H
 
+#include "config.h"
+
 // Unlike the APA102c, the SK9822 brightness option changes the current (and
 // hence the power draw :D) so it doesn't cause flickering.
 typedef struct {

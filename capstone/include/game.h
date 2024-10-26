@@ -1,6 +1,8 @@
 #ifndef CAPSTONE_GAME_H
 #define CAPSTONE_GAME_H
 
+#include "config.h"
+
 typedef enum {
     WhitePawn,
     WhiteRook,
@@ -18,7 +20,9 @@ typedef enum {
 } PieceType; // 4bits
 
 // Each uint32_t is a packed group of eight PieceTypes (4b each)
-typedef uint32_t[8] BoardState;
+typedef struct {
+    uint32_t rows[8];
+} BoardState;
 
 // OPT compact row and column into one field.
 PieceType xGetSquare(BoardState *board, uint8_t row, uint8_t column);

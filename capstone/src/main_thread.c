@@ -1,7 +1,9 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include "chess.h"
 #include "config.h"
+#include "game.h"
 #include "led.h"
 #include "portmacro.h"
 
@@ -20,9 +22,11 @@ typedef struct {
     enum MainThread_MsgType type;
     union {
         // TODO: this is sooo inefficient. 32 bytes vs 4?
-        struct { BoardState state; };
+        struct {
+            BoardState state;
+        };
         // TODO: buttons, uart (separate undo and new move)
-    }
+    } data;
 } MainThread_Message;
 
 void mainThread(void *arg0) {
