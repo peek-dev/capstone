@@ -15,6 +15,14 @@ class ButtonEvent(Enum):
 # TODO: build C-based UART extension module to enable importing here
 # import rpi5_uartboost as uart
 
+def encode_packet(move: chess.Move) -> int:
+    # FIXME: implement full logic from stub
+    return 0
+
+def decode_packet(packet: int) -> chess.Move:
+    # FIXME: implement full logic from stub
+    return chess.Move.nullmove()
+
 def parse_button_event(packet: int) -> ButtonEvent:
     match (packet & 0x3):
         case 0x1:
