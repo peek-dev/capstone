@@ -4,6 +4,10 @@ import chess
 import chess.engine
 from enum import Enum
 
+SRC_FILE_SHIFT = 29
+SRC_RANK_SHIFT = 26
+DEST_FILE_SHIFT = 23
+DEST_RANK_SHIFT = 20
 
 class ButtonEvent(Enum):
     NORMAL = 0
@@ -15,13 +19,20 @@ class ButtonEvent(Enum):
 # TODO: build C-based UART extension module to enable importing here
 # import rpi5_uartboost as uart
 
-def encode_packet(move: chess.Move) -> int:
+def encode_packet(move: chess.Move, last_move: bool=False) -> int:
     # FIXME: implement full logic from stub
     return 0
 
 def decode_packet(packet: int) -> chess.Move:
-    # FIXME: implement full logic from stub
-    return chess.Move.nullmove()
+    move_str = ''
+
+    move_str += chess.FILE_NAMES[(packet >> SRC_FILE_SHIFT) & 0x7]
+    move_str += chess.RANK_NAMES[(packet >> SRC_RANK_SHIFT) & 0x7]
+    move_str += chess.FILE_NAMES[(packet >> DEST_FILE_SHIFT) & 0x7]
+    move_str += chess.RANK_NAMES[(packet >> DEST_RANK_SHIFT) & 0x7]
+
+    return chess.Move.from_uci(move_str)
+
 
 def parse_button_event(packet: int) -> ButtonEvent:
     match (packet & 0x3):
