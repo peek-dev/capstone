@@ -1,4 +1,5 @@
 #include "uart_bidir_protocol.h"
+#include "config.h"
 
 #ifdef IS_MSP
 // TODO: include TI driverlib "dl_uart.h"
@@ -7,7 +8,7 @@
 #ifdef IS_RPI
 #include <stdio.h>
 #endif
-
+#ifdef IS_MSP
 extern void DL_UART_transmitDataBlocking(UART_Regs *uart, uint8_t data);
 
 extern uint8_t DL_UART_receiveDataBlocking(UART_Regs *uart);
@@ -37,7 +38,8 @@ static uint32_t xMSP_UART_recv_wrapper(void *uart_ptr) {
 
     return full_word;
 }
-
+#endif
+#ifdef IS_RPI
 static void vRPI5_UART_xmit_wrapper(void *uart_fileptr, uint32_t word) {
     FILE *uart_filestream = (FILE *)uart_fileptr;
     uint8_t next_word = 0;
@@ -60,6 +62,7 @@ static uint32_t vRPI5_UART_recv_wrapper(void *uart_fileptr) {
 
     return full_word;
 }
+#endif
 
 /**
  * MSPM0 interface implementation
@@ -127,7 +130,7 @@ void vdecode_undo_for_msp(uint32_t word, rpi_undo *undo) {
 }
 
 void vsend_packet_common(void *arg, uint32_t word,
-                         (void)(*send_func)(void *, uint32_t)) {
+                         void (*send_func)(void *, uint32_t)) {
     send_func(arg, word);
 }
 

@@ -1,8 +1,7 @@
-#include <stdint.h>
-#include <stdlib.h> // for ssize_t
-
 #ifndef __MSPM0_RPI5_UART_BIDIR_PROTOCOL_H__
 #define __MSPM0_RPI5_UART_BIDIR_PROTOCOL_H__
+
+#include "config.h"
 
 /**
  * Constants for chessboard files.
