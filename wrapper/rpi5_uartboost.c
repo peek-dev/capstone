@@ -9,13 +9,13 @@ static int uart_fd = -1;
 
 static PyObject* uart_init(PyObject* self, PyObject* args) {
     // Open a file handle to file-mapped UART
-    uart_fd = open("/dev/ttyAMA0", O_RDWR | O_APPEND | O_NONBLOCK);
+    uart_fd = open("/dev/ttyAMA0", O_RDWR | O_APPEND);
     Py_RETURN_NONE;
 }
 
 static PyObject* uart_sendpacket(PyObject* self, PyObject* args) {
     uint32_t packet;
-    char next_byte = 0;
+    char next_byte;
 
     if (!(PyArg_ParseTuple(args, "I", &packet))) {
         return NULL;
@@ -25,8 +25,9 @@ static PyObject* uart_sendpacket(PyObject* self, PyObject* args) {
     // O_APPEND allows write() calls to always append
 
     for (int i = 0; i < 4; i += 1) {
-        next_byte = (char) ((packet >> (i*8)) & 0xFF);
+        next_byte = (char) (packet & 0xFF);
         write(uart_fd, &next_byte, 1);
+        packet = packet >> 8;
     }
 
     Py_RETURN_NONE;
@@ -34,13 +35,13 @@ static PyObject* uart_sendpacket(PyObject* self, PyObject* args) {
 
 static PyObject* uart_recvpacket(PyObject* self, PyObject* args) {
     uint32_t full_packet = 0;
-    uint8_t next_byte = 0;
-
-    // TODO: add lseek() call if needed (?)
+    unsigned char next_byte;
+    uint32_t shifted_byte;
 
     for (int i = 0; i < 4; i += 1) {
         read(uart_fd, &next_byte, 1);
-        full_packet |= ( ((uint32_t) next_byte) & 0xFF ) << (i * 8);
+        shifted_byte = ((uint32_t) next_byte) << (i * 8); 
+        full_packet |= shifted_byte;
     }
 
     return PyLong_FromUnsignedLong(full_packet); 
