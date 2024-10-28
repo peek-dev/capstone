@@ -4,12 +4,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <termios.h> /* For manipulating UART's TTY baud rate */
+
+#define CUSTOM_BAUD     B921600
 
 static int uart_fd = -1;
 
 static PyObject* uart_init(PyObject* self, PyObject* args) {
     // Open a file handle to file-mapped UART
     uart_fd = open("/dev/ttyAMA0", O_RDWR | O_APPEND);
+
+    struct termios uart_info;
+    tcgetattr(uart_fd, &uart_info);
+    cfsetispeed(&uart_info, CUSTOM_BAUD);
+    cfsetospeed(&uart_info, CUSTOM_BAUD);
+    tcsetattr(uart_fd, TCSANOW, &uart_info);
+
     Py_RETURN_NONE;
 }
 
