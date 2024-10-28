@@ -3,34 +3,30 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
 
 static int uart_fd = -1;
-static FILE* uart_filestream = NULL;
 
 static PyObject* uart_init(PyObject* self, PyObject* args) {
     // Open a file handle to file-mapped UART
-    // TODO: swap current "dummy handle" with real valid handle for file-mapped
-    // UART.
-    uart_filestream = fopen("./sample.txt", "a+");
+    uart_fd = open("/dev/ttyAMA0", O_RDWR | O_APPEND | O_NONBLOCK);
     Py_RETURN_NONE;
 }
 
 static PyObject* uart_sendpacket(PyObject* self, PyObject* args) {
     uint32_t packet;
+    char next_byte = 0;
 
     if (!(PyArg_ParseTuple(args, "I", &packet))) {
         return NULL;
-    }
+    } 
 
-    // Ensure that we are appending to UART, not overwriting data at an 
-    // intermediate position
-    fseek(uart_filestream, 0, SEEK_END);
-
-    uint8_t next_byte = 0;
+    // No lseek() call *should* be needed here since opening with O_RDWR and 
+    // O_APPEND allows write() calls to always append
 
     for (int i = 0; i < 4; i += 1) {
-        next_byte = (uint8_t) ((packet >> (i*8)) & 0xFF);
-        fwrite(&next_byte, sizeof(char), 1, uart_filestream);
+        next_byte = (char) ((packet >> (i*8)) & 0xFF);
+        write(uart_fd, &next_byte, 1);
     }
 
     Py_RETURN_NONE;
@@ -40,12 +36,10 @@ static PyObject* uart_recvpacket(PyObject* self, PyObject* args) {
     uint32_t full_packet = 0;
     uint8_t next_byte = 0;
 
-    // TODO: verify fread() behavior (specifically offset) when dealing with 
-    // "actual" file-mapped UART on Raspberry Pi OS
-    fseek(uart_filestream, -4, SEEK_END);
+    // TODO: add lseek() call if needed (?)
 
     for (int i = 0; i < 4; i += 1) {
-        fread(&next_byte, sizeof(char), 1, uart_filestream);
+        read(uart_fd, &next_byte, 1);
         full_packet |= ( ((uint32_t) next_byte) & 0xFF ) << (i * 8);
     }
 
