@@ -7,7 +7,7 @@
 #include <termios.h> /* For manipulating UART's TTY baud rate */
 
 #define CUSTOM_BAUD     B921600
-#define UART_PATH       "/dev/ttyAMA0"
+#define UART_PATH       "/dev/ttyAMA0" /* Specific device file can be substituted here based on RPI settings */
 
 static int uart_fd = -1;
 
@@ -65,7 +65,7 @@ static PyMethodDef uart_methods[] = {
     {NULL, NULL, 0, NULL}
 };
 
-static struct PyModuleDef rpi5_uartboost = {
+static struct PyModuleDef rpi_uartboost = {
     PyModuleDef_HEAD_INIT,
     "rpi5_uartboost",
     NULL,
@@ -73,6 +73,6 @@ static struct PyModuleDef rpi5_uartboost = {
     uart_methods
 };
 
-PyMODINIT_FUNC PyInit_rpi5_uartboost(void) {
-    return PyModule_Create(&rpi5_uartboost);
+PyMODINIT_FUNC PyInit_rpi_uartboost(void) {
+    return PyModule_Create(&rpi_uartboost);
 }

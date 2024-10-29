@@ -5,7 +5,7 @@ import chess.engine
 from enum import Enum
 
 # include bespoke Raspberry Pi UART booster library
-import rpi5_uartboost as uart 
+import rpi_uartboost as uart 
 
 SRC_FILE_SHIFT = 29
 SRC_RANK_SHIFT = 26
