@@ -6,8 +6,11 @@
 #include <fcntl.h>
 #include <termios.h> /* For manipulating UART's TTY baud rate */
 
-#define CUSTOM_BAUD     B921600
-#define UART_PATH       "/dev/ttyAMA0" /* Specific device file can be substituted here based on RPI settings */
+/* Baud rate can be changed here in one line */
+#define COMMON_BAUD     B921600
+
+/* Specific device file can be substituted here based on RPI settings */
+#define UART_PATH       "/dev/ttyAMA0" 
 
 static int uart_fd = -1;
 
@@ -17,8 +20,8 @@ static PyObject* uart_init(PyObject* self, PyObject* args) {
 
     struct termios uart_info;
     tcgetattr(uart_fd, &uart_info);
-    cfsetispeed(&uart_info, CUSTOM_BAUD);
-    cfsetospeed(&uart_info, CUSTOM_BAUD);
+    cfsetispeed(&uart_info, COMMON_BAUD);
+    cfsetospeed(&uart_info, COMMON_BAUD);
     tcsetattr(uart_fd, TCSANOW, &uart_info);
 
     Py_RETURN_NONE;
