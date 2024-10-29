@@ -7,12 +7,13 @@
 #include <termios.h> /* For manipulating UART's TTY baud rate */
 
 #define CUSTOM_BAUD     B921600
+#define UART_PATH       "/dev/ttyAMA0"
 
 static int uart_fd = -1;
 
 static PyObject* uart_init(PyObject* self, PyObject* args) {
     // Open a file handle to file-mapped UART
-    uart_fd = open("/dev/ttyAMA0", O_RDWR | O_APPEND);
+    uart_fd = open(UART_PATH, O_RDWR | O_APPEND);
 
     struct termios uart_info;
     tcgetattr(uart_fd, &uart_info);

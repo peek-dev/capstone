@@ -25,8 +25,15 @@ class ButtonEvent(Enum):
 
 
 def encode_packet(move: chess.Move, last_move: bool=False) -> int:
+    packet = 0
+
+    packet |= chess.square_file(move.from_square) << SRC_FILE_SHIFT
+    packet |= chess.square_rank(move.from_square) << SRC_RANK_SHIFT
+    packet |= chess.square_file(move.to_square) << DEST_FILE_SHIFT
+    packet |= chess.square_rank(move.to_square) << DEST_RANK_SHIFT
+
     # FIXME: implement full logic from stub
-    return 0
+    return packet
 
 def decode_packet(packet: int) -> chess.Move:
     move_str = ''
@@ -49,10 +56,6 @@ def parse_button_event(packet: int) -> ButtonEvent:
             return ButtonEvent.UNDO
         case _:
             return ButtonEvent.NORMAL
-
-
-def send_move(move: chess.Move, is_last_move: bool=False) -> None:
-    return
 
 
 if __name __ == '__main__':
@@ -80,17 +83,29 @@ if __name __ == '__main__':
         next_result = sf.play(board, sf_limit)
         best_move = next_result.move
         possible_moves = board.legal_moves
+        possible_count = possible_moves.count()
 
-        # TODO: send best move "a priori" either at very beginning 
-        # or very end (?)
+        moves_dict = {}
+        move_src_square = ''
+
+        # Group moves into contiguous "chunks" based on source square
         for move in possible_moves:
-            if (move == best_move):
-                # Special logic: skip?
-                continue
+            move_src_square = chess.square_name(move.from_square)
+            if move_src_square not in moves_dict.keys():
+                moves_dict[move_src_square] = []
+            else:
+                moves_dict[move_src_square].append(encode_packet(move))
 
-            uart.uart_sendpacket(encode_packet(move))
+        packet_no = 0
 
-        uart.uart_sendpacket(encode_packet(best_move, True))
+        for src_square in moves_dict.keys():
+            for packet in moves_dict[src_square]:
+                packet_no += 1
+
+                if packet_no == possible_count:
+                    uart.uart_sendpacket(packet | 0x1)
+                else:
+                    uart.uart_sendpacket(packet)
 
         next_packet = uart.uart_recvpacket()
         next_move = chess.Move.null()
@@ -100,7 +115,7 @@ if __name __ == '__main__':
                 board.clear()
                 continue
             case ButtonEvent.HINT:
-                # TODO: send best move as packet again?
+                uart.uart_sendpacket(encode_packet(best_move, True))
             case ButtonEvent.UNDO:
                 try:
                     undone_move = board.pop()
@@ -109,10 +124,10 @@ if __name __ == '__main__':
                 except IndexError:
                     continue # Silently handle IndexError (move stack empty) since cause innocuous
             case _:
+                # No extra logic needed for standard move---decode and continue
                 next_move = decode_packet(next_packet) 
-                pass # No extra logic needed for standard move
 
-        board.push_uci(next_move)
+        board.push(next_move)
 
         # TODO: check post-move conditions: check, checkmate, stalemate
 
