@@ -37,13 +37,13 @@ typedef uint8_t CHESS_RANK;
 typedef uint8_t PTYPE;
 
 #define PTYPE_NULL ((uint8_t)0x0)
-#define PTYPE_NULL_ALT ((uint8_t)0x4)
+#define PTYPE_NULL_ALT ((uint8_t)0x7)
 #define PTYPE_PAWN ((uint8_t)0x1)
 #define PTYPE_KNIGHT ((uint8_t)0x2)
 #define PTYPE_BISHOP ((uint8_t)0x3)
-#define PTYPE_ROOK ((uint8_t)0x5)
-#define PTYPE_QUEEN ((uint8_t)0x6)
-#define PTYPE_KING ((uint8_t)0x7)
+#define PTYPE_ROOK ((uint8_t)0x4)
+#define PTYPE_QUEEN ((uint8_t)0x5)
+#define PTYPE_KING ((uint8_t)0x6)
 
 // Friendly ptype aliases
 #define PIECE_NULL PTYPE_NULL
