@@ -11,10 +11,26 @@ SRC_FILE_SHIFT = 29
 SRC_RANK_SHIFT = 26
 DEST_FILE_SHIFT = 23
 DEST_RANK_SHIFT = 20
+PTYPE_SHIFT = 17
+
+M2_SHIFT = 16
+M2_SRC_FILE_SHIFT = 13
+M2_SRC_RANK_SHIFT = 10
+M2_DEST_FILE_SHIFT = 7
+M2_DEST_RANK_SHIFT = 4
+M2_PTYPE_SHIFT = 1
+
+MTYPE_SHIFT = 2
+MTYPE_NORMAL = 0
+MTYPE_CHECK = 1
+MTYPE_CAPTURE = 2
+MTYPE_CASTLE = 3
 
 CHECK       = 0x00000010
 CHECKMATE   = 0x00000030
 STALEMATE   = 0x00000070
+
+board = None
 
 
 class ButtonEvent(Enum):
@@ -24,16 +40,47 @@ class ButtonEvent(Enum):
     UNDO = 3
 
 
-def encode_packet(move: chess.Move, last_move: bool=False) -> int:
+def decode_movetype(move: chess.Move, board: chess.Board) -> int:
+    if (board.is_check(move)):
+        return MTYPE_CHECK
+    elif (board.is_capture(move)):
+        return MTYPE_CAPTURE
+    if (board.is_castling(move)):
+        return MTYPE_CASTLE
+
+    return MTYPE_NORMAL
+
+
+def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -> int:
     packet = 0
 
     packet |= chess.square_file(move.from_square) << SRC_FILE_SHIFT
     packet |= chess.square_rank(move.from_square) << SRC_RANK_SHIFT
     packet |= chess.square_file(move.to_square) << DEST_FILE_SHIFT
     packet |= chess.square_rank(move.to_square) << DEST_RANK_SHIFT
+    packet |= (move.drop if (move.drop != None) else 0) << PTYPE_SHIFT
+    packet |= (1 << M2_SHIFT) if board.is_castling(move) else (0 << M2_SHIFT) 
+    packet |= decode_movetype(move, board) << MTYPE_SHIFT
+    packet |= (1 if last_move else 0)
 
-    # FIXME: implement full logic from stub
     return packet
+
+
+def encode_undo(move: chess.Move, board: chess.Board) -> int:
+    packet = 0
+    packet |= chess.square_file(move.from_square) << SRC_FILE_SHIFT
+    packet |= chess.square_rank(move.from_square) << SRC_RANK_SHIFT
+    packet |= chess.square_file(move.to_square) << DEST_FILE_SHIFT
+    packet |= chess.square_rank(move.to_square) << DEST_RANK_SHIFT
+    packet |= (move.drop if (move.drop != None) else 0) << PTYPE_SHIFT
+    packet |= (1 << M2_SHIFT) if board.is_castling(move) else (0 << M2_SHIFT) 
+
+    packet |= (1 if board.color_at(move.to_square) == chess.BLACK else 0) << 3
+    undone_ptype = chess.PieceType(board.piece_at(move.to_square))
+    packet |= undone_ptype if (undone_ptype != None) else 0
+
+    return packet
+
 
 def decode_packet(packet: int) -> chess.Move:
     move_str = ''
@@ -115,11 +162,11 @@ if __name __ == '__main__':
                 board.clear()
                 continue
             case ButtonEvent.HINT:
-                uart.uart_sendpacket(encode_packet(best_move, True))
+                uart.uart_sendpacket(encode_packet(best_move, board, True))
             case ButtonEvent.UNDO:
                 try:
                     undone_move = board.pop()
-                    uart.uart_sendpacket(encode_packet(undone_move, True))
+                    uart.uart_sendpacket(encode_undo(undone_move, board))
                     continue
                 except IndexError:
                     continue # Silently handle IndexError (move stack empty) since cause innocuous
