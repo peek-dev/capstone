@@ -7,6 +7,8 @@ from enum import Enum
 # include bespoke Raspberry Pi UART booster library
 import rpi_uartboost as uart 
 
+# Various constants based on packet scheme. See
+# `/uart-protocol/uart_bidir_protocol.h` and `.c` for more information.
 SRC_FILE_SHIFT = 29
 SRC_RANK_SHIFT = 26
 DEST_FILE_SHIFT = 23
@@ -26,11 +28,11 @@ MTYPE_CHECK = 1
 MTYPE_CAPTURE = 2
 MTYPE_CASTLE = 3
 
+# Special status constants to indicate exceptional game conditions (outcomes,
+# most often) for the MSP.
 CHECK       = 0x00000010
 CHECKMATE   = 0x00000030
 STALEMATE   = 0x00000070
-
-board = None
 
 
 class ButtonEvent(Enum):
@@ -40,7 +42,8 @@ class ButtonEvent(Enum):
     UNDO = 3
 
 
-def decode_movetype(move: chess.Move, board: chess.Board) -> int:
+# Extracted here since the logic is more complex than a match-case.
+def encode_movetype(move: chess.Move, board: chess.Board) -> int:
     if (board.is_check(move)):
         return MTYPE_CHECK
     elif (board.is_capture(move)):
@@ -60,7 +63,7 @@ def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -
     packet |= chess.square_rank(move.to_square) << DEST_RANK_SHIFT
     packet |= (move.drop if (move.drop != None) else 0) << PTYPE_SHIFT
     packet |= (1 << M2_SHIFT) if board.is_castling(move) else (0 << M2_SHIFT) 
-    packet |= decode_movetype(move, board) << MTYPE_SHIFT
+    packet |= encode_movetype(move, board) << MTYPE_SHIFT
     packet |= (1 if last_move else 0)
 
     return packet
@@ -93,6 +96,10 @@ def decode_packet(packet: int) -> chess.Move:
     return chess.Move.from_uci(move_str)
 
 
+# A separate helper to detect exceptional button presses indicating special user
+# input on the chessboard.
+#
+# If restart/hint/undo requested, there's no move to decode within the packet.
 def parse_button_event(packet: int) -> ButtonEvent:
     match (packet & 0x3):
         case 0x1:
@@ -111,24 +118,32 @@ if __name __ == '__main__':
 
     # Open Stockfish in subprocess.
     # NOTE: on this build of Raspberry Pi OS/Debian, Stockfish is installed at
-    # /usr/games, NOT /usr/bin
+    # /usr/games/, NOT /usr/bin/
     sf = chess.engine.SimpleEngine.popen_uci("/usr/games/stockfish")
 
-    # Provision 4 threads and 4096 MB (4 GB) of RAM to Stockfish. Raspberry Pi 5's 
-    # ARM Cortex-A76 has 4 cores, and the targeted RPi5 has 8GB RAM available.
+    # Device-specific customizations.
+    # Code originally developed for Raspberry Pi 5 with 4 cores and 8GB RAM
+    # (hence 'Hash' --> memory allocation --> 4096 MiB = 4 GiB).
     sf.configure({'Hash': 4096})
     sf.configure({'Threads': 4})
 
-    # A limit of 250 ms for Stockfish's per-turn compute time, wrapped in the
-    # python-chess API.
+    # 250ms per-turn computation time limit
     sf_limit = chess.engine.Limit(time=0.250)
 
     # Cue extension libary to prepare UART for reading and writing
     uart.uart_init()
 
+    # The main loop of the program, which will never exit except in unusual 
+    # circumstances.
     while True:
         next_result = sf.play(board, sf_limit)
         best_move = next_result.move
+
+        # Board has *not* been updated using .play() (only updated on .push()
+        # call). 
+        # 
+        # So, find the best move and prepare to send that to the MSP alongside
+        # *all* possible moves for the current board.
         possible_moves = board.legal_moves
         possible_count = possible_moves.count()
 
@@ -137,11 +152,15 @@ if __name __ == '__main__':
 
         # Group moves into contiguous "chunks" based on source square
         for move in possible_moves:
+            # .square_name method returns str (okay for dictionary key)
             move_src_square = chess.square_name(move.from_square)
+            
+            # Categorize moves by source square.
+            # Offload this task to the RPI for easier move processing on the MSP.
             if move_src_square not in moves_dict.keys():
                 moves_dict[move_src_square] = []
             else:
-                moves_dict[move_src_square].append(encode_packet(move))
+                moves_dict[move_src_square].append(encode_packet(move, board))
 
         packet_no = 0
 
@@ -149,14 +168,23 @@ if __name __ == '__main__':
             for packet in moves_dict[src_square]:
                 packet_no += 1
 
+                # Reshuffle makes pinpointing last move trickier than simple 
+                # is-move-last-in-list logic
                 if packet_no == possible_count:
                     uart.uart_sendpacket(packet | 0x1)
                 else:
                     uart.uart_sendpacket(packet)
 
+        # Block until the MSP sends back the next event it receives on the 
+        # chessboard.
         next_packet = uart.uart_recvpacket()
         next_move = chess.Move.null()
 
+        # Three distinct possible kinds of packets (in a sense) exist to prompt
+        # further action from the RPI:
+        # - RESTART: clear game state (rewind entire game)
+        # - HINT: send best move
+        # - UNDO: rewind game state one move at a time
         match (parse_button_event(next_packet)):
             case ButtonEvent.RESTART:
                 board.clear()
@@ -165,15 +193,19 @@ if __name __ == '__main__':
                 uart.uart_sendpacket(encode_packet(best_move, board, True))
             case ButtonEvent.UNDO:
                 try:
+                    # Rewinds the board state---no further action needed.
                     undone_move = board.pop()
+                    # Indicate to the MSP which specific move has been undone
                     uart.uart_sendpacket(encode_undo(undone_move, board))
                     continue
                 except IndexError:
-                    continue # Silently handle IndexError (move stack empty) since cause innocuous
+                    # IndexError innocuous; stack is empty, but not an error
+                    continue 
             case _:
-                # No extra logic needed for standard move---decode and continue
+                # Standard move
                 next_move = decode_packet(next_packet) 
 
+        # Add move to the playing stack for Stockfish to use
         board.push(next_move)
 
         # TODO: check post-move conditions: check, checkmate, stalemate
