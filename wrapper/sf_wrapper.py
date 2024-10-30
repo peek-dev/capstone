@@ -3,36 +3,10 @@
 import chess
 import chess.engine
 from enum import Enum
+import wrapper_util as wr # include UART-based protocol-specific constants
 
 # include bespoke Raspberry Pi UART booster library
 import rpi_uartboost as uart 
-
-# Various constants based on packet scheme. See
-# `/uart-protocol/uart_bidir_protocol.h` and `.c` for more information.
-SRC_FILE_SHIFT = 29
-SRC_RANK_SHIFT = 26
-DEST_FILE_SHIFT = 23
-DEST_RANK_SHIFT = 20
-PTYPE_SHIFT = 17
-
-M2_SHIFT = 16
-M2_SRC_FILE_SHIFT = 13
-M2_SRC_RANK_SHIFT = 10
-M2_DEST_FILE_SHIFT = 7
-M2_DEST_RANK_SHIFT = 4
-M2_PTYPE_SHIFT = 1
-
-MTYPE_SHIFT = 2
-MTYPE_NORMAL = 0
-MTYPE_CHECK = 1
-MTYPE_CAPTURE = 2
-MTYPE_CASTLE = 3
-
-# Special status constants to indicate exceptional game conditions (outcomes,
-# most often) for the MSP.
-CHECK       = 0x00000010
-CHECKMATE   = 0x00000030
-STALEMATE   = 0x00000070
 
 
 class ButtonEvent(Enum):
@@ -45,25 +19,26 @@ class ButtonEvent(Enum):
 # Extracted here since the logic is more complex than a match-case.
 def encode_movetype(move: chess.Move, board: chess.Board) -> int:
     if (board.is_check(move)):
-        return MTYPE_CHECK
+        return wr.MTYPE_CHECK
     elif (board.is_capture(move)):
-        return MTYPE_CAPTURE
+        return wr.MTYPE_CAPTURE
     if (board.is_castling(move)):
-        return MTYPE_CASTLE
+        return wr.MTYPE_CASTLE
 
-    return MTYPE_NORMAL
+    return wr.MTYPE_NORMAL
 
 
 def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -> int:
+
     packet = 0
 
-    packet |= chess.square_file(move.from_square) << SRC_FILE_SHIFT
-    packet |= chess.square_rank(move.from_square) << SRC_RANK_SHIFT
-    packet |= chess.square_file(move.to_square) << DEST_FILE_SHIFT
-    packet |= chess.square_rank(move.to_square) << DEST_RANK_SHIFT
-    packet |= (move.drop if (move.drop != None) else 0) << PTYPE_SHIFT
-    packet |= (1 << M2_SHIFT) if board.is_castling(move) else (0 << M2_SHIFT) 
-    packet |= encode_movetype(move, board) << MTYPE_SHIFT
+    packet |= chess.square_file(move.from_square) << wr.SRC_FILE_SHIFT
+    packet |= chess.square_rank(move.from_square) << wr.SRC_RANK_SHIFT
+    packet |= chess.square_file(move.to_square) << wr.DEST_FILE_SHIFT
+    packet |= chess.square_rank(move.to_square) << wr.DEST_RANK_SHIFT
+    packet |= (move.drop if (move.drop != None) else 0) << wr.PTYPE_SHIFT
+    packet |= (1 << wr.M2_SHIFT) if board.is_castling(move) else (0 << wr.M2_SHIFT) 
+    packet |= encode_movetype(move, board) << wr.MTYPE_SHIFT
     packet |= (1 if last_move else 0)
 
     return packet
@@ -71,12 +46,12 @@ def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -
 
 def encode_undo(move: chess.Move, board: chess.Board) -> int:
     packet = 0
-    packet |= chess.square_file(move.from_square) << SRC_FILE_SHIFT
-    packet |= chess.square_rank(move.from_square) << SRC_RANK_SHIFT
-    packet |= chess.square_file(move.to_square) << DEST_FILE_SHIFT
-    packet |= chess.square_rank(move.to_square) << DEST_RANK_SHIFT
-    packet |= (move.drop if (move.drop != None) else 0) << PTYPE_SHIFT
-    packet |= (1 << M2_SHIFT) if board.is_castling(move) else (0 << M2_SHIFT) 
+    packet |= chess.square_file(move.from_square) << wr.SRC_FILE_SHIFT
+    packet |= chess.square_rank(move.from_square) << wr.SRC_RANK_SHIFT
+    packet |= chess.square_file(move.to_square) << wr.DEST_FILE_SHIFT
+    packet |= chess.square_rank(move.to_square) << wr.DEST_RANK_SHIFT
+    packet |= (move.drop if (move.drop != None) else 0) << wr.PTYPE_SHIFT
+    packet |= (1 << wr.M2_SHIFT) if board.is_castling(move) else (0 << wr.M2_SHIFT) 
 
     packet |= (1 if board.color_at(move.to_square) == chess.BLACK else 0) << 3
     undone_ptype = chess.PieceType(board.piece_at(move.to_square))
@@ -88,10 +63,10 @@ def encode_undo(move: chess.Move, board: chess.Board) -> int:
 def decode_packet(packet: int) -> chess.Move:
     move_str = ''
 
-    move_str += chess.FILE_NAMES[(packet >> SRC_FILE_SHIFT) & 0x7]
-    move_str += chess.RANK_NAMES[(packet >> SRC_RANK_SHIFT) & 0x7]
-    move_str += chess.FILE_NAMES[(packet >> DEST_FILE_SHIFT) & 0x7]
-    move_str += chess.RANK_NAMES[(packet >> DEST_RANK_SHIFT) & 0x7]
+    move_str += chess.FILE_NAMES[(packet >> wr.SRC_FILE_SHIFT) & 0x7]
+    move_str += chess.RANK_NAMES[(packet >> wr.SRC_RANK_SHIFT) & 0x7]
+    move_str += chess.FILE_NAMES[(packet >> wr.DEST_FILE_SHIFT) & 0x7]
+    move_str += chess.RANK_NAMES[(packet >> wr.DEST_RANK_SHIFT) & 0x7]
 
     return chess.Move.from_uci(move_str)
 
