@@ -2,93 +2,10 @@
 
 import chess
 import chess.engine
-from enum import Enum
-import wrapper_util as wr # include UART-based protocol-specific constants
+import wrapper_util as wr # include helpers and UART protocol constants
+import rpi_uartboost as uart # include bespoke Raspberry Pi UART booster library
 
-# include bespoke Raspberry Pi UART booster library
-import rpi_uartboost as uart 
-
-
-class ButtonEvent(Enum):
-    NORMAL = 0
-    RESTART = 1
-    HINT = 2
-    UNDO = 3
-
-
-# Extracted here since the logic is more complex than a match-case.
-def encode_movetype(move: chess.Move, board: chess.Board) -> int:
-    if (board.is_check(move)):
-        return wr.MTYPE_CHECK
-    elif (board.is_capture(move)):
-        return wr.MTYPE_CAPTURE
-    if (board.is_castling(move)):
-        return wr.MTYPE_CASTLE
-
-    return wr.MTYPE_NORMAL
-
-
-def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -> int:
-
-    packet = 0
-
-    packet |= chess.square_file(move.from_square) << wr.SRC_FILE_SHIFT
-    packet |= chess.square_rank(move.from_square) << wr.SRC_RANK_SHIFT
-    packet |= chess.square_file(move.to_square) << wr.DEST_FILE_SHIFT
-    packet |= chess.square_rank(move.to_square) << wr.DEST_RANK_SHIFT
-    packet |= (move.drop if (move.drop != None) else 0) << wr.PTYPE_SHIFT
-    packet |= (1 << wr.M2_SHIFT) if board.is_castling(move) else (0 << wr.M2_SHIFT) 
-    packet |= encode_movetype(move, board) << wr.MTYPE_SHIFT
-    packet |= (1 if last_move else 0)
-
-    return packet
-
-
-def encode_undo(move: chess.Move, board: chess.Board) -> int:
-    packet = 0
-    packet |= chess.square_file(move.from_square) << wr.SRC_FILE_SHIFT
-    packet |= chess.square_rank(move.from_square) << wr.SRC_RANK_SHIFT
-    packet |= chess.square_file(move.to_square) << wr.DEST_FILE_SHIFT
-    packet |= chess.square_rank(move.to_square) << wr.DEST_RANK_SHIFT
-    packet |= (move.drop if (move.drop != None) else 0) << wr.PTYPE_SHIFT
-    packet |= (1 << wr.M2_SHIFT) if board.is_castling(move) else (0 << wr.M2_SHIFT) 
-
-    packet |= (1 if board.color_at(move.to_square) == chess.BLACK else 0) << 3
-    undone_ptype = chess.PieceType(board.piece_at(move.to_square))
-    packet |= undone_ptype if (undone_ptype != None) else 0
-
-    return packet
-
-
-def decode_packet(packet: int) -> chess.Move:
-    move_str = ''
-
-    move_str += chess.FILE_NAMES[(packet >> wr.SRC_FILE_SHIFT) & 0x7]
-    move_str += chess.RANK_NAMES[(packet >> wr.SRC_RANK_SHIFT) & 0x7]
-    move_str += chess.FILE_NAMES[(packet >> wr.DEST_FILE_SHIFT) & 0x7]
-    move_str += chess.RANK_NAMES[(packet >> wr.DEST_RANK_SHIFT) & 0x7]
-
-    return chess.Move.from_uci(move_str)
-
-
-# A separate helper to detect exceptional button presses indicating special user
-# input on the chessboard.
-#
-# If restart/hint/undo requested, there's no move to decode within the packet.
-def parse_button_event(packet: int) -> ButtonEvent:
-    match (packet & 0x3):
-        case 0x1:
-            return ButtonEvent.RESTART
-        case 0x2:
-            return ButtonEvent.HINT
-        case 0x3:
-            return ButtonEvent.UNDO
-        case _:
-            return ButtonEvent.NORMAL
-
-
-if __name __ == '__main__':
-
+if __name__ == '__main__':
     board = chess.Board()
 
     # Open Stockfish in subprocess.
@@ -135,7 +52,7 @@ if __name __ == '__main__':
             if move_src_square not in moves_dict.keys():
                 moves_dict[move_src_square] = []
             else:
-                moves_dict[move_src_square].append(encode_packet(move, board))
+                moves_dict[move_src_square].append(wr.encode_packet(move, board))
 
         packet_no = 0
 
@@ -160,25 +77,25 @@ if __name __ == '__main__':
         # - RESTART: clear game state (rewind entire game)
         # - HINT: send best move
         # - UNDO: rewind game state one move at a time
-        match (parse_button_event(next_packet)):
-            case ButtonEvent.RESTART:
+        match (wr.parse_button_event(next_packet)):
+            case wr.ButtonEvent.RESTART:
                 board.clear()
                 continue
-            case ButtonEvent.HINT:
-                uart.uart_sendpacket(encode_packet(best_move, board, True))
-            case ButtonEvent.UNDO:
+            case wr.ButtonEvent.HINT:
+                uart.uart_sendpacket(wr.encode_packet(best_move, board, True))
+            case wr.ButtonEvent.UNDO:
                 try:
                     # Rewinds the board state---no further action needed.
                     undone_move = board.pop()
                     # Indicate to the MSP which specific move has been undone
-                    uart.uart_sendpacket(encode_undo(undone_move, board))
+                    uart.uart_sendpacket(wr.encode_undo(undone_move, board))
                     continue
                 except IndexError:
                     # IndexError innocuous; stack is empty, but not an error
                     continue 
             case _:
                 # Standard move
-                next_move = decode_packet(next_packet) 
+                next_move = wr.decode_packet(next_packet) 
 
         # Add move to the playing stack for Stockfish to use
         board.push(next_move)
