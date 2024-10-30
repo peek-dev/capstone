@@ -4,3 +4,4 @@ Release/
 *.swp
 *.so
 *.o
+__pycache__
