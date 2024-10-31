@@ -40,6 +40,8 @@
 
 #include "ti_msp_dl_config.h"
 
+DL_TimerG_backupConfig gLCD_DELAY_LOADBackup;
+
 /*
  *  ======== SYSCFG_DL_init ========
  *  Perform any initialization needed before using any board APIs
@@ -51,19 +53,46 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     /* Module-Specific Initializations*/
     SYSCFG_DL_SYSCTL_init();
     SYSCFG_DL_SENSOR_DELAY_TIMER_init();
+    SYSCFG_DL_LCD_DELAY_LOAD_init();
     SYSCFG_DL_RPI_UART_init();
     SYSCFG_DL_LED_SPI_init();
     SYSCFG_DL_CLOCK_SPI_init();
     SYSCFG_DL_ADC_0_init();
+    /* Ensure backup structures have no valid state */
+	gLCD_DELAY_LOADBackup.backupRdy 	= false;
+
+
+
+}
+/*
+ * User should take care to save and restore register configuration in application.
+ * See Retention Configuration section for more details.
+ */
+SYSCONFIG_WEAK bool SYSCFG_DL_saveConfiguration(void)
+{
+    bool retStatus = true;
+
+	retStatus &= DL_TimerG_saveConfiguration(LCD_DELAY_LOAD_INST, &gLCD_DELAY_LOADBackup);
+
+    return retStatus;
 }
 
 
+SYSCONFIG_WEAK bool SYSCFG_DL_restoreConfiguration(void)
+{
+    bool retStatus = true;
+
+	retStatus &= DL_TimerG_restoreConfiguration(LCD_DELAY_LOAD_INST, &gLCD_DELAY_LOADBackup, false);
+
+    return retStatus;
+}
 
 SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 {
     DL_GPIO_reset(GPIOA);
     DL_GPIO_reset(GPIOB);
     DL_TimerG_reset(SENSOR_DELAY_TIMER_INST);
+    DL_TimerG_reset(LCD_DELAY_LOAD_INST);
     DL_UART_Main_reset(RPI_UART_INST);
     DL_SPI_reset(LED_SPI_INST);
     DL_SPI_reset(CLOCK_SPI_INST);
@@ -72,6 +101,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
     DL_GPIO_enablePower(GPIOA);
     DL_GPIO_enablePower(GPIOB);
     DL_TimerG_enablePower(SENSOR_DELAY_TIMER_INST);
+    DL_TimerG_enablePower(LCD_DELAY_LOAD_INST);
     DL_UART_Main_enablePower(RPI_UART_INST);
     DL_SPI_enablePower(LED_SPI_INST);
     DL_SPI_enablePower(CLOCK_SPI_INST);
@@ -234,6 +264,43 @@ SYSCONFIG_WEAK void SYSCFG_DL_SENSOR_DELAY_TIMER_init(void) {
 
 }
 
+/*
+ * Timer clock configuration to be sourced by BUSCLK /  (32000000 Hz)
+ * timerClkFreq = (timerClkSrc / (timerClkDivRatio * (timerClkPrescale + 1)))
+ *   32000000 Hz = 32000000 Hz / (1 * (0 + 1))
+ */
+static const DL_TimerG_ClockConfig gLCD_DELAY_LOADClockConfig = {
+    .clockSel    = DL_TIMER_CLOCK_BUSCLK,
+    .divideRatio = DL_TIMER_CLOCK_DIVIDE_1,
+    .prescale    = 0U,
+};
+
+/*
+ * Timer load value (where the counter starts from) is calculated as (timerPeriod * timerClockFreq) - 1
+ * LCD_DELAY_LOAD_INST_LOAD_VALUE = (1 us * 32000000 Hz) - 1
+ */
+static const DL_TimerG_TimerConfig gLCD_DELAY_LOADTimerConfig = {
+    .period     = LCD_DELAY_LOAD_INST_LOAD_VALUE,
+    .timerMode  = DL_TIMER_TIMER_MODE_ONE_SHOT,
+    .startTimer = DL_TIMER_STOP,
+};
+
+SYSCONFIG_WEAK void SYSCFG_DL_LCD_DELAY_LOAD_init(void) {
+
+    DL_TimerG_setClockConfig(LCD_DELAY_LOAD_INST,
+        (DL_TimerG_ClockConfig *) &gLCD_DELAY_LOADClockConfig);
+
+    DL_TimerG_initTimerMode(LCD_DELAY_LOAD_INST,
+        (DL_TimerG_TimerConfig *) &gLCD_DELAY_LOADTimerConfig);
+    DL_TimerG_enableInterrupt(LCD_DELAY_LOAD_INST , DL_TIMERG_INTERRUPT_ZERO_EVENT);
+    DL_TimerG_enableClock(LCD_DELAY_LOAD_INST);
+
+
+
+
+
+}
+
 
 
 static const DL_UART_Main_ClockConfig gRPI_UARTClockConfig = {
@@ -264,6 +331,14 @@ SYSCONFIG_WEAK void SYSCFG_DL_RPI_UART_init(void)
     DL_UART_Main_setBaudRateDivisor(RPI_UART_INST, RPI_UART_IBRD_32_MHZ_115200_BAUD, RPI_UART_FBRD_32_MHZ_115200_BAUD);
 
 
+    /* Configure Interrupts */
+    DL_UART_Main_enableInterrupt(RPI_UART_INST,
+                                 DL_UART_MAIN_INTERRUPT_RX);
+
+    /* Configure FIFOs */
+    DL_UART_Main_enableFIFOs(RPI_UART_INST);
+    DL_UART_Main_setRXFIFOThreshold(RPI_UART_INST, DL_UART_RX_FIFO_LEVEL_FULL);
+    DL_UART_Main_setTXFIFOThreshold(RPI_UART_INST, DL_UART_TX_FIFO_LEVEL_1_2_EMPTY);
 
     DL_UART_Main_enable(RPI_UART_INST);
 }

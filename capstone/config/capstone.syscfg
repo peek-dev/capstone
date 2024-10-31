@@ -26,6 +26,7 @@ const SPI2          = SPI.addInstance();
 const SYSCTL        = scripting.addModule("/ti/driverlib/SYSCTL");
 const TIMER         = scripting.addModule("/ti/driverlib/TIMER", {}, false);
 const TIMER1        = TIMER.addInstance();
+const TIMER2        = TIMER.addInstance();
 const UART          = scripting.addModule("/ti/driverlib/UART", {}, false);
 const UART1         = UART.addInstance();
 const ProjectConfig = scripting.addModule("/ti/project_config/ProjectConfig");
@@ -179,8 +180,17 @@ TIMER1.timerPeriod        = "150 us";
 TIMER1.interrupts         = ["ZERO"];
 TIMER1.peripheral.$assign = "TIMG0";
 
+TIMER2.$name              = "LCD_DELAY_LOAD";
+TIMER2.timerPeriod        = "1 us";
+TIMER2.interrupts         = ["ZERO"];
+TIMER2.peripheral.$assign = "TIMG6";
+
 UART1.targetBaudRate                   = 115200;
 UART1.$name                            = "RPI_UART";
+UART1.enabledInterrupts                = ["RX"];
+UART1.enableFIFO                       = true;
+UART1.overrideRetention                = true;
+UART1.rxFifoThreshold                  = "DL_UART_RX_FIFO_LEVEL_FULL";
 UART1.peripheral.$assign               = "UART0";
 UART1.peripheral.rxPin.$assign         = "boosterpack.33";
 UART1.peripheral.txPin.$assign         = "boosterpack.34";

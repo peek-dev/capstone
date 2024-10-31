@@ -5,6 +5,8 @@
 #undef NDEBUG
 #include <inttypes.h>
 #include "ti_msp_dl_config.h"
+#include "FreeRTOS.h"
+#include "FreeRTOSConfig.h"
 #include "projdefs.h"
 #include "portmacro.h"
 

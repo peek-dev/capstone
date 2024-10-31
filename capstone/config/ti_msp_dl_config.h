@@ -82,6 +82,11 @@ extern "C" {
 #define SENSOR_DELAY_TIMER_INST_IRQHandler                        TIMG0_IRQHandler
 #define SENSOR_DELAY_TIMER_INST_INT_IRQN                        (TIMG0_INT_IRQn)
 #define SENSOR_DELAY_TIMER_INST_LOAD_VALUE                                 (4799U)
+/* Defines for LCD_DELAY_LOAD */
+#define LCD_DELAY_LOAD_INST                                              (TIMG6)
+#define LCD_DELAY_LOAD_INST_IRQHandler                          TIMG6_IRQHandler
+#define LCD_DELAY_LOAD_INST_INT_IRQN                            (TIMG6_INT_IRQn)
+#define LCD_DELAY_LOAD_INST_LOAD_VALUE                                     (31U)
 
 
 
@@ -228,6 +233,7 @@ void SYSCFG_DL_initPower(void);
 void SYSCFG_DL_GPIO_init(void);
 void SYSCFG_DL_SYSCTL_init(void);
 void SYSCFG_DL_SENSOR_DELAY_TIMER_init(void);
+void SYSCFG_DL_LCD_DELAY_LOAD_init(void);
 void SYSCFG_DL_RPI_UART_init(void);
 void SYSCFG_DL_LED_SPI_init(void);
 void SYSCFG_DL_CLOCK_SPI_init(void);
