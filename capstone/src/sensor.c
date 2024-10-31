@@ -1,14 +1,10 @@
-#include "portmacro.h"
+#include "config.h"
 #include "task.h"
+#include "assert.h"
 #include "ti/driverlib/dl_adc12.h"
 #include "ti/driverlib/dl_gpio.h"
 #include "ti/driverlib/dl_timerg.h"
-#include <FreeRTOS.h>
 
-#include "ti_msp_dl_config.h"
-
-#include "assert.h"
-#include "config.h"
 #include "game.h"
 #include "sensor.h"
 

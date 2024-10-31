@@ -73,6 +73,7 @@ BaseType_t xLED_commit() {
     m.type = led_commit;
     return xQueueSend(ledQueue, &m, portMAX_DELAY);
 }
+
 static void prvTransmitFrame(uint32_t frame) {
     // My own reimplementation of DL_SPI_transmitDataBlocking32,
     // but using yield instead of busy-wait.
@@ -81,6 +82,7 @@ static void prvTransmitFrame(uint32_t frame) {
     }
     DL_SPI_transmitData32(LED_SPI_INST, frame);
 }
+
 static void prvLED_commit() {
     // As documented here:
     // https://cpldcpu.wordpress.com/2016/12/13/sk9822-a-clone-of-the-apa102/
