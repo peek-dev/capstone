@@ -100,10 +100,13 @@ if __name__ == '__main__':
         # Add move to the playing stack for Stockfish to use
         board.push(next_move)
 
-        # TODO: check post-move conditions: check, checkmate, stalemate
+        # Check endgame conditions and indicate to MSP if present
+        if (board.is_checkmate()):
+            uart.uart_sendpacket(wr.CHECKMATE)
+        elif (board.is_stalemate()):
+            uart.uart_sendpacket(wr.STALEMATE)
 
-        # TODO: send specially-formatted packets to correspond to endgame conditions
+        # ...then proceed to the next turn
 
-    sf.quit()
-
+    sf.quit() # Code should never reach this---game loops forever.
 
