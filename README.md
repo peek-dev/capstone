@@ -4,6 +4,14 @@ This is the code for the microcontroller of a smart chessboard project at the Un
 
 Drivers:
  - [x] LED
- - [ ] Sensor array (todo: measure noise concerns)
+ - [x] Sensor array (todo: measure noise concerns)
  - [ ] UART with Pi
- - [ ] 7-segment (talk with Kevin about layout)
+ - [ ] 7-segment (mostly done)
+ - [ ] Buttons
+
+Test benches:
+ - [ ] LED
+ - [ ] Sensor array
+ - [ ] UART with Pi
+ - [ ] 7-segment
+ - [ ] Buttons
