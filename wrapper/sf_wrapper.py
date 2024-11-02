@@ -51,8 +51,8 @@ if __name__ == '__main__':
             # Offload this task to the RPI for easier move processing on the MSP.
             if move_src_square not in moves_dict.keys():
                 moves_dict[move_src_square] = []
-            else:
-                moves_dict[move_src_square].append(wr.encode_packet(move, board))
+
+            moves_dict[move_src_square].append(wr.encode_packet(move, board))
 
         packet_no = 0
 
