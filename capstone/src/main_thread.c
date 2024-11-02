@@ -1,6 +1,7 @@
 #include <FreeRTOS.h>
 #include <task.h>
 
+#include "config.h"
 #include "led.h"
 #include "portmacro.h"
 
@@ -36,7 +37,7 @@ void mainThread(void *arg0) {
             color.red += masks[i][0];
             color.green += masks[i][1];
             color.blue += masks[i][2];
-            color.brightness = 31;
+            color.brightness = 1;
 
             xReturned = xLED_clear_board();
             while (xReturned != pdPASS) {
@@ -46,7 +47,7 @@ void mainThread(void *arg0) {
                 xReturned = xLED_set_color(k, &color);
                 while (xReturned != pdPASS) {
                 }
-                color.brightness -= 4;
+                color.brightness += 4;
             }
             xReturned = xLED_commit();
             while (xReturned != pdPASS) {
