@@ -89,7 +89,7 @@
                         </toolChain>
                     </folderInfo>
                     <sourceEntries>
-                        <entry excluding="config/capstone.syscfg|config/excluded|syscfg_c.rov.xs" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/main/main_test_led.c|config/capstone.syscfg|config/excluded|syscfg_c.rov.xs" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                     </sourceEntries>
                 </configuration>
             </storageModule>

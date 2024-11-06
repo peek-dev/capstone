@@ -14,7 +14,6 @@
 // queen in the middle. So 28 + 2 (clear and commit) + 1 (leeway/different
 // light for current square) should be good.
 #define QUEUE_SIZE (28 + 1 + 2)
-#define NUM_LEDS (8)
 // Opt: SIMD-style set color by component, send multiple numbers? Possibly half
 // as mem-intensive.
 static QueueHandle_t ledQueue;

@@ -67,7 +67,7 @@ void mainThread(void *arg0) {
             while (xReturned != pdPASS) {
             }
 
-            for (uint8_t k = 0; k < 8; k++) {
+            for (uint8_t k = 0; k < NUM_LEDS; k++) {
                 xReturned = xLED_set_color(k, &color);
                 while (xReturned != pdPASS) {
                 }
