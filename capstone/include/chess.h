@@ -6,8 +6,8 @@
 
 typedef uint32_t NormalMove;
 
-int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
-                       uint16_t moves_len);
+int16_t ucFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
+                       uint8_t moves_len);
 BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move);
 
 #endif

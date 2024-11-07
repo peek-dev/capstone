@@ -51,9 +51,9 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move) {
 }
 
 int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
-                       uint16_t moves_len) {
+                       uint8_t moves_len) {
     // Search every available move.
-    for (uint16_t i = 0; i < moves_len; i++) {
+    for (uint8_t i = 0; i < moves_len; i++) {
         // If one matches, return the index.
         if (xCheckValidMove(old, new, moves[i]) == pdTRUE) {
             return i;

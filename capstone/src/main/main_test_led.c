@@ -1,33 +1,7 @@
-#include <FreeRTOS.h>
+#include "config.h"
 #include <task.h>
 
-#include "chess.h"
-#include "config.h"
-#include "game.h"
 #include "led.h"
-#include "portmacro.h"
-
-#define MAX_POSSIBLE_MOVES 256
-static NormalMove prvPossibleMoves[MAX_POSSIBLE_MOVES];
-static uint8_t prvLastMoveIndex = 0;
-static BoardState prvLastGoodState;
-
-enum MainThread_MsgType {
-    chess_sensor_update,
-    chess_button_press,
-    chess_uart_packet
-};
-
-typedef struct {
-    enum MainThread_MsgType type;
-    union {
-        // TODO: this is sooo inefficient. 32 bytes vs 4?
-        struct {
-            BoardState state;
-        };
-        // TODO: buttons, uart (separate undo and new move)
-    } data;
-} MainThread_Message;
 
 void mainThread(void *arg0) {
     TaskHandle_t thread_led;

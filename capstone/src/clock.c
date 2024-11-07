@@ -42,13 +42,14 @@ typedef struct {
 static TaskHandle_t xClockTaskId = NULL;
 
 // [left, right], each element [Ones, tens]
-static const uint32_t DIGITS[6][2] = {
+static const uint8_t DIGITS[6][2] = {
     {DIGIT_1_2_OFFSET, DIGIT_1_1_OFFSET}, {DIGIT_1_4_OFFSET, DIGIT_1_3_OFFSET},
     {DIGIT_1_6_OFFSET, DIGIT_1_5_OFFSET}, {DIGIT_2_2_OFFSET, DIGIT_2_1_OFFSET},
     {DIGIT_2_4_OFFSET, DIGIT_2_3_OFFSET}, {DIGIT_2_6_OFFSET, DIGIT_2_5_OFFSET}};
-static const uint32_t SEGMENTS[] = {SEVENSEG_A, SEVENSEG_B, SEVENSEG_C,
+static const uint8_t SEGMENTS[] = {SEVENSEG_A, SEVENSEG_B, SEVENSEG_C,
                                     SEVENSEG_D, SEVENSEG_E, SEVENSEG_F,
                                     SEVENSEG_G};
+static const uint8_t NUMBERS[] = {SEVENSEG_0, SEVENSEG_1, SEVENSEG_2, SEVENSEG_3, SEVENSEG_4, SEVENSEG_5, SEVENSEG_6, SEVENSEG_7, SEVENSEG_8, SEVENSEG_9};
 
 void vApplicationTickHook(void) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -109,60 +110,6 @@ void LCD_DELAY_LOAD_INST_IRQHandler(void) {
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
-static uint32_t prvSevenSegmentDigit(char c) {
-    switch (c) {
-    case '0':
-        return CLOCK_0;
-        break;
-    case '1':
-        return CLOCK_1;
-        break;
-    case '2':
-        return CLOCK_2;
-        break;
-    case '3':
-        return CLOCK_3;
-        break;
-    case '4':
-        return CLOCK_4;
-        break;
-    case '5':
-        return CLOCK_5;
-        break;
-    case '6':
-        return CLOCK_6;
-        break;
-    case '7':
-        return CLOCK_7;
-        break;
-    case '8':
-        return CLOCK_8;
-        break;
-    case '9':
-        return CLOCK_9;
-        break;
-    case 'U':
-    case 'u':
-        return CLOCK_U;
-        break;
-    case 'N':
-    case 'n':
-        return CLOCK_N;
-        break;
-    case 'D':
-    case 'd':
-        return CLOCK_D;
-        break;
-    case 'O':
-    case 'o':
-        return CLOCK_O;
-        break;
-    default:
-        return 0;
-        break;
-    }
-}
-
 static void prvSetDigit(uint32_t *data, uint32_t digit_value,
                         uint8_t digit_offset) {
     data[digit_offset / 32] |= digit_value << (digit_offset % 32);
@@ -203,7 +150,7 @@ static void prvRunTestSequence(uint8_t seconds_per_test) {
                         break;
                     case 8:
                         for (uint8_t i = 0; i < 12; i++) {
-                            prvSetDigit(data, CLOCK_8, DIGITS[i / 2][i % 2]);
+                            prvSetDigit(data, SEVENSEG_8, DIGITS[i / 2][i % 2]);
                         }
                         prvRenderColon(data, COL_1_1_OFFSET);
                         prvRenderColon(data, COL_1_2_OFFSET);
@@ -239,8 +186,8 @@ static void prvRunTestSequence(uint8_t seconds_per_test) {
 
 static void prvRenderDigitPair(uint8_t value, uint32_t *data,
                                uint8_t offset_ones, uint8_t offset_tens) {
-    prvSetDigit(data, prvSevenSegmentDigit('0' + (value % 10)), offset_ones);
-    prvSetDigit(data, prvSevenSegmentDigit('0' + (value / 10)), offset_tens);
+    prvSetDigit(data, NUMBERS[value % 10], offset_ones);
+    prvSetDigit(data, NUMBERS[value / 10], offset_tens);
 }
 
 static void prvRenderTime(uint32_t *times, uint32_t *data) {

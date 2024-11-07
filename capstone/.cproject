@@ -55,6 +55,11 @@
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.SELECT_PROCESSOR_MODE__ARM_THUMB.1549320676" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.SELECT_PROCESSOR_MODE__ARM_THUMB" value="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.SELECT_PROCESSOR_MODE__ARM_THUMB.MTHUMB" valueType="enumerated"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.OPT_LEVEL.1181889678" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.OPT_LEVEL" value="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.OPT_LEVEL.2" valueType="enumerated"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.GENERATE_DWARF_DEBUG.858895354" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.GENERATE_DWARF_DEBUG" value="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.GENERATE_DWARF_DEBUG.GDWARF_3" valueType="enumerated"/>
+                                <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.FLTO.616664558" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.FLTO" value="true" valueType="boolean"/>
+                                <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.ENABLE_DISABLE_FUNCTION_INLINING.1870187020" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.ENABLE_DISABLE_FUNCTION_INLINING" value="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.ENABLE_DISABLE_FUNCTION_INLINING.FINLINE_FUNCTIONS" valueType="enumerated"/>
+                                <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.OTHER_FLAGS.958086738" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.OTHER_FLAGS" valueType="stringList">
+                                    <listOptionValue value="-fstack-usage"/>
+                                </option>
                             </tool>
                             <tool id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.exe.linkerDebug.1630095273" name="Arm Linker" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.exe.linkerDebug">
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.SEARCH_PATH.1007179737" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.SEARCH_PATH" valueType="libPaths">
@@ -77,6 +82,7 @@
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.DIAG_WRAP.1585999977" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.DIAG_WRAP" value="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.DIAG_WRAP.off" valueType="enumerated"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.DISPLAY_ERROR_NUMBER.62026733" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.DISPLAY_ERROR_NUMBER" value="true" valueType="boolean"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.XML_LINK_INFO.820506394" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.XML_LINK_INFO" value="${ProjName}_linkInfo.xml" valueType="string"/>
+                                <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.HEAP_SIZE.1369366683" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.HEAP_SIZE" value="16" valueType="string"/>
                             </tool>
                             <tool id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.hex.1204615964" name="Arm Hex Utility" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.hex"/>
                             <tool id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.objcopy.1311076886" name="Arm Objcopy Utility" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.objcopy"/>
@@ -89,7 +95,7 @@
                         </toolChain>
                     </folderInfo>
                     <sourceEntries>
-                        <entry excluding="src/main/main_test_led.c|config/capstone.syscfg|config/excluded|syscfg_c.rov.xs" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/main/main_test_clock.c|src/main/main_test_led.c|config/capstone.syscfg|config/excluded|syscfg_c.rov.xs" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                     </sourceEntries>
                 </configuration>
             </storageModule>
