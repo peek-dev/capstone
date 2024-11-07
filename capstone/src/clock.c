@@ -42,8 +42,13 @@ typedef struct {
 static TaskHandle_t xClockTaskId = NULL;
 
 // [left, right], each element [Ones, tens]
-static const uint32_t DIGITS[6][2] = {{DIGIT_1_2_OFFSET, DIGIT_1_1_OFFSET}, {DIGIT_1_4_OFFSET, DIGIT_1_3_OFFSET}, {DIGIT_1_6_OFFSET, DIGIT_1_5_OFFSET}, {DIGIT_2_2_OFFSET, DIGIT_2_1_OFFSET}, {DIGIT_2_4_OFFSET, DIGIT_2_3_OFFSET}, {DIGIT_2_6_OFFSET, DIGIT_2_5_OFFSET}};
-static const uint32_t SEGMENTS[] = {SEVENSEG_A, SEVENSEG_B, SEVENSEG_C, SEVENSEG_D, SEVENSEG_E, SEVENSEG_F, SEVENSEG_G};
+static const uint32_t DIGITS[6][2] = {
+    {DIGIT_1_2_OFFSET, DIGIT_1_1_OFFSET}, {DIGIT_1_4_OFFSET, DIGIT_1_3_OFFSET},
+    {DIGIT_1_6_OFFSET, DIGIT_1_5_OFFSET}, {DIGIT_2_2_OFFSET, DIGIT_2_1_OFFSET},
+    {DIGIT_2_4_OFFSET, DIGIT_2_3_OFFSET}, {DIGIT_2_6_OFFSET, DIGIT_2_5_OFFSET}};
+static const uint32_t SEGMENTS[] = {SEVENSEG_A, SEVENSEG_B, SEVENSEG_C,
+                                    SEVENSEG_D, SEVENSEG_E, SEVENSEG_F,
+                                    SEVENSEG_G};
 
 void vApplicationTickHook(void) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
@@ -54,7 +59,8 @@ void vApplicationTickHook(void) {
         times_ms[state] -= (1000 / configTICK_RATE_HZ);
         // If we've just finished a second, wakeup the thread to signal the LCD.
         if (times_ms[state] % 1000 == 0) {
-            Clock_Message msg = {.type = clockmsg_writehw, .seconds_per_test = 0};
+            Clock_Message msg = {.type = clockmsg_writehw,
+                                 .seconds_per_test = 0};
             xQueueSendFromISR(clockQueue, &msg, &xHigherPriorityTaskWoken);
         }
     }
@@ -71,14 +77,14 @@ static void prvTransmitHalfFrame(uint16_t half) {
 }
 
 static void prvTransmitFrame(uint32_t frame) {
-    //frame = (frame >> 16) | (frame << 16);
+    // frame = (frame >> 16) | (frame << 16);
     prvTransmitHalfFrame((frame >> 16) & 0xFFFF);
     prvTransmitHalfFrame(frame & 0xFFFF);
 }
 
 static void prvWriteHardware(uint32_t *data) {
     for (int i = 0; i < 3; i++) {
-        prvTransmitFrame(data[2-i]);
+        prvTransmitFrame(data[2 - i]);
     }
     while (DL_SPI_isBusy(CLOCK_SPI_INST)) {
         taskYIELD();
@@ -157,23 +163,27 @@ static uint32_t prvSevenSegmentDigit(char c) {
     }
 }
 
-static void prvSetDigit(uint32_t *data, uint32_t digit_value, uint8_t digit_offset) {
+static void prvSetDigit(uint32_t *data, uint32_t digit_value,
+                        uint8_t digit_offset) {
     data[digit_offset / 32] |= digit_value << (digit_offset % 32);
 }
 
+static void prvRenderColon(uint32_t *data, uint8_t offset) {
+    data[offset / 32] |= 1 << (offset % 32);
+}
+
+#ifndef NDBUG
 static void prvSetSegmentForAll(uint32_t *data, uint8_t segment_id) {
     uint32_t segment = segment_id < 7 ? SEGMENTS[segment_id] : 0;
     for (uint8_t i = 0; i < 12 && segment; i++) {
-        prvSetDigit(data, segment, DIGITS[i/2][i%2]);
+        prvSetDigit(data, segment, DIGITS[i / 2][i % 2]);
     }
 }
-
 static void prvRunTestSequence(uint8_t seconds_per_test) {
     Clock_Message message;
     uint32_t data[3] = {0};
     uint8_t current_segment = 0;
     uint8_t seconds_count = 0;
-    uint8_t current_digit = 0;
     while (1) {
         // Hijack the queue. Use clockmsg_writehw as a once-per-second clock.
         if (xQueueReceive(clockQueue, &message, portMAX_DELAY) == pdTRUE) {
@@ -182,51 +192,55 @@ static void prvRunTestSequence(uint8_t seconds_per_test) {
                     for (int i = 0; i < 3; i++) {
                         data[i] = 0;
                     }
-//                    switch (current_segment) {
-                    prvSetDigit(data, SEGMENTS[current_segment], DIGITS[current_digit/2][1-(current_digit % 2)]);
-                    prvSetDigit(data, SEGMENTS[current_segment], DIGITS[5-current_digit/2][current_digit % 2]);
-                        /*case 7:
-                            times_ms[0] = 012345;
-                            times_ms[1] = 012345;
-                            prvRenderTime(times_ms, data);
-                            break;
-                        case 8:
-                            times_ms[0] = 888888;
-                            times_ms[1] = 888888;
-                            prvRenderTime(times_ms, data);
-                            break;
-                        case 9:
-                            times_ms[0] = 000000;
-                            times_ms[1] = 000000;
-                            prvRenderTime(times_ms, data);
-                            break;
-                        case 10:
-                            times_ms[0] = 012345;
-                            times_ms[1] = 678910;
-                            prvRenderTime(times_ms, data);
-                            break;*/
-                    //}
-                    prvWriteHardware(data);
-                    current_segment = (current_segment + 1) % 7;
-                    if (current_segment == 0) {
-                        current_digit = (current_digit + 1) % 6;
+                    switch (current_segment) {
+                    default:
+                        prvSetSegmentForAll(data, current_segment);
+                        break;
+                    case 7:
+                        times_ms[0] = ((1 * 60 + 23) * 60 + 45) * 1000;
+                        times_ms[1] = ((1 * 60 + 23) * 60 + 45) * 1000;
+                        prvRenderTime(times_ms, data);
+                        break;
+                    case 8:
+                        for (uint8_t i = 0; i < 12; i++) {
+                            prvSetDigit(data, CLOCK_8, DIGITS[i / 2][i % 2]);
+                        }
+                        prvRenderColon(data, COL_1_1_OFFSET);
+                        prvRenderColon(data, COL_1_2_OFFSET);
+                        prvRenderColon(data, COL_2_1_OFFSET);
+                        prvRenderColon(data, COL_2_2_OFFSET);
+                        break;
+                    case 9:
+                        times_ms[0] = 0;
+                        times_ms[1] = 0;
+                        prvRenderTime(times_ms, data);
+                        times_ms[0] = 10000;
+                        times_ms[1] = 10000;
+                        break;
+                    case 10:
+                        times_ms[0] = ((1 * 60 + 23) * 60 + 45) * 1000;
+                        ;
+                        times_ms[1] = ((54 * 60 + 32) * 60 + 10) * 1000;
+                        ;
+                        prvRenderTime(times_ms, data);
+                        break;
                     }
+                    prvWriteHardware(data);
+                    current_segment = (current_segment + 1) % 11;
                 }
-                seconds_count = (seconds_count + 1) % seconds_per_test;
-
+                seconds_count = seconds_per_test == 0
+                                    ? 0
+                                    : (seconds_count + 1) % seconds_per_test;
             }
         }
     }
 }
+#endif
 
 static void prvRenderDigitPair(uint8_t value, uint32_t *data,
                                uint8_t offset_ones, uint8_t offset_tens) {
     prvSetDigit(data, prvSevenSegmentDigit('0' + (value % 10)), offset_ones);
     prvSetDigit(data, prvSevenSegmentDigit('0' + (value / 10)), offset_tens);
-}
-
-static void prvRenderColon(uint32_t *data, uint8_t offset) {
-    data[offset / 32] |= 1 << (offset % 32);
 }
 
 static void prvRenderTime(uint32_t *times, uint32_t *data) {
