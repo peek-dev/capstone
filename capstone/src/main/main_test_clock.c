@@ -17,8 +17,8 @@ void mainThread(void *arg0) {
     xReturned = xPortGetFreeHeapSize();
 
     // Make a thread to recieve messages.
-    xReturned = xTaskCreate(vClock_Thread, "Clock", configMINIMAL_STACK_SIZE, NULL,
-                            2, &thread_clock);
+    xReturned = xTaskCreate(vClock_Thread, "Clock", configMINIMAL_STACK_SIZE,
+                            NULL, 2, &thread_clock);
     // Loop and get stuck here if we fail.
     while (xReturned != pdPASS) {
     }

@@ -21,22 +21,25 @@ BaseType_t xClock_set_times(uint32_t *times_ms);
 #define SEVENSEG_F (1 << 5)
 #define SEVENSEG_G (1 << 6)
 
-#define SEVENSEG_0                                                                \
+#define SEVENSEG_0                                                             \
     (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_E |          \
      SEVENSEG_F)
 #define SEVENSEG_1 (SEVENSEG_B | SEVENSEG_C)
-#define SEVENSEG_2 (SEVENSEG_A | SEVENSEG_B | SEVENSEG_D | SEVENSEG_E | SEVENSEG_G)
-#define SEVENSEG_3 (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_G)
+#define SEVENSEG_2                                                             \
+    (SEVENSEG_A | SEVENSEG_B | SEVENSEG_D | SEVENSEG_E | SEVENSEG_G)
+#define SEVENSEG_3                                                             \
+    (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_G)
 #define SEVENSEG_4 (SEVENSEG_B | SEVENSEG_C | SEVENSEG_F | SEVENSEG_G)
-#define SEVENSEG_5 (SEVENSEG_A | SEVENSEG_C | SEVENSEG_D | SEVENSEG_F | SEVENSEG_G)
-#define SEVENSEG_6                                                                \
+#define SEVENSEG_5                                                             \
+    (SEVENSEG_A | SEVENSEG_C | SEVENSEG_D | SEVENSEG_F | SEVENSEG_G)
+#define SEVENSEG_6                                                             \
     (SEVENSEG_A | SEVENSEG_C | SEVENSEG_D | SEVENSEG_E | SEVENSEG_F |          \
      SEVENSEG_G)
 #define SEVENSEG_7 (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C)
-#define SEVENSEG_8                                                                \
+#define SEVENSEG_8                                                             \
     (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_E |          \
      SEVENSEG_F | SEVENSEG_G)
-#define SEVENSEG_9                                                                \
+#define SEVENSEG_9                                                             \
     (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_F |          \
      SEVENSEG_G)
 

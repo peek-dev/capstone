@@ -47,9 +47,11 @@ static const uint8_t DIGITS[6][2] = {
     {DIGIT_1_6_OFFSET, DIGIT_1_5_OFFSET}, {DIGIT_2_2_OFFSET, DIGIT_2_1_OFFSET},
     {DIGIT_2_4_OFFSET, DIGIT_2_3_OFFSET}, {DIGIT_2_6_OFFSET, DIGIT_2_5_OFFSET}};
 static const uint8_t SEGMENTS[] = {SEVENSEG_A, SEVENSEG_B, SEVENSEG_C,
-                                    SEVENSEG_D, SEVENSEG_E, SEVENSEG_F,
-                                    SEVENSEG_G};
-static const uint8_t NUMBERS[] = {SEVENSEG_0, SEVENSEG_1, SEVENSEG_2, SEVENSEG_3, SEVENSEG_4, SEVENSEG_5, SEVENSEG_6, SEVENSEG_7, SEVENSEG_8, SEVENSEG_9};
+                                   SEVENSEG_D, SEVENSEG_E, SEVENSEG_F,
+                                   SEVENSEG_G};
+static const uint8_t NUMBERS[] = {
+    SEVENSEG_0, SEVENSEG_1, SEVENSEG_2, SEVENSEG_3, SEVENSEG_4,
+    SEVENSEG_5, SEVENSEG_6, SEVENSEG_7, SEVENSEG_8, SEVENSEG_9};
 
 void vApplicationTickHook(void) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
