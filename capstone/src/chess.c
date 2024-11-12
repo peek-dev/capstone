@@ -1,6 +1,7 @@
 #include "chess.h"
 #include "config.h"
 #include "game.h"
+#include "projdefs.h"
 #include "uart.h"
 #include "uart_bidir_protocol.h"
 
@@ -61,4 +62,32 @@ int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
     }
     // No matches
     return -1;
+}
+
+// This function is intended to find whether exactly one piece has been lifted (and not returned)
+// from the board. row and column are outputs.
+// TODO maybe make this hybrid with findvalidmove, and include return states for needing a second-move completion?
+BaseType_t xFindSingleLifted(BoardState *old, BoardState *new, uint8_t *found_row, uint8_t *found_col) {
+    BaseType_t found = pdFALSE;
+    for (uint8_t row = 0; row < 8; row++) {
+        for (uint8_t col = 0; col < 8; col++) {
+            if (xGetSquare(old, row, col) != xGetSquare(new, row, col)) {
+                if (xGetSquare(new, row, col) == EmptySquare) {
+                    // If we haven't already found a missing piece..
+                    if (found == pdFALSE) {
+                        *found_row = row;
+                        *found_col = col;
+                        found = pdTRUE;
+                    } else {
+                        // Multiple pieces have been removed.
+                        return pdFALSE;
+                    }
+                } else {
+                    // Some other change occured.
+                    return pdFALSE;
+                }
+            }
+        }
+    }
+    return found;
 }

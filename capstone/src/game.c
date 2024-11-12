@@ -20,3 +20,12 @@ PieceType xChangeColor(PieceType p) {
     // This works only because the bins are symmetric around the middle (empty).
     return BlackPawn - p;
 }
+
+BaseType_t xBoardEqual(BoardState *a, BoardState *b) {
+    for (uint8_t i = 0; i < 8; i++) {
+        if (a.rows[i] != b.rows[i]) {
+            return pdFALSE;
+        }
+    }
+    return pdTRUE;
+}

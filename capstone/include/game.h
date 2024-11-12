@@ -1,7 +1,9 @@
 #ifndef CAPSTONE_GAME_H
 #define CAPSTONE_GAME_H
 
+#include "chess.h"
 #include "config.h"
+#include "portmacro.h"
 
 typedef enum {
     WhitePawn,
@@ -38,17 +40,27 @@ typedef struct {
     } turn;
     enum {
         game_clock_off,
-        game_clock_90_inc30
+        game_clock_90
         // TODO more
     } clock_mode;
+    enum {
+        game_hint_unknown,
+        game_hint_known,
+        game_hint_awaiting,
+        game_hint_displaying
+    } hint;
+    NormalMove hint_move;
     BoardState last_move_state;
     BoardState last_measured_state;
+    
 } GameState;
 
 // OPT compact row and column into one field.
 PieceType xGetSquare(BoardState *board, uint8_t row, uint8_t column);
 void vSetSquare(BoardState *board, uint8_t row, uint8_t column, PieceType type);
+BaseType_t xBoardEqual(BoardState *a, BoardState *b);
 BaseType_t isWhite(PieceType p);
 PieceType xChangeColor(PieceType p);
+
 
 #endif

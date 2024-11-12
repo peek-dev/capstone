@@ -27,7 +27,7 @@ enum Clock_MsgType {
     clockmsg_writehw,
     clockmsg_stop,
     clockmsg_start,
-    clockmsg_turnswitch,
+    clockmsg_set_turn,
     clockmsg_test_segments,
 };
 
@@ -37,6 +37,7 @@ typedef struct {
     union {
         uint32_t times[2];
         uint8_t seconds_per_test;
+        uint8_t set_turn_black;
     };
 } Clock_Message;
 static TaskHandle_t xClockTaskId = NULL;
@@ -272,11 +273,11 @@ void vClock_Thread(void *arg0) {
                 prvWriteHardware(data);
                 break;
             }
-            case clockmsg_turnswitch:
-                if (state == clock_white_turn) {
-                    state = clock_black_turn;
-                } else if (state == clock_black_turn) {
-                    state = clock_white_turn;
+            case clockmsg_set_turn:
+                if (state == clock_paused_black || state == clock_paused_white) {
+                    state = message.set_turn_black ? clock_paused_black : clock_paused_white;
+                } else {
+                    state = message.set_turn_black ? clock_black_turn : clock_white_turn;
                 }
                 break;
             case clockmsg_test_segments:
@@ -295,9 +296,10 @@ BaseType_t xClock_run_test(uint8_t seconds_per_test) {
     return xQueueSend(clockQueue, &m, portMAX_DELAY);
 }
 
-BaseType_t xClock_switch_turn() {
+BaseType_t xClock_set_turn(uint8_t is_black) {
     Clock_Message m;
-    m.type = clockmsg_turnswitch;
+    m.type = clockmsg_set_turn;
+    m.set_turn_black = is_black;
     return xQueueSend(clockQueue, &m, portMAX_DELAY);
 }
 

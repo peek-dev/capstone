@@ -59,6 +59,7 @@
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.ENABLE_DISABLE_FUNCTION_INLINING.1870187020" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.ENABLE_DISABLE_FUNCTION_INLINING" value="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.ENABLE_DISABLE_FUNCTION_INLINING.FINLINE_FUNCTIONS" valueType="enumerated"/>
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.OTHER_FLAGS.958086738" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.OTHER_FLAGS" valueType="stringList">
                                     <listOptionValue value="-fstack-usage"/>
+                                    <listOptionValue value="-fshort-enums"/>
                                 </option>
                             </tool>
                             <tool id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.exe.linkerDebug.1630095273" name="Arm Linker" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.exe.linkerDebug">
