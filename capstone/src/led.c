@@ -38,7 +38,7 @@ static uint32_t prvPackFrame(Color *pColor) {
     result |= pColor->red << 0;
 
     // Somehow the two chunks are getting flipped in transmission?
-    return (result >> 16) | (result << 16);
+    return result;
 }
 
 BaseType_t xLED_clear_board() {
@@ -73,13 +73,17 @@ BaseType_t xLED_commit() {
     return xQueueSend(ledQueue, &m, portMAX_DELAY);
 }
 
-static void prvTransmitFrame(uint32_t frame) {
+static void prvTransmitHalfFrame(uint16_t halfframe) {
     // My own reimplementation of DL_SPI_transmitDataBlocking32,
     // but using yield instead of busy-wait.
     while (DL_SPI_isTXFIFOFull(LED_SPI_INST)) {
         taskYIELD();
     }
-    DL_SPI_transmitData32(LED_SPI_INST, frame);
+    DL_SPI_transmitData16(LED_SPI_INST, halfframe);
+}
+static void prvTransmitFrame(uint32_t frame) {
+    prvTransmitHalfFrame((frame >> 16) & 0xFFFF);
+    prvTransmitHalfFrame(frame & 0xFFFF);
 }
 
 static void prvLED_commit() {
