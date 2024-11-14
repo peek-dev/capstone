@@ -365,11 +365,9 @@ SYSCONFIG_WEAK void SYSCFG_DL_LED_SPI_init(void) {
     /*
      * Set the bit rate clock divider to generate the serial output clock
      *     outputBitRate = (spiInputClock) / ((1 + SCR) * 2)
-     *     16000000 = (32000000)/((1 + 0) * 2)
+     *     1600000 = (32000000)/((1 + 9) * 2)
      */
-    DL_SPI_setBitRateSerialClockDivider(LED_SPI_INST, 0);
-    /* Enable packing feature */
-    DL_SPI_enablePacking(LED_SPI_INST);
+    DL_SPI_setBitRateSerialClockDivider(LED_SPI_INST, 9);
     /* Set RX and TX FIFO threshold levels */
     DL_SPI_setFIFOThreshold(LED_SPI_INST, DL_SPI_RX_FIFO_LEVEL_1_2_FULL, DL_SPI_TX_FIFO_LEVEL_1_2_EMPTY);
 
