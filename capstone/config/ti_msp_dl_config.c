@@ -337,8 +337,12 @@ SYSCONFIG_WEAK void SYSCFG_DL_RPI_UART_init(void)
 
     /* Configure FIFOs */
     DL_UART_Main_enableFIFOs(RPI_UART_INST);
-    DL_UART_Main_setRXFIFOThreshold(RPI_UART_INST, DL_UART_RX_FIFO_LEVEL_FULL);
+    DL_UART_Main_setRXFIFOThreshold(RPI_UART_INST, DL_UART_RX_FIFO_LEVEL_3_4_FULL);
     DL_UART_Main_setTXFIFOThreshold(RPI_UART_INST, DL_UART_TX_FIFO_LEVEL_1_2_EMPTY);
+
+    /* Configure analog glitch filter */
+    DL_UART_Main_enableAnalogGlitchFilter(RPI_UART_INST);
+    DL_UART_Main_setAnalogPulseWidth(RPI_UART_INST, DL_UART_PULSE_WIDTH_25_NS);
 
     DL_UART_Main_enable(RPI_UART_INST);
 }
