@@ -317,7 +317,7 @@ BaseType_t xClock_start_clock() {
 
 BaseType_t xClock_set_times(uint32_t *times_ms) {
     Clock_Message m;
-    m.type = clockmsg_turnswitch;
+    m.type = clockmsg_set_time;
     memcpy(m.times, times_ms, sizeof(uint32_t) * 2);
     return xQueueSend(clockQueue, &m, portMAX_DELAY);
 }

@@ -2,9 +2,11 @@
 #define CAPSTONE_CHESS_H
 
 #include "config.h"
-#include "game.h"
 
 typedef uint32_t NormalMove;
+
+#include "game.h"
+
 
 int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
                        uint8_t moves_len);

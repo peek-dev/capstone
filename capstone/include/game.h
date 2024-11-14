@@ -1,7 +1,6 @@
 #ifndef CAPSTONE_GAME_H
 #define CAPSTONE_GAME_H
 
-#include "chess.h"
 #include "config.h"
 #include "portmacro.h"
 
@@ -25,6 +24,8 @@ typedef enum {
 typedef struct {
     uint32_t rows[8];
 } BoardState;
+
+#include "chess.h"
 
 typedef struct {
     enum {

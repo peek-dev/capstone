@@ -7,7 +7,7 @@ BaseType_t xClock_Init(void);
 void vClock_Thread(void *arg0);
 
 BaseType_t xClock_run_test(uint8_t seconds_per_test);
-BaseType_t xClock_set_turn();
+BaseType_t xClock_set_turn(uint8_t is_black);
 BaseType_t xClock_stop_clock();
 BaseType_t xClock_start_clock();
 BaseType_t xClock_set_times(uint32_t *times_ms);

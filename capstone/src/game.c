@@ -23,7 +23,7 @@ PieceType xChangeColor(PieceType p) {
 
 BaseType_t xBoardEqual(BoardState *a, BoardState *b) {
     for (uint8_t i = 0; i < 8; i++) {
-        if (a.rows[i] != b.rows[i]) {
+        if (a->rows[i] != b->rows[i]) {
             return pdFALSE;
         }
     }
