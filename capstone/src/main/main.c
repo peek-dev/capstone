@@ -19,8 +19,7 @@ static GameState state;
 enum MainThread_MsgType {
     chess_sensor_update,
     chess_button_press,
-    chess_uart_move,
-    chess_uart_undo
+    chess_uart_message
 };
 
 typedef struct {

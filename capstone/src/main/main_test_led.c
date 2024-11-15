@@ -7,14 +7,10 @@ void mainThread(void *arg0) {
     TaskHandle_t thread_led;
     BaseType_t xReturned;
 
-    xReturned = xPortGetFreeHeapSize();
-
     /* Call driver init functions */
     xReturned = xLED_Init();
     while (xReturned != pdPASS) {
     }
-
-    xReturned = xPortGetFreeHeapSize();
 
     // Make a thread to recieve messages.
     xReturned = xTaskCreate(vLED_Thread, "LED", configMINIMAL_STACK_SIZE, NULL,
@@ -22,7 +18,6 @@ void mainThread(void *arg0) {
     // Loop and get stuck here if we fail.
     while (xReturned != pdPASS) {
     }
-    xReturned = xPortGetFreeHeapSize();
 
     Color color = {.brightness = 31, .red = 255, .blue = 0, .green = 0};
     int8_t masks[3][3] = {{-1, 1, 0}, {0, -1, 1}, {1, 0, -1}};
