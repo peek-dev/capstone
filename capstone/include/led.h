@@ -16,9 +16,9 @@ typedef struct {
     uint8_t red;
 } Color;
 
-BaseType_t xLED_clear_board();
+BaseType_t xLED_clear_board(void);
 BaseType_t xLED_set_color(uint8_t num, Color *pColor);
-BaseType_t xLED_commit();
+BaseType_t xLED_commit(void);
 
 BaseType_t xLED_Init(void);
 void vLED_Thread(void *arg0);

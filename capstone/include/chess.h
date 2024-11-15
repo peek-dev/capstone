@@ -7,10 +7,10 @@ typedef uint32_t NormalMove;
 
 #include "game.h"
 
-
 int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
                        uint8_t moves_len);
 BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move);
-BaseType_t xFindSingleLifted(BoardState *old, BoardState *new, uint8_t *row, uint8_t *column);
+BaseType_t xFindSingleLifted(BoardState *old, BoardState *new, uint8_t *row,
+                             uint8_t *column);
 
 #endif

@@ -53,7 +53,7 @@ typedef struct {
     NormalMove hint_move;
     BoardState last_move_state;
     BoardState last_measured_state;
-    
+
 } GameState;
 
 // OPT compact row and column into one field.
@@ -62,6 +62,5 @@ void vSetSquare(BoardState *board, uint8_t row, uint8_t column, PieceType type);
 BaseType_t xBoardEqual(BoardState *a, BoardState *b);
 BaseType_t isWhite(PieceType p);
 PieceType xChangeColor(PieceType p);
-
 
 #endif
