@@ -274,10 +274,13 @@ void vClock_Thread(void *arg0) {
                 break;
             }
             case clockmsg_set_turn:
-                if (state == clock_paused_black || state == clock_paused_white) {
-                    state = message.set_turn_black ? clock_paused_black : clock_paused_white;
+                if (state == clock_paused_black ||
+                    state == clock_paused_white) {
+                    state = message.set_turn_black ? clock_paused_black
+                                                   : clock_paused_white;
                 } else {
-                    state = message.set_turn_black ? clock_black_turn : clock_white_turn;
+                    state = message.set_turn_black ? clock_black_turn
+                                                   : clock_white_turn;
                 }
                 break;
             case clockmsg_test_segments:

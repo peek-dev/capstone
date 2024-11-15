@@ -64,10 +64,12 @@ int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
     return -1;
 }
 
-// This function is intended to find whether exactly one piece has been lifted (and not returned)
-// from the board. row and column are outputs.
-// TODO maybe make this hybrid with findvalidmove, and include return states for needing a second-move completion?
-BaseType_t xFindSingleLifted(BoardState *old, BoardState *new, uint8_t *found_row, uint8_t *found_col) {
+// This function is intended to find whether exactly one piece has been lifted
+// (and not returned) from the board. row and column are outputs.
+// TODO maybe make this hybrid with findvalidmove, and include return states for
+// needing a second-move completion?
+BaseType_t xFindSingleLifted(BoardState *old, BoardState *new,
+                             uint8_t *found_row, uint8_t *found_col) {
     BaseType_t found = pdFALSE;
     for (uint8_t row = 0; row < 8; row++) {
         for (uint8_t col = 0; col < 8; col++) {
