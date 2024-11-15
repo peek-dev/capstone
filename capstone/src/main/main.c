@@ -1,6 +1,8 @@
 #include "config.h"
 #include <task.h>
-#include "string.h"
+#include "portmacro.h"
+#include <string.h>
+#include <queue.h>
 
 #include "chess.h"
 #include "game.h"
@@ -10,28 +12,8 @@
 #include "uart_bidir_protocol.h"
 #include "button.h"
 
-#define MAX_POSSIBLE_MOVES 256
-static NormalMove prvPossibleMoves[MAX_POSSIBLE_MOVES];
-static uint8_t prvPossibleMovesLen = 0;
-static uint8_t prvCurrentMoveIndex = 0;
-static GameState state;
-
-enum MainThread_MsgType {
-    chess_sensor_update,
-    chess_button_press,
-    chess_uart_message
-};
-
-typedef struct {
-    enum MainThread_MsgType type;
-    union {
-        // TODO: this is sooo inefficient. 32 bytes vs 4?
-        BoardState state;
-        // TODO: buttons, uart (separate undo and new move)
-        enum button_num button;
-        NormalMove move;
-    };
-} MainThread_Message;
+#define DECLARE_PRIVATE_MAIN_C
+#include "main.h"
 
 void mainThread(void *arg0) {
     TaskHandle_t thread_clock, thread_led, thread_sensor;
@@ -49,7 +31,6 @@ void mainThread(void *arg0) {
     xReturned = xSensor_Init();
     while (xReturned != pdPASS) {
     }
-    mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(Clock_Message));
 
     xReturned = xPortGetFreeHeapSize();
 
@@ -68,11 +49,43 @@ void mainThread(void *arg0) {
     }
 
     MainThread_Message message;
-    while
+    while (1) {
+        if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {
+            prvProcessMessage(&message);
+        }
+    }
 
     vTaskDelete(NULL);
 }
-static void prvSwitchTurnRoutine();
+
+BaseType_t xMain_Init(void) {
+    mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
+    if (mainQueue == NULL) {
+        return pdFALSE;
+    }
+    return pdTRUE;
+}
+
+BaseType_t xMain_sensor_update(BoardState *state) {
+    MainThread_Message m;
+    m.type = main_sensor_update;
+    memcpy(&m.state, state, sizeof(BoardState));
+    return xQueueSend(mainQueue, &m, portMAX_DELAY);
+}
+
+BaseType_t xMain_button_press(enum button_num button) {
+    MainThread_Message m;
+    m.type = main_button_press;
+    m.button = button;
+    return xQueueSend(mainQueue, &m, portMAX_DELAY);
+}
+
+BaseType_t xMain_uart_message(uint32_t move) {
+    MainThread_Message m;
+    m.type = main_uart_message;
+    m.move = move;
+    return xQueueSend(mainQueue, &m, portMAX_DELAY);
+}
 
 static void prvSwitchStateTurn(GameState *statevar) {
     if (statevar->turn == game_turn_black) {
@@ -118,42 +131,43 @@ void prvHandleButtonPress(enum button_num button) {
         break;
     case button_num_hint:
         switch (state.state) {
-            case game_state_running:
-            case game_state_paused:
-            case game_state_notstarted:
-                switch (state.hint) {
-                    case game_hint_unknown:
-                        // TODO request hint from uart;
-                        state.hint = game_hint_awaiting;
-                        break;
-                    case game_hint_known:
-                        // TODO display hint
-                        state.hint = game_hint_displaying;
-                        break;
-                    case game_hint_displaying:
-                        // TODO display movable pieces
-                        state.hint = game_hint_known;
-                        break;
-                    default:
-                        break;
-                }
+        case game_state_running:
+        case game_state_paused:
+        case game_state_notstarted:
+            switch (state.hint) {
+            case game_hint_unknown:
+                // TODO request hint from uart;
+                state.hint = game_hint_awaiting;
+                break;
+            case game_hint_known:
+                // TODO display hint
+                state.hint = game_hint_displaying;
+                break;
+            case game_hint_displaying:
+                // TODO display movable pieces
+                state.hint = game_hint_known;
                 break;
             default:
                 break;
-
+            }
+            break;
+        default:
+            break;
         }
         break;
     case button_num_start_restart:
         state.hint = game_hint_unknown;
-        if (state.state == game_state_notstarted && 
-            xBoardEqual(&state.last_move_state, &state.last_measured_state) == pdTRUE) {
+        if (state.state == game_state_notstarted &&
+            xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
+                pdTRUE) {
             prvSwitchStateTurn(&state);
         } else {
             state.turn = game_turn_white;
         }
         state.state = game_state_notstarted;
         // Set the latest state to the board state.
-        memcpy(&state.last_move_state, &state.last_measured_state, sizeof(BoardState));
+        memcpy(&state.last_move_state, &state.last_measured_state,
+               sizeof(BoardState));
         // TODO send the state to the uart somehow.
         break;
     case button_num_clock_mode:
@@ -163,15 +177,17 @@ void prvHandleButtonPress(enum button_num button) {
         break;
     case button_num_undo:
         switch (state.state) {
-            case game_state_paused:
-            case game_state_running:
-                // TODO request an undo move from the uart.
-                // TODO finish this
+        case game_state_paused:
+        case game_state_running:
+            // TODO request an undo move from the uart.
+            // TODO finish this
+            break;
+        default:
+            break;
         }
         break;
     }
 }
-
 
 // Should only be called when in the running and reset states.
 static void prvSwitchTurnRoutine() {
@@ -198,11 +214,12 @@ static void prvSwitchTurnRoutine() {
     // Reset the hint state.
     state.hint = game_hint_unknown;
     // Set the board state to the latest measured state.
-    memcpy(&state.last_move_state, &state.last_measured_state, sizeof(BoardState));
+    memcpy(&state.last_move_state, &state.last_measured_state,
+           sizeof(BoardState));
     // Clear the LEDs.
     xLED_clear_board();
     xLED_commit();
-    
+
     // Switch the clock turn.
     xClock_set_turn(state.turn == game_turn_black);
     // If we're just starting, start the clock.
@@ -214,12 +231,12 @@ static void prvSwitchTurnRoutine() {
 
 void prvProcessMessage(MainThread_Message *message) {
     switch (message->type) {
-    case chess_sensor_update:
+    case main_sensor_update:
         memcpy(&state.last_measured_state, &(message->state),
                sizeof(BoardState));
         // TODO: detect piece lift, respond.
         break;
-    case chess_uart_move:
+    case main_uart_message:
         // Check: are we currently listening for moves?
         if (prvPossibleMovesLen == 0) {
             prvPossibleMoves[prvCurrentMoveIndex] = message->move;
@@ -237,11 +254,8 @@ void prvProcessMessage(MainThread_Message *message) {
             }
         }
         break;
-    case chess_button_press:
+    case main_button_press:
         prvHandleButtonPress(message->button);
-        break;
-    case chess_uart_undo:
-        // TODO
         break;
     }
 }

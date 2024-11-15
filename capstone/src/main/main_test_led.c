@@ -2,6 +2,7 @@
 #include <task.h>
 
 #include "led.h"
+#include "projdefs.h"
 
 void mainThread(void *arg0) {
     TaskHandle_t thread_led;
@@ -52,3 +53,9 @@ void mainThread(void *arg0) {
     }
     vTaskDelete(NULL);
 }
+
+BaseType_t xMain_sensor_update(BoardState *state) { return pdTRUE; }
+
+BaseType_t xMain_button_press(enum button_num button) { return pdTRUE; }
+
+BaseType_t xMain_uart_message(uint32_t move) { return pdTRUE; }
