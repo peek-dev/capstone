@@ -3,8 +3,9 @@
 import chess
 import chess.engine
 import wrapper_util as wr # include helpers and UART protocol constants
-import rpi_uartboost as uart # include bespoke Raspberry Pi UART booster library
 import serial
+
+MSP_BAUDRATE=115200
 
 if __name__ == '__main__':
     board = chess.Board()
@@ -23,7 +24,7 @@ if __name__ == '__main__':
     # 250ms per-turn computation time limit
     sf_limit = chess.engine.Limit(time=0.250)
 
-    uart = serial.Serial('/dev/serial0', baudrate=921600)
+    uart = serial.Serial('/dev/serial0', baudrate=MSP_BAUDRATE)
 
     # The main loop of the program, which will never exit except in unusual 
     # circumstances.
@@ -83,13 +84,13 @@ if __name__ == '__main__':
                 board.clear()
                 continue
             case wr.ButtonEvent.HINT:
-                uart.uart_sendpacket(wr.encode_packet(best_move, board, True).to_bytes(4, 'little'))
+                uart.write(wr.encode_packet(best_move, board, True).to_bytes(4, 'little'))
             case wr.ButtonEvent.UNDO:
                 try:
                     # Rewinds the board state---no further action needed.
                     undone_move = board.pop()
                     # Indicate to the MSP which specific move has been undone
-                    uart.uart_sendpacket(wr.encode_undo(undone_move, board).to_bytes(4, 'little'))
+                    uart.write(wr.encode_undo(undone_move, board).to_bytes(4, 'little'))
                     continue
                 except IndexError:
                     # IndexError innocuous; stack is empty, but not an error
@@ -103,9 +104,9 @@ if __name__ == '__main__':
 
         # Check endgame conditions and indicate to MSP if present
         if (board.is_checkmate()):
-            uart.uart_sendpacket(wr.CHECKMATE.to_bytes(4, 'little'))
+            uart.write(wr.CHECKMATE.to_bytes(4, 'little'))
         elif (board.is_stalemate()):
-            uart.uart_sendpacket(wr.STALEMATE.to_bytes(4, 'little'))
+            uart.write(wr.STALEMATE.to_bytes(4, 'little'))
 
         # ...then proceed to the next turn
 
