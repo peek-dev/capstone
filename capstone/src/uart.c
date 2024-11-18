@@ -7,8 +7,13 @@
 
 // RPI_UART_INST
 
-static QueueHandle_t queue_to_wire;
+// The "private" queue handle for data to be placed on UART TX.
+static QueueHandle_t queue_to_wire; 
 
+/**
+ * Initialize UART thread state, including queue handle for data to be put on 
+ * the wire.
+ */
 BaseType_t xUART_init(void) {
     queue_to_wire = xQueueCreate(QUEUE_SIZE, sizeof(uint32_t));
 
@@ -19,6 +24,9 @@ BaseType_t xUART_init(void) {
     return pdTRUE;
 }
 
+/**
+ * Enqueue data to be transmitted over the MSP UART TX to the Raspberry Pi.
+ */
 BaseType_t xUART_to_wire(uint32_t move) {
     return xQueueSend(queue_to_wire, &move, portMAX_DELAY);
 }
