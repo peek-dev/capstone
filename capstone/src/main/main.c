@@ -16,6 +16,7 @@
 #include "main.h"
 
 void mainThread(void *arg0) {
+    /* FIXME: declare task handle for UART task */
     TaskHandle_t thread_clock, thread_led, thread_sensor;
     BaseType_t xReturned;
 
@@ -47,6 +48,8 @@ void mainThread(void *arg0) {
                             NULL, 2, &thread_sensor);
     while (xReturned != pdPASS) {
     }
+
+    /* FIXME: call xTaskCreate() API to set up UART task */
 
     MainThread_Message message;
     while (1) {

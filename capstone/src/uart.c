@@ -2,6 +2,26 @@
 #include "config.h"
 #include "game.h"
 #include "projdefs.h"
+#include "portmacro.h"
+#include "ti_msp_dl_config.h"
+
+// RPI_UART_INST
+
+static QueueHandle_t queue_to_wire;
+
+BaseType_t xUART_init(void) {
+    queue_to_wire = xQueueCreate(QUEUE_SIZE, sizeof(uint32_t));
+
+    if (queue_to_wire == NULL) {
+        return pdFALSE;
+    }
+
+    return pdTRUE;
+}
+
+BaseType_t xUART_to_wire(uint32_t move) {
+    return xQueueSend(queue_to_wire, &move, portMAX_DELAY);
+}
 
 PieceType xPtypeFromWire(PTYPE in, BaseType_t white) {
     PieceType result;
@@ -39,6 +59,10 @@ PieceType xPtypeFromWire(PTYPE in, BaseType_t white) {
     return result;
 }
 
+/**
+ * "Break up" the 32-bit word into 8-bit packets to send (UART capacity is 
+ * 8 data bits)
+ */
 static void prvUART_UnpackAndSend(UART_Regs* uart, uint32_t packet) {
     uint8_t next_byte;
 
@@ -49,9 +73,12 @@ static void prvUART_UnpackAndSend(UART_Regs* uart, uint32_t packet) {
     }
 }
 
-static uint32_t prvUART_PackAndReceive(UART_Regs* uart) {
-    uint32_t retrieved_word = 0;
-    uint8_t next_byte;
+/** 
+ * Do the reverse of sending: collect 4 bytes at a time into a single protocol
+ * word.
+ */
+static uint32_t prvUART_PackAndReceive(UART_Regs* uart) { uint32_t
+    retrieved_word = 0; uint8_t next_byte;
 
     for (int i = 0; i < 4; i += 1) {
         retrieved_word <<= 8;
@@ -62,53 +89,30 @@ static uint32_t prvUART_PackAndReceive(UART_Regs* uart) {
     return retrieved_word;
 }
 
+/**
+ * The main loop for the UART task.
+ */
 void vUART_Task(void* arg0) {
-    UART_arg* arg = (UART_arg*) arg0;
-    UART_Regs* uart; // TODO: define based on sysconfig (?)
 
-    DL_UART_Config uart_cfg = { 
-        .mode = DL_UART_MODE_NORMAL, /* blocking I/O */
-        .direction = DL_UART_TX_RX, /* duplex communication */
-        .flowControl = DL_UART_FLOW_CONTROL_NONE,
-        /* "Default" UART params: 1 start + 8 data + 1 stop (no parity) */
-        .parity = DL_UART_PARITY_NONE,
-        .wordLength = DL_UART_WORD_LENGTH_8_BITS,
-        .stopBits = DL_UART_STOP_BITS_ONE
-    };
+    /* Thread-local variables for sending and receiving words */
+    uint32_t next_sent;
+    uint32_t next_packet;
 
     while (1) { 
-        // Block on the main-to-UART semaphore to wait for new input
-        xSemaphoreTake(arg->mtu_lock, portMAX_DELAY);
-        BaseType_t available_from_main = uxQueueMessagesWaiting(arg->main_to_uart);
+        BaseType_t available_from_main = uxQueueMessagesWaiting(queue_to_wire);
 
-        if (available_from_main != 0) {
-            uint32_t from_main[available_from_main];
-
-            for (BaseType_t i = 0; i < available_from_main; i += 1) {
-                xQueueReceive(arg->main_to_uart, &(from_main[i]), 0);
-            }
-
-            // Usage all done, so free up queue
-            xSemaphoreGive(arg->mtu_lock);
-
+        if (available_from_main > 0) {
             // Send all ready data from main to the Raspberry Pi
             for (BaseType_t i = 0; i < available_from_main; i += 1) {
-                prvUART_UnpackAndSend(uart, from_main[i]);
+                next_sent = xQueueReceive(queue_to_wire, &next_sent, portMAX_DELAY);
+                prvUART_UnpackAndSend(RPI_UART_INST, next_sent);
             }
-        } else {
-            xSemaphoreGive(arg->mtu_lock); // No data ready yet
-        }
-
-        // TODO: declare queue for received messages from UART?
-        
-        uint32_t next_packet;
+        } 
 
         do {
-            next_packet = prvUART_PackAndReceive(uart);
-            // TODO: enqueue packet on thread-local FIFO
-            // TODO: add logic to check if overflowing thread-local FIFO.
-            //          if so, add logic to en masse dequeue and enqueue data onto the UART->main queue
-        } while (!(next_packet & 1)); // While the last packet received is **not** the last packet in this series
+            next_packet = prvUART_PackAndReceive(RPI_UART_INST);
+            xMain_uart_message(next_packet);
+        } while (!IS_LAST_MOVE(next_packet)); // While the last packet received is **not** the last packet in this series
 
         taskYIELD(); // Rather than busy wait on FIFOs, yield to other tasks
     }
