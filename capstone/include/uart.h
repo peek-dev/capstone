@@ -5,7 +5,16 @@
 #include "game.h"
 #include "uart_bidir_protocol.h"
 
+/**
+ * Initialize UART thread state, including queue handle for data to be put on 
+ * the wire.
+ */
 BaseType_t xUART_init(void);
+
+/**
+ * Enqueue data to be transmitted over the MSP UART TX to the Raspberry Pi.
+ */
+BaseType_t xUART_to_wire(uint32_t move);
 
 PieceType xPtypeFromWire(PTYPE in, BaseType_t whiteToMove);
 
