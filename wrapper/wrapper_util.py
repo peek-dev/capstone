@@ -45,11 +45,11 @@ def encode_movetype(move: chess.Move, board: chess.Board) -> int:
     global MTYPE_CAPTURE
     global MTYPE_CASTLE
 
-    if (board.is_check(move)):
+    if (board.gives_check(move)):
         return MTYPE_CHECK
     elif (board.is_capture(move)):
         return MTYPE_CAPTURE
-    if (board.is_castling(move)):
+    elif (board.is_castling(move)):
         return MTYPE_CASTLE
 
     return MTYPE_NORMAL
@@ -70,9 +70,10 @@ def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -
     packet |= chess.square_rank(move.from_square) << SRC_RANK_SHIFT
     packet |= chess.square_file(move.to_square) << DEST_FILE_SHIFT
     packet |= chess.square_rank(move.to_square) << DEST_RANK_SHIFT
-    packet |= (move.drop if (move.drop != None) else 0) << PTYPE_SHIFT
-    packet |= (1 << M2_SHIFT) if board.is_castling(move) else (0 << M2_SHIFT) 
+    packet |= board.piece_type_at(move.from_square) << PTYPE_SHIFT
+    packet |= (1 << M2_SHIFT) if (board.is_castling(move) or board.is_capture(move)) else (0 << M2_SHIFT) 
     packet |= encode_movetype(move, board) << MTYPE_SHIFT
+    packet |= 0x00000002 if board.is_castling(move) else 0x00000000
     packet |= (1 if last_move else 0)
 
     return packet

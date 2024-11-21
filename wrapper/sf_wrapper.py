@@ -16,7 +16,7 @@ if __name__ == '__main__':
     sf = chess.engine.SimpleEngine.popen_uci("/usr/games/stockfish")
 
     # Device-specific customizations.
-    # Code originally developed for Raspberry Pi 5 with 4 cores and 8GB RAM
+    # Code originally developed for Raspberry Pi 4B with 4 cores and 8GB RAM
     # (hence 'Hash' --> memory allocation --> 4096 MiB = 4 GiB).
     sf.configure({'Hash': 4096})
     sf.configure({'Threads': 4})
@@ -53,7 +53,7 @@ if __name__ == '__main__':
             if move_src_square not in moves_dict.keys():
                 moves_dict[move_src_square] = []
 
-            moves_dict[move_src_square].append(wr.encode_packet(move, board).to_bytes(4, 'little'))
+            moves_dict[move_src_square].append(wr.encode_packet(move, board))
 
         packet_no = 0
 
