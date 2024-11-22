@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import chess
+import serial
 from enum import Enum
 
 # Various constants based on packet scheme. See
@@ -26,6 +27,7 @@ MTYPE_CASTLE = 3
 
 # Special status constants to indicate exceptional game conditions (outcomes,
 # most often) for the MSP.
+NORMAL      = 0x00000000
 CHECK       = 0x00000010
 CHECKMATE   = 0x00000030
 STALEMATE   = 0x00000070
@@ -141,6 +143,43 @@ def parse_button_event(packet: int) -> ButtonEvent:
             return ButtonEvent.UNDO
         case _:
             return ButtonEvent.NORMAL
+
+
+def send_legal(board: chess.Board, shandle: serial.Serial):
+    possible_moves = board.legal_moves
+    possible_count = possible_moves.count()
+
+    moves_dict = {}
+    move_src_square = ''
+
+    # Group moves into contiguous "chunks" based on source square
+    for move in possible_moves:
+        # .square_name method returns str (okay for dictionary key)
+        move_src_square = chess.square_name(move.from_square)
+        
+        # Categorize moves by source square.
+        # Offload this task to the RPI for easier move processing on the MSP.
+        if move_src_square not in moves_dict.keys():
+            moves_dict[move_src_square] = []
+
+        moves_dict[move_src_square].append(wr.encode_packet(move, board))
+
+    packet_no = 0
+
+    for src_square in moves_dict.keys():
+        for packet in moves_dict[src_square]:
+            packet_no += 1
+
+            if packet_no == possible_count:
+                packet |= 1 # Set the packet's LSB to mark it as the last packet in series
+            
+            shandle.write(packet.to_bytes(4, 'little'))
+
+
+def init_board(board: chess.Board, shandle: serial.Serial):
+    # Clear playing stack and refresh list of valid moves
+    board.reset()
+    send_legal(board, shandle)
 
 
 if __name__ == '__main__':

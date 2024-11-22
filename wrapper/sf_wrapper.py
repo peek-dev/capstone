@@ -3,11 +3,13 @@
 import chess
 import chess.engine
 import wrapper_util as wr # include helpers and UART protocol constants
+from wrapper_util import ButtonEvent
 import serial
 
-MSP_BAUDRATE=115200
 
 if __name__ == '__main__':
+
+    MSP_BAUDRATE=115200 # UART state constant
     board = chess.Board()
 
     # Open Stockfish in subprocess.
@@ -26,52 +28,17 @@ if __name__ == '__main__':
 
     uart = serial.Serial('/dev/serial0', baudrate=MSP_BAUDRATE)
 
+    wr.init_board()
+    next_result = sf.play(board, sf_limit)
+    best_move = next_result.move
+
     # The main loop of the program, which will never exit except in unusual 
     # circumstances.
     while True:
-        next_result = sf.play(board, sf_limit)
-        best_move = next_result.move
-
-        # Board has *not* been updated using .play() (only updated on .push()
-        # call). 
-        # 
-        # So, find the best move and prepare to send that to the MSP alongside
-        # *all* possible moves for the current board.
-        possible_moves = board.legal_moves
-        possible_count = possible_moves.count()
-
-        moves_dict = {}
-        move_src_square = ''
-
-        # Group moves into contiguous "chunks" based on source square
-        for move in possible_moves:
-            # .square_name method returns str (okay for dictionary key)
-            move_src_square = chess.square_name(move.from_square)
-            
-            # Categorize moves by source square.
-            # Offload this task to the RPI for easier move processing on the MSP.
-            if move_src_square not in moves_dict.keys():
-                moves_dict[move_src_square] = []
-
-            moves_dict[move_src_square].append(wr.encode_packet(move, board))
-
-        packet_no = 0
-
-        for src_square in moves_dict.keys():
-            for packet in moves_dict[src_square]:
-                packet_no += 1
-
-                # Reshuffle makes pinpointing last move trickier than simple 
-                # is-move-last-in-list logic
-                if packet_no == possible_count:
-                    packet = (int(packet.hex(), 16) | 0x01000000).to_bytes(4, 'little')
-                    uart.write(packet)
-                else:
-                    uart.write(packet)
 
         # Block until the MSP sends back the next event it receives on the 
         # chessboard.
-        next_packet = uart.read(4)
+        next_packet = int((uart.read(4))[-1::-1].hex(), 16)
         next_move = chess.Move.null()
 
         # Three distinct possible kinds of packets (in a sense) exist to prompt
@@ -79,13 +46,13 @@ if __name__ == '__main__':
         # - RESTART: clear game state (rewind entire game)
         # - HINT: send best move
         # - UNDO: rewind game state one move at a time
-        match (wr.parse_button_event(int(next_packet.hex()))):
-            case wr.ButtonEvent.RESTART:
-                board.clear()
+        match (wr.parse_button_event(next_packet)):
+            case ButtonEvent.RESTART:
+                board.reset()
                 continue
-            case wr.ButtonEvent.HINT:
+            case ButtonEvent.HINT:
                 uart.write(wr.encode_packet(best_move, board, True).to_bytes(4, 'little'))
-            case wr.ButtonEvent.UNDO:
+            case ButtonEvent.UNDO:
                 try:
                     # Rewinds the board state---no further action needed.
                     undone_move = board.pop()
@@ -96,17 +63,24 @@ if __name__ == '__main__':
                     # IndexError innocuous; stack is empty, but not an error
                     continue 
             case _:
-                # Standard move
-                next_move = wr.decode_packet(int(next_packet.hex(), 16)) 
+                # Standard move. Add move to playing stack and update state.
+                next_move = wr.decode_packet(next_packet)
+                board.push(next_move)
 
-        # Add move to the playing stack for Stockfish to use
-        board.push(next_move)
+                next_result = sf.play(board, sf_limit)
+                best_move = next_result.move
 
-        # Check endgame conditions and indicate to MSP if present
-        if (board.is_checkmate()):
-            uart.write(wr.CHECKMATE.to_bytes(4, 'little'))
-        elif (board.is_stalemate()):
-            uart.write(wr.STALEMATE.to_bytes(4, 'little'))
+                # Check endgame conditions and indicate to MSP if present
+                if (board.is_checkmate()):
+                    uart.write(wr.CHECKMATE.to_bytes(4, 'little'))
+                elif (board.is_stalemate()):
+                    uart.write(wr.STALEMATE.to_bytes(4, 'little'))
+
+                # Send all legal moves for the new board state
+                wr.send_legal(board, uart)
+
+        # TODO: add normal status packet as "heartbeat"?
+
 
         # ...then proceed to the next turn
 
