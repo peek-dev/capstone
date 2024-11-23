@@ -2,7 +2,6 @@
 #include <task.h>
 
 #include "led.h"
-#include "projdefs.h"
 
 void mainThread(void *arg0) {
     TaskHandle_t thread_led;
