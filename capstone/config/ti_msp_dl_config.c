@@ -40,8 +40,6 @@
 
 #include "ti_msp_dl_config.h"
 
-DL_TimerG_backupConfig gLCD_DELAY_LOADBackup;
-
 /*
  *  ======== SYSCFG_DL_init ========
  *  Perform any initialization needed before using any board APIs
@@ -58,34 +56,9 @@ SYSCONFIG_WEAK void SYSCFG_DL_init(void)
     SYSCFG_DL_LED_SPI_init();
     SYSCFG_DL_CLOCK_SPI_init();
     SYSCFG_DL_ADC_0_init();
-    /* Ensure backup structures have no valid state */
-	gLCD_DELAY_LOADBackup.backupRdy 	= false;
-
-
-
-}
-/*
- * User should take care to save and restore register configuration in application.
- * See Retention Configuration section for more details.
- */
-SYSCONFIG_WEAK bool SYSCFG_DL_saveConfiguration(void)
-{
-    bool retStatus = true;
-
-	retStatus &= DL_TimerG_saveConfiguration(LCD_DELAY_LOAD_INST, &gLCD_DELAY_LOADBackup);
-
-    return retStatus;
 }
 
 
-SYSCONFIG_WEAK bool SYSCFG_DL_restoreConfiguration(void)
-{
-    bool retStatus = true;
-
-	retStatus &= DL_TimerG_restoreConfiguration(LCD_DELAY_LOAD_INST, &gLCD_DELAY_LOADBackup, false);
-
-    return retStatus;
-}
 
 SYSCONFIG_WEAK void SYSCFG_DL_initPower(void)
 {
@@ -228,19 +201,19 @@ SYSCONFIG_WEAK void SYSCFG_DL_SYSCTL_init(void)
 
 
 /*
- * Timer clock configuration to be sourced by BUSCLK /  (32000000 Hz)
+ * Timer clock configuration to be sourced by BUSCLK /  (6400000 Hz)
  * timerClkFreq = (timerClkSrc / (timerClkDivRatio * (timerClkPrescale + 1)))
- *   32000000 Hz = 32000000 Hz / (1 * (0 + 1))
+ *   6400000 Hz = 6400000 Hz / (5 * (0 + 1))
  */
 static const DL_TimerG_ClockConfig gSENSOR_DELAY_TIMERClockConfig = {
     .clockSel    = DL_TIMER_CLOCK_BUSCLK,
-    .divideRatio = DL_TIMER_CLOCK_DIVIDE_1,
+    .divideRatio = DL_TIMER_CLOCK_DIVIDE_5,
     .prescale    = 0U,
 };
 
 /*
  * Timer load value (where the counter starts from) is calculated as (timerPeriod * timerClockFreq) - 1
- * SENSOR_DELAY_TIMER_INST_LOAD_VALUE = (150 us * 32000000 Hz) - 1
+ * SENSOR_DELAY_TIMER_INST_LOAD_VALUE = (150 us * 6400000 Hz) - 1
  */
 static const DL_TimerG_TimerConfig gSENSOR_DELAY_TIMERTimerConfig = {
     .period     = SENSOR_DELAY_TIMER_INST_LOAD_VALUE,
@@ -256,6 +229,7 @@ SYSCONFIG_WEAK void SYSCFG_DL_SENSOR_DELAY_TIMER_init(void) {
     DL_TimerG_initTimerMode(SENSOR_DELAY_TIMER_INST,
         (DL_TimerG_TimerConfig *) &gSENSOR_DELAY_TIMERTimerConfig);
     DL_TimerG_enableInterrupt(SENSOR_DELAY_TIMER_INST , DL_TIMERG_INTERRUPT_ZERO_EVENT);
+	NVIC_SetPriority(SENSOR_DELAY_TIMER_INST_INT_IRQN, 2);
     DL_TimerG_enableClock(SENSOR_DELAY_TIMER_INST);
 
 
@@ -331,13 +305,9 @@ SYSCONFIG_WEAK void SYSCFG_DL_RPI_UART_init(void)
     DL_UART_Main_setBaudRateDivisor(RPI_UART_INST, RPI_UART_IBRD_32_MHZ_115200_BAUD, RPI_UART_FBRD_32_MHZ_115200_BAUD);
 
 
-    /* Configure Interrupts */
-    DL_UART_Main_enableInterrupt(RPI_UART_INST,
-                                 DL_UART_MAIN_INTERRUPT_RX);
-
     /* Configure FIFOs */
     DL_UART_Main_enableFIFOs(RPI_UART_INST);
-    DL_UART_Main_setRXFIFOThreshold(RPI_UART_INST, DL_UART_RX_FIFO_LEVEL_3_4_FULL);
+    DL_UART_Main_setRXFIFOThreshold(RPI_UART_INST, DL_UART_RX_FIFO_LEVEL_1_2_FULL);
     DL_UART_Main_setTXFIFOThreshold(RPI_UART_INST, DL_UART_TX_FIFO_LEVEL_1_2_EMPTY);
 
     /* Configure analog glitch filter */
@@ -420,10 +390,10 @@ SYSCONFIG_WEAK void SYSCFG_DL_ADC_0_init(void)
 {
     DL_ADC12_setClockConfig(ADC_0_INST, (DL_ADC12_ClockConfig *) &gADC_0ClockConfig);
     DL_ADC12_configConversionMem(ADC_0_INST, ADC_0_ADCMEM_ChessSquare,
-        DL_ADC12_INPUT_CHAN_2, DL_ADC12_REFERENCE_VOLTAGE_VDDA, DL_ADC12_SAMPLE_TIMER_SOURCE_SCOMP0, DL_ADC12_AVERAGING_MODE_ENABLED,
+        DL_ADC12_INPUT_CHAN_2, DL_ADC12_REFERENCE_VOLTAGE_VDDA, DL_ADC12_SAMPLE_TIMER_SOURCE_SCOMP0, DL_ADC12_AVERAGING_MODE_DISABLED,
         DL_ADC12_BURN_OUT_SOURCE_DISABLED, DL_ADC12_TRIGGER_MODE_AUTO_NEXT, DL_ADC12_WINDOWS_COMP_MODE_DISABLED);
-    DL_ADC12_configHwAverage(ADC_0_INST,DL_ADC12_HW_AVG_NUM_ACC_4,DL_ADC12_HW_AVG_DEN_DIV_BY_4);
-    DL_ADC12_setSampleTime0(ADC_0_INST,2);
+    DL_ADC12_setPowerDownMode(ADC_0_INST,DL_ADC12_POWER_DOWN_MODE_MANUAL);
+    DL_ADC12_setSampleTime0(ADC_0_INST,32);
     /* Enable ADC12 interrupt */
     DL_ADC12_clearInterruptStatus(ADC_0_INST,(DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED));
     DL_ADC12_enableInterrupt(ADC_0_INST,(DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED));

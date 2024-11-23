@@ -46,18 +46,16 @@ multiplier2.multiplyValue = 5;
 const mux8       = system.clockTree["HSCLKMUX"];
 mux8.inputSelect = "HSCLKMUX_SYSPLL2X";
 
-ADC121.enableDMA           = false;
-ADC121.sampClkSrc          = "DL_ADC12_CLOCK_ULPCLK";
-ADC121.$name               = "ADC_0";
-ADC121.sampleTime0         = "62.5ns";
-ADC121.adcMem0avgen        = true;
-ADC121.hwNumerator         = "DL_ADC12_HW_AVG_NUM_ACC_4";
-ADC121.enabledInterrupts   = ["DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED"];
-ADC121.hwDenominator       = "DL_ADC12_HW_AVG_DEN_DIV_BY_4";
-ADC121.adcMem0chansel      = "DL_ADC12_INPUT_CHAN_2";
-ADC121.adcMem0_name        = "ChessSquare";
-ADC121.peripheral.$assign  = "ADC0";
-ADC121.adcPin2Config.$name = "ti_driverlib_gpio_GPIOPinGeneric6";
+ADC121.$name                      = "ADC_0";
+ADC121.sampClkSrc                 = "DL_ADC12_CLOCK_ULPCLK";
+ADC121.adcMem0chansel             = "DL_ADC12_INPUT_CHAN_2";
+ADC121.sampleTime0                = "1 us";
+ADC121.enabledInterrupts          = ["DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED"];
+ADC121.powerDownMode              = "DL_ADC12_POWER_DOWN_MODE_MANUAL";
+ADC121.adcMem0_name               = "ChessSquare";
+ADC121.peripheral.$assign         = "ADC0";
+ADC121.peripheral.adcPin2.$assign = "boosterpack.2";
+ADC121.adcPin2Config.$name        = "test";
 
 
 GPIO1.$name                         = "MUX_GPIO";
@@ -174,24 +172,26 @@ SPI2.mosiPinConfig.$name                = "ti_driverlib_gpio_GPIOPinGeneric5";
 
 
 TIMER1.$name              = "SENSOR_DELAY_TIMER";
-TIMER1.timerPeriod        = "150 us";
 TIMER1.interrupts         = ["ZERO"];
+TIMER1.overrideRetention  = true;
+TIMER1.interruptPriority  = "2";
+TIMER1.timerClkDiv        = 5;
+TIMER1.timerPeriod        = "150 us";
 TIMER1.peripheral.$assign = "TIMG0";
 
 TIMER2.$name              = "LCD_DELAY_LOAD";
 TIMER2.timerPeriod        = "1 us";
 TIMER2.interrupts         = ["ZERO"];
+TIMER2.overrideRetention  = true;
 TIMER2.peripheral.$assign = "TIMG6";
 
-UART1.targetBaudRate                   = 115200;
 UART1.$name                            = "RPI_UART";
-UART1.enabledInterrupts                = ["RX"];
+UART1.targetBaudRate                   = 115200;
 UART1.enableFIFO                       = true;
+UART1.overrideRetention                = true;
 UART1.analogGlitchFilter               = "DL_UART_PULSE_WIDTH_25_NS";
-UART1.rxFifoThreshold                  = "DL_UART_RX_FIFO_LEVEL_3_4_FULL";
-UART1.peripheral.$assign               = "UART0";
-UART1.peripheral.rxPin.$assign         = "boosterpack.33";
-UART1.peripheral.txPin.$assign         = "boosterpack.34";
+UART1.peripheral.rxPin.$assign         = "boosterpack.14";
+UART1.peripheral.txPin.$assign         = "boosterpack.13";
 UART1.txPinConfig.direction            = scripting.forceWrite("OUTPUT");
 UART1.txPinConfig.hideOutputInversion  = scripting.forceWrite(false);
 UART1.txPinConfig.onlyInternalResistor = scripting.forceWrite(false);
@@ -207,8 +207,8 @@ UART1.rxPinConfig.$name                = "ti_driverlib_gpio_GPIOPinGeneric3";
  * version of the tool will not impact the pinmux you originally saw.  These lines can be completely deleted in order to
  * re-solve from scratch.
  */
-ADC121.peripheral.adcPin2.$suggestSolution = "boosterpack.2";
 Board.peripheral.$suggestSolution          = "DEBUGSS";
 Board.peripheral.swclkPin.$suggestSolution = "j25_expansion.16";
 Board.peripheral.swdioPin.$suggestSolution = "j25_expansion.14";
 SYSCTL.peripheral.$suggestSolution         = "SYSCTL";
+UART1.peripheral.$suggestSolution          = "UART1";

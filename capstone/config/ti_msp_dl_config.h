@@ -81,7 +81,7 @@ extern "C" {
 #define SENSOR_DELAY_TIMER_INST                                          (TIMG0)
 #define SENSOR_DELAY_TIMER_INST_IRQHandler                        TIMG0_IRQHandler
 #define SENSOR_DELAY_TIMER_INST_INT_IRQN                        (TIMG0_INT_IRQn)
-#define SENSOR_DELAY_TIMER_INST_LOAD_VALUE                                 (4799U)
+#define SENSOR_DELAY_TIMER_INST_LOAD_VALUE                                  (959U)
 /* Defines for LCD_DELAY_LOAD */
 #define LCD_DELAY_LOAD_INST                                              (TIMG6)
 #define LCD_DELAY_LOAD_INST_IRQHandler                          TIMG6_IRQHandler
@@ -91,18 +91,18 @@ extern "C" {
 
 
 /* Defines for RPI_UART */
-#define RPI_UART_INST                                                      UART0
+#define RPI_UART_INST                                                      UART1
 #define RPI_UART_INST_FREQUENCY                                         32000000
-#define RPI_UART_INST_IRQHandler                                UART0_IRQHandler
-#define RPI_UART_INST_INT_IRQN                                    UART0_INT_IRQn
-#define GPIO_RPI_UART_RX_PORT                                              GPIOA
-#define GPIO_RPI_UART_TX_PORT                                              GPIOA
-#define GPIO_RPI_UART_RX_PIN                                      DL_GPIO_PIN_11
-#define GPIO_RPI_UART_TX_PIN                                      DL_GPIO_PIN_10
-#define GPIO_RPI_UART_IOMUX_RX                                   (IOMUX_PINCM22)
-#define GPIO_RPI_UART_IOMUX_TX                                   (IOMUX_PINCM21)
-#define GPIO_RPI_UART_IOMUX_RX_FUNC                    IOMUX_PINCM22_PF_UART0_RX
-#define GPIO_RPI_UART_IOMUX_TX_FUNC                    IOMUX_PINCM21_PF_UART0_TX
+#define RPI_UART_INST_IRQHandler                                UART1_IRQHandler
+#define RPI_UART_INST_INT_IRQN                                    UART1_INT_IRQn
+#define GPIO_RPI_UART_RX_PORT                                              GPIOB
+#define GPIO_RPI_UART_TX_PORT                                              GPIOB
+#define GPIO_RPI_UART_RX_PIN                                       DL_GPIO_PIN_7
+#define GPIO_RPI_UART_TX_PIN                                       DL_GPIO_PIN_6
+#define GPIO_RPI_UART_IOMUX_RX                                   (IOMUX_PINCM24)
+#define GPIO_RPI_UART_IOMUX_TX                                   (IOMUX_PINCM23)
+#define GPIO_RPI_UART_IOMUX_RX_FUNC                    IOMUX_PINCM24_PF_UART1_RX
+#define GPIO_RPI_UART_IOMUX_TX_FUNC                    IOMUX_PINCM23_PF_UART1_TX
 #define RPI_UART_BAUD_RATE                                              (115200)
 #define RPI_UART_IBRD_32_MHZ_115200_BAUD                                    (17)
 #define RPI_UART_FBRD_32_MHZ_115200_BAUD                                    (23)
