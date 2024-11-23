@@ -236,6 +236,8 @@ BaseType_t xClock_Init(void) {
     times_ms[0] = 0;
     times_ms[1] = 0;
     state = clock_paused_white;
+    NVIC_ClearPendingIRQ(LCD_DELAY_LOAD_INST_INT_IRQN);
+    NVIC_EnableIRQ(LCD_DELAY_LOAD_INST_INT_IRQN);
     clockQueue = xQueueCreate(QUEUE_SIZE, sizeof(Clock_Message));
     if (clockQueue == NULL) {
         return pdFALSE;
