@@ -16,7 +16,7 @@
 // (150 us * 32 MHz) - 1
 #define COL_SWITCH_LOAD (150U * 64U / 10U - 1U)
 // Similarly, 50us for a row switch.
-#define ROW_SWITCH_LOAD (50U * 64U / 10U - 1U)
+#define ROW_SWITCH_LOAD (10000U * 64U / 10U - 1U)
 
 // For the ADC: ADC samples are asynchronous, so we need to wakeup the task from
 // an ISR.
