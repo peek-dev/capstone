@@ -2,6 +2,7 @@
 #include <task.h>
 
 #include "led.h"
+#include "led_translation.h"
 
 void mainThread(void *arg0) {
     TaskHandle_t thread_led;
@@ -30,17 +31,26 @@ void mainThread(void *arg0) {
             color.red += masks[i][0];
             color.green += masks[i][1];
             color.blue += masks[i][2];
-            color.brightness = 1;
+            color.brightness = j % 32;
+            Color color_copy = color;
 
             xReturned = xLED_clear_board();
             while (xReturned != pdPASS) {
             }
 
-            for (uint8_t k = 0; k < NUM_LEDS; k++) {
-                xReturned = xLED_set_color(k, &color);
-                while (xReturned != pdPASS) {
+            for (uint8_t row = 0; row < 8; row++) {
+                for (uint8_t col = 0; col < 8; col++) {
+                    xReturned =
+                        xLED_set_color(LEDTrans_Square(row, col), &color_copy);
+                    while (xReturned != pdPASS) {
+                    }
                 }
-                color.brightness += 4;
+                color.brightness = (color.brightness + 4) % 32;
+                color_copy.red = color_copy.red <= 4 ? 0 : (color_copy.red - 4);
+                color_copy.green =
+                    color_copy.green <= 4 ? 0 : (color_copy.green - 4);
+                color_copy.blue =
+                    color_copy.blue >= 251 ? 255 : (color_copy.blue + 4);
             }
             xReturned = xLED_commit();
             while (xReturned != pdPASS) {

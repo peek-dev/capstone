@@ -28,7 +28,8 @@ static TaskHandle_t xSensorTaskId = NULL;
 // 0.95, 1.1, 1.3, 1.55, 1.9, 2.1, 2.3, 2.4, 2.8, 3.0])/3.3).astype(int) OPT:
 // make this packed 12-bit?
 // TODO: calibration?
-static uint16_t bins[] = {0, 173, 567, 962, 1332, 1708, 1968, 2128, 2387, 2763, 3133, 3528, 3923};
+static uint16_t bins[] = {0,    173,  567,  962,  1332, 1708, 1968,
+                          2128, 2387, 2763, 3133, 3528, 3923};
 
 static PieceType prvValueToPiece(uint16_t value) {
     uint8_t i;

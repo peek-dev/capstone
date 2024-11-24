@@ -1,9 +1,11 @@
 #include "chess.h"
 #include "config.h"
 #include "game.h"
+#include "led.h"
 #include "projdefs.h"
 #include "uart.h"
 #include "uart_bidir_protocol.h"
+#include "led_translation.h"
 
 BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move) {
     BaseType_t whiteToMove =
@@ -92,4 +94,40 @@ BaseType_t xFindSingleLifted(BoardState *old, BoardState *new,
         }
     }
     return found;
+}
+
+BaseType_t xIlluminateMove(NormalMove move, uint8_t do_src) {
+    Color color;
+    uint8_t row;
+    uint8_t col;
+    if (do_src != 0) {
+        row = GET_SRC_RANK(move);
+        col = GET_SRC_FILE(move);
+        color.red = 255;
+        color.green = 255;
+        color.blue = 255;
+        color.brightness = 10;
+    } else {
+        color.brightness = 31;
+        row = GET_DEST_RANK(move);
+        col = GET_DEST_FILE(move);
+        color.red = 0;
+        color.green = 0;
+        color.blue = 0;
+        switch (GET_MTYPE(move)) {
+        case MTYPE_NORMAL:
+            color.blue = 255;
+        case MTYPE_CHECK:
+            color.green = 255;
+        case MTYPE_CAPTURE:
+            color.red = 255;
+            break;
+        case MTYPE_CASTLE_PROMOTE:
+            color.red = 150;
+            color.green = 0;
+            color.blue = 255;
+            break;
+        }
+    }
+    return xLED_set_color(LEDTrans_Square(row, col), &color);
 }

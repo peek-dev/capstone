@@ -3,7 +3,7 @@
 
 #include "config.h"
 
-#define NUM_LEDS (8)
+#define NUM_LEDS (82)
 
 // Unlike the APA102c, the SK9822 brightness option changes the current (and
 // hence the power draw :D) so it doesn't cause flickering.
