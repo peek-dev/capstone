@@ -49,6 +49,7 @@ void mainThread(void *arg0) {
     }
 
     MainThread_Message message;
+    volatile BaseType_t mem = xPortGetFreeHeapSize();
     while (1) {
         if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {
             prvProcessMessage(&message);
@@ -77,7 +78,7 @@ BaseType_t xMain_button_press(enum button_num button) {
     MainThread_Message m;
     m.type = main_button_press;
     m.button = button;
-    return xQueueSend(mainQueue, &m, portMAX_DELAY);
+    return xQueueSendFromISR(mainQueue, &m, portMAX_DELAY);
 }
 
 BaseType_t xMain_uart_message(uint32_t move) {
@@ -140,11 +141,16 @@ void prvHandleButtonPress(enum button_num button) {
                 state.hint = game_hint_awaiting;
                 break;
             case game_hint_known:
-                // TODO display hint
+                // Display the hint, clearing other things.
+                xLED_clear_board();
+                xIlluminateMove(state.hint_move, 0);
+                xIlluminateMove(state.hint_move, 1);
+                xLED_commit();
                 state.hint = game_hint_displaying;
                 break;
             case game_hint_displaying:
                 // TODO display movable pieces
+                
                 state.hint = game_hint_known;
                 break;
             default:
@@ -247,10 +253,13 @@ void prvProcessMessage(MainThread_Message *message) {
             }
         } else {
             // This must be a hint move.
-            state.hint_move = message->move;
             if (state.hint == game_hint_awaiting) {
+                state.hint_move = message->move;
                 state.hint = game_hint_displaying;
-                // TODO: display the hint.
+                xLED_clear_board();
+                xIlluminateMove(state.hint_move, 0);
+                xIlluminateMove(state.hint_move, 1);
+                xLED_commit();
             }
         }
         break;

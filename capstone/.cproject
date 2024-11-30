@@ -96,7 +96,7 @@
                         </toolChain>
                     </folderInfo>
                     <sourceEntries>
-                        <entry excluding="src/main/main_test_led.c|src/main/main_test_clock.c|config/capstone.syscfg|config/excluded|syscfg_c.rov.xs" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+                        <entry excluding="src/main/main_test_led2.c|src/main/main_test_led.c|src/main/main_test_clock.c|config/capstone.syscfg|config/excluded|syscfg_c.rov.xs" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
                     </sourceEntries>
                 </configuration>
             </storageModule>

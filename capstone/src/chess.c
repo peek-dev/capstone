@@ -2,6 +2,7 @@
 #include "config.h"
 #include "game.h"
 #include "led.h"
+#include "portmacro.h"
 #include "projdefs.h"
 #include "uart.h"
 #include "uart_bidir_protocol.h"
@@ -54,7 +55,7 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move) {
 }
 
 int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
-                       uint8_t moves_len) {
+                       uint16_t moves_len) {
     // Search every available move.
     for (uint8_t i = 0; i < moves_len; i++) {
         // If one matches, return the index.
@@ -130,4 +131,17 @@ BaseType_t xIlluminateMove(NormalMove move, uint8_t do_src) {
         }
     }
     return xLED_set_color(LEDTrans_Square(row, col), &color);
+}
+
+BaseType_t xIlluminateMovable(BoardState *state, NormalMove *moves, uint16_t moves_len) {
+    if (xLED_clear_board() != pdPASS) return pdFAIL;
+    for (uint8_t i = 0; i < moves_len; i++) {
+        // Only render if it's a new source square. This assumes the moves are sorted
+        // by source square, which should be true. Worst-case, this re-renders some squares.
+        if (i == 0 || GET_SRC_RANK(moves[i]) != GET_SRC_RANK(moves[i-1]) || GET_SRC_FILE(moves[i]) != GET_SRC_FILE(moves[i-1])) {
+            if (xIlluminateMove(moves[i], 1) != pdPASS) return pdFAIL;
+        }
+    }
+    if (xLED_commit() != pdPASS) return pdFAIL;
+    return pdPASS;
 }

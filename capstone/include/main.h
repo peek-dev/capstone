@@ -30,8 +30,8 @@ typedef struct {
 
 #define MAX_POSSIBLE_MOVES 256
 static NormalMove prvPossibleMoves[MAX_POSSIBLE_MOVES];
-static uint8_t prvPossibleMovesLen = 0;
-static uint8_t prvCurrentMoveIndex = 0;
+static uint16_t prvPossibleMovesLen = 0;
+static uint16_t prvCurrentMoveIndex = 0;
 static GameState state;
 // IDK, maybe change this later. Profiling?
 #define QUEUE_SIZE 10
