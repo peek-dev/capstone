@@ -148,7 +148,10 @@ BaseType_t xIlluminateMovable(NormalMove *moves, uint16_t moves_len) {
 BaseType_t xIlluminatePieceMoves(NormalMove *moves, uint16_t moves_len, uint8_t row, uint8_t col) {
     for (uint16_t i = 0; i < moves_len; i++) {
         if (GET_SRC_RANK(moves[i]) == row && GET_SRC_FILE(moves[i]) == col) {
-            xIlluminateMove(moves[i], 0);
+            if (xIlluminateMove(moves[i], 0) != pdTRUE) {
+                return pdFALSE;
+            }
         }
     }
+    return pdTRUE;
 }
