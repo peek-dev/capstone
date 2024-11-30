@@ -11,6 +11,7 @@
 #include "main.h"
 #include "ti_msp_dl_config.h"
 
+#define SENSOR_DELAY_MS 20
 #define NBINS 13
 // Based on our filter step responses, we should wait 150us for a column switch.
 // (150 us * 32 MHz) - 1
@@ -145,5 +146,6 @@ void vSensor_Thread(void *arg0) {
             }
         }
         xMain_sensor_update(&board);
+        vTaskDelay(SENSOR_DELAY_MS / portTICK_PERIOD_MS);
     }
 }
