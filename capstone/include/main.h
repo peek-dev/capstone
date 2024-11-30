@@ -42,6 +42,7 @@ static void prvSwitchTurnRoutine(void);
 static void prvSwitchStateTurn(GameState *statevar);
 void prvHandleButtonPress(enum button_num button);
 void prvProcessMessage(MainThread_Message *message);
+void prvRenderState();
 #endif
 
 #endif

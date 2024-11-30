@@ -10,8 +10,9 @@ typedef uint32_t NormalMove;
 int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
                        uint16_t moves_len);
 BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move);
-BaseType_t xFindSingleLifted(BoardState *old, BoardState *new, uint8_t *row,
-                             uint8_t *column);
+BaseType_t xFindSingleLifted(BoardState *old, BoardState *new,
+                             uint8_t *found_row, uint8_t *found_col);
 BaseType_t xIlluminateMove(NormalMove move, uint8_t do_src);
-
+BaseType_t xIlluminateMovable(NormalMove *moves, uint16_t moves_len);
+BaseType_t xIlluminatePieceMoves(NormalMove *moves, uint16_t moves_len, uint8_t row, uint8_t col);
 #endif

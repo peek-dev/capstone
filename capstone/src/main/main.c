@@ -8,6 +8,7 @@
 #include "game.h"
 #include "clock.h"
 #include "led.h"
+#include "projdefs.h"
 #include "sensor.h"
 #include "uart_bidir_protocol.h"
 #include "button.h"
@@ -78,7 +79,10 @@ BaseType_t xMain_button_press(enum button_num button) {
     MainThread_Message m;
     m.type = main_button_press;
     m.button = button;
-    return xQueueSendFromISR(mainQueue, &m, portMAX_DELAY);
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    BaseType_t retval = xQueueSendFromISR(mainQueue, &m, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    return retval;
 }
 
 BaseType_t xMain_uart_message(uint32_t move) {
@@ -142,6 +146,7 @@ void prvHandleButtonPress(enum button_num button) {
                 break;
             case game_hint_known:
                 // Display the hint, clearing other things.
+                xLED_save();
                 xLED_clear_board();
                 xIlluminateMove(state.hint_move, 0);
                 xIlluminateMove(state.hint_move, 1);
@@ -149,9 +154,10 @@ void prvHandleButtonPress(enum button_num button) {
                 state.hint = game_hint_displaying;
                 break;
             case game_hint_displaying:
-                // TODO display movable pieces
-                
+                // Turn off the hint, render whatever was shown before.
                 state.hint = game_hint_known;
+                xLED_restore();
+                xLED_commit();
                 break;
             default:
                 break;
@@ -235,12 +241,41 @@ static void prvSwitchTurnRoutine() {
     }
 }
 
+void prvRenderState() {
+    if (state.hint == game_hint_displaying) {
+        // Don't override the hint if we're currently displaying it.
+        return;
+    }
+    if (prvPossibleMovesLen == 0) {
+        // If we don't know all the possible moves, don't render any.
+        return;
+    }
+    uint8_t row, col;
+    BaseType_t xReturned = pdTRUE;
+    // If the board state is unchanged, show the moveable pieces.
+    if (xBoardEqual(&state.last_move_state, &state.last_measured_state) == pdTRUE) {
+        xReturned &= xLED_clear_board();
+        xReturned &= xIlluminateMovable(prvPossibleMoves, prvPossibleMovesLen);
+        xReturned &= xLED_commit();
+        while (xReturned != pdTRUE) {}
+    }
+    // If it's not, check if we've only removed one piece.
+    else if (xFindSingleLifted(&state.last_move_state, &state.last_measured_state, &row, &col) == pdTRUE) {
+        // Okay, light up all the moves for that peice.
+        xReturned &= xLED_clear_board();
+        xReturned &= xIlluminatePieceMoves(prvPossibleMoves, prvPossibleMovesLen, row, col);
+        xReturned &= xLED_commit();
+        while (xReturned != pdTRUE) {}
+    }
+    // Otherwise, leave it unchanged.
+}
+
 void prvProcessMessage(MainThread_Message *message) {
     switch (message->type) {
     case main_sensor_update:
         memcpy(&state.last_measured_state, &(message->state),
                sizeof(BoardState));
-        // TODO: detect piece lift, respond.
+        prvRenderState();
         break;
     case main_uart_message:
         // Check: are we currently listening for moves?
@@ -256,6 +291,8 @@ void prvProcessMessage(MainThread_Message *message) {
             if (state.hint == game_hint_awaiting) {
                 state.hint_move = message->move;
                 state.hint = game_hint_displaying;
+                // Save the current board display state.
+                xLED_save();
                 xLED_clear_board();
                 xIlluminateMove(state.hint_move, 0);
                 xIlluminateMove(state.hint_move, 1);

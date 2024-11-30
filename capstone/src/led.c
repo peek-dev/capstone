@@ -2,6 +2,7 @@
 #include "inttypes.h"
 #include "portmacro.h"
 #include <FreeRTOS.h>
+#include <string.h>
 #include <queue.h>
 
 #include "projdefs.h"
@@ -18,11 +19,11 @@
 // as mem-intensive.
 static QueueHandle_t ledQueue;
 static Color state[NUM_LEDS];
+static Color saved_state[NUM_LEDS];
 
-enum LED_MsgType { led_clear_board, led_set_color, led_commit };
+enum LED_MsgType { led_clear_board, led_set_color, led_commit, led_save, led_restore };
 
 typedef struct {
-    // OPT: 8 bits wasted here. Can merge type (2) and led_num (6).
     enum LED_MsgType type;
     uint8_t led_num;
     Color color;
@@ -70,6 +71,18 @@ static void prvLED_set_color(LED_Message *pMsg) {
 BaseType_t xLED_commit() {
     LED_Message m;
     m.type = led_commit;
+    return xQueueSend(ledQueue, &m, portMAX_DELAY);
+}
+
+BaseType_t xLED_save() {
+    LED_Message m;
+    m.type = led_save;
+    return xQueueSend(ledQueue, &m, portMAX_DELAY);
+}
+
+BaseType_t xLED_restore() {
+    LED_Message m;
+    m.type = led_restore;
     return xQueueSend(ledQueue, &m, portMAX_DELAY);
 }
 
@@ -130,6 +143,12 @@ void vLED_Thread(void *arg0) {
                 break;
             case led_commit:
                 prvLED_commit();
+                break;
+            case led_save:
+                memcpy(&saved_state, &state, sizeof(state));
+                break;
+            case led_restore:
+                memcpy(&state, &saved_state, sizeof(state));
                 break;
             }
         }
