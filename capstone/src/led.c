@@ -1,7 +1,4 @@
 #include "config.h"
-#include "inttypes.h"
-#include "portmacro.h"
-#include <FreeRTOS.h>
 #include <string.h>
 #include <queue.h>
 
@@ -21,7 +18,13 @@ static QueueHandle_t ledQueue;
 static Color state[NUM_LEDS];
 static Color saved_state[NUM_LEDS];
 
-enum LED_MsgType { led_clear_board, led_set_color, led_commit, led_save, led_restore };
+enum LED_MsgType {
+    led_clear_board,
+    led_set_color,
+    led_commit,
+    led_save,
+    led_restore
+};
 
 typedef struct {
     enum LED_MsgType type;

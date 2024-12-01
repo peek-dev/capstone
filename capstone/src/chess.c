@@ -1,5 +1,5 @@
-#include "chess.h"
 #include "config.h"
+#include "chess.h"
 #include "game.h"
 #include "led.h"
 #include "portmacro.h"
@@ -8,9 +8,8 @@
 #include "uart_bidir_protocol.h"
 #include "led_translation.h"
 
-BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move) {
-    BaseType_t whiteToMove =
-        isWhite(xGetSquare(old, GET_SRC_RANK(move), GET_SRC_FILE(move)));
+BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
+                           BaseType_t whiteToMove) {
     // Technically, this is a nasty shortcut. Beware, if the uart protocol
     // changes, these will need to too.
     for (uint8_t row = 0; row < 8; row++) {
@@ -54,12 +53,56 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move) {
     return pdTRUE;
 }
 
+BaseType_t xIsTake(UndoMove move) {
+    if (GET_DEST_FILE(move) == GET_M2_SRC_FILE(move) &&
+        GET_DEST_RANK(move) == GET_M2_SRC_RANK(move)) {
+            return pdTRUE;
+    }
+    return pdFALSE;
+}
+
+BaseType_t xCheckUndo(BoardState *old, BoardState *new, UndoMove move) {
+    // Similarly, the uart protocol changing will affect this.
+    BaseType_t is_take = xIsTake(move);
+    for (uint8_t row = 0; row < 8; row++) {
+        for (uint8_t col = 0; col < 8; col++) {
+            PieceType post = xGetSquare(new, row, col);
+            PieceType expected;
+
+            if (row == GET_SRC_RANK(move) && col == GET_SRC_FILE(move)) {
+                expected = xPtypeFromWire(GET_PTYPE(move), whiteToMove);
+            } else if (row == GET_M2_SRC_RANK(move) &&
+                       col == GET_M2_SRC_FILE(move)) {
+                expected = xPtypeFromWire(
+                    GET_M2_PTYPE(move), CHECK_UNDO_BW(move) ? pdFALSE : pdTRUE);
+            } else if (row == GET_DEST_RANK(move) &&
+                       col == GET_DEST_FILE(move)) {
+                expected = EmptySquare;
+            } else if (row == GET_M2_DEST_RANK(move) &&
+                       col == GET_M2_DEST_FILE(move)) {
+                if (is_take == pdTRUE) {
+                    continue;
+                }
+                expected = EmptySquare;
+            } else {
+                expected = xGetSquare(old, row, col);
+                expected_partial = expected;
+            }
+
+            if (post != expected) {
+                return pdFALSE;
+            }
+        }
+    }
+    return pdTRUE;
+}
+
 int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
-                       uint16_t moves_len) {
+                       uint16_t moves_len, BaseType_t whiteToMove) {
     // Search every available move.
     for (uint16_t i = 0; i < moves_len; i++) {
         // If one matches, return the index.
-        if (xCheckValidMove(old, new, moves[i]) == pdTRUE) {
+        if (xCheckValidMove(old, new, moves[i], whiteToMove) == pdTRUE) {
             return i;
         }
     }
@@ -135,17 +178,22 @@ BaseType_t xIlluminateMove(NormalMove move, uint8_t do_src) {
 
 BaseType_t xIlluminateMovable(NormalMove *moves, uint16_t moves_len) {
     for (uint16_t i = 0; i < moves_len; i++) {
-        // Only render if it's a new source square. This assumes the moves are sorted
-        // by source square, which should be true. Worst-case, this re-renders some squares.
-        if (i == 0 || GET_SRC_RANK(moves[i]) != GET_SRC_RANK(moves[i-1]) || GET_SRC_FILE(moves[i]) != GET_SRC_FILE(moves[i-1])) {
-            if (xIlluminateMove(moves[i], 1) != pdPASS) return pdFAIL;
+        // Only render if it's a new source square. This assumes the moves are
+        // sorted by source square, which should be true. Worst-case, this
+        // re-renders some squares.
+        if (i == 0 || GET_SRC_RANK(moves[i]) != GET_SRC_RANK(moves[i - 1]) ||
+            GET_SRC_FILE(moves[i]) != GET_SRC_FILE(moves[i - 1])) {
+            if (xIlluminateMove(moves[i], 1) != pdPASS) {
+                return pdFAIL;
+            }
         }
     }
     return pdPASS;
 }
 
 // TODO optimize interleave this with findsinglelifted?
-BaseType_t xIlluminatePieceMoves(NormalMove *moves, uint16_t moves_len, uint8_t row, uint8_t col) {
+BaseType_t xIlluminatePieceMoves(NormalMove *moves, uint16_t moves_len,
+                                 uint8_t row, uint8_t col) {
     for (uint16_t i = 0; i < moves_len; i++) {
         if (GET_SRC_RANK(moves[i]) == row && GET_SRC_FILE(moves[i]) == col) {
             if (xIlluminateMove(moves[i], 0) != pdTRUE) {

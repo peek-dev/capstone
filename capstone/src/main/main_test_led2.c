@@ -27,20 +27,24 @@ void mainThread(void *arg0) {
         if (i == 0 || i > 64 + BlackPawn) {
             i = 0;
             xReturned = xLED_clear_board();
-            while (xReturned != pdPASS) {}
+            while (xReturned != pdPASS) {
+            }
         }
         if (i < 64) {
             xReturned = xLED_set_color(LEDTrans_Square(i / 8, i % 8), &color);
-            while (xReturned != pdPASS) {}
+            while (xReturned != pdPASS) {
+            }
         } else {
             ZeroToTwoInts z = LEDTrans_Ptype(i - 64);
             for (uint8_t j = 0; j < z.len; j++) {
                 xReturned = xLED_set_color(z.data[j], &color);
-                while (xReturned != pdPASS) {}
+                while (xReturned != pdPASS) {
+                }
             }
         }
         xReturned = xLED_commit();
-        while (xReturned != pdPASS) {}
+        while (xReturned != pdPASS) {
+        }
         i++;
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }

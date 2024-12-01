@@ -1,6 +1,5 @@
 #include "config.h"
 #include <task.h>
-#include "portmacro.h"
 #include <string.h>
 #include <queue.h>
 
@@ -80,7 +79,8 @@ BaseType_t xMain_button_press(enum button_num button) {
     m.type = main_button_press;
     m.button = button;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    BaseType_t retval = xQueueSendFromISR(mainQueue, &m, &xHigherPriorityTaskWoken);
+    BaseType_t retval =
+        xQueueSendFromISR(mainQueue, &m, &xHigherPriorityTaskWoken);
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     return retval;
 }
@@ -210,7 +210,8 @@ static void prvSwitchTurnRoutine() {
     // First, validate the most recent state.
     int16_t index =
         sFindMoveIndex(&state.last_move_state, &state.last_measured_state,
-                       prvPossibleMoves, prvPossibleMovesLen);
+                       prvPossibleMoves, prvPossibleMovesLen,
+                       (state.turn == game_turn_white) ? pdTRUE : pdFALSE);
     if (index == -1) {
         // TODO: flash red.
         return;
@@ -253,19 +254,25 @@ void prvRenderState() {
     uint8_t row, col;
     BaseType_t xReturned = pdTRUE;
     // If the board state is unchanged, show the moveable pieces.
-    if (xBoardEqual(&state.last_move_state, &state.last_measured_state) == pdTRUE) {
+    if (xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
+        pdTRUE) {
         xReturned &= xLED_clear_board();
         xReturned &= xIlluminateMovable(prvPossibleMoves, prvPossibleMovesLen);
         xReturned &= xLED_commit();
-        while (xReturned != pdTRUE) {}
+        while (xReturned != pdTRUE) {
+        }
     }
     // If it's not, check if we've only removed one piece.
-    else if (xFindSingleLifted(&state.last_move_state, &state.last_measured_state, &row, &col) == pdTRUE) {
+    else if (xFindSingleLifted(&state.last_move_state,
+                               &state.last_measured_state, &row,
+                               &col) == pdTRUE) {
         // Okay, light up all the moves for that peice.
         xReturned &= xLED_clear_board();
-        xReturned &= xIlluminatePieceMoves(prvPossibleMoves, prvPossibleMovesLen, row, col);
+        xReturned &= xIlluminatePieceMoves(prvPossibleMoves,
+                                           prvPossibleMovesLen, row, col);
         xReturned &= xLED_commit();
-        while (xReturned != pdTRUE) {}
+        while (xReturned != pdTRUE) {
+        }
     }
     // Otherwise, leave it unchanged.
 }
