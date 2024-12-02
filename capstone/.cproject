@@ -61,6 +61,12 @@
                                     <listOptionValue value="-fstack-usage"/>
                                     <listOptionValue value="-fshort-enums"/>
                                 </option>
+                                <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.WALL.902384266" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.WALL" value="true" valueType="boolean"/>
+                                <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.WERRORALL.1274553279" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.WERRORALL" value="false" valueType="boolean"/>
+                                <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.V_LOWERCASE.730045606" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.V_LOWERCASE" value="false" valueType="boolean"/>
+                                <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.W.1405007710" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.compilerID.W" valueType="stringList">
+                                    <listOptionValue value="extra"/>
+                                </option>
                             </tool>
                             <tool id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.exe.linkerDebug.1630095273" name="Arm Linker" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.exe.linkerDebug">
                                 <option id="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.SEARCH_PATH.1007179737" superClass="com.ti.ccstudio.buildDefinitions.TMS470_TICLANG_3.2.linkerID.SEARCH_PATH" valueType="libPaths">

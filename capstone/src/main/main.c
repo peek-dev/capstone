@@ -15,6 +15,7 @@
 #define DECLARE_PRIVATE_MAIN_C
 #include "main.h"
 
+
 void mainThread(void *arg0) {
     TaskHandle_t thread_clock, thread_led, thread_sensor;
     BaseType_t xReturned;
@@ -99,20 +100,21 @@ static void prvSwitchStateTurn(GameState *statevar) {
         statevar->turn = game_turn_black;
     }
 }
-void prvHandleButtonPress(enum button_num button) {
+
+static void prvHandleButtonPress(enum button_num button) {
     // If it's the turn-switch button:
     switch (button) {
     case button_num_white_move:
     case button_num_black_move:
-        if (state.turn == game_turn_black && button == button_num_black_move ||
-            state.turn == game_turn_white && button == button_num_white_move) {
+        if ((state.turn == game_turn_black && button == button_num_black_move) ||
+            (state.turn == game_turn_white && button == button_num_white_move)) {
             switch (state.state) {
             case game_state_notstarted:
             case game_state_running:
                 prvSwitchTurnRoutine();
                 break;
             case game_state_undo:
-                // TODO undos
+                prvSwitchTurnUndo();
                 break;
             default:
                 break;
@@ -122,12 +124,12 @@ void prvHandleButtonPress(enum button_num button) {
     case button_num_pause:
         switch (state.state) {
         case game_state_running:
+            // only if clock mode supports pausing
+            if (state.clock_mode == game_clock_off) break;
             // TODO display some sort of pause message
-            // TODO only if clock mode supports pausing
             xClock_stop_clock();
             break;
         case game_state_paused:
-            // TODO only if clock mode supports pausing
             xClock_start_clock();
             break;
         default:
@@ -160,6 +162,7 @@ void prvHandleButtonPress(enum button_num button) {
                 xLED_commit();
                 break;
             default:
+                // If we're awaiting it, just keep awaiting.
                 break;
             }
             break;
@@ -191,8 +194,17 @@ void prvHandleButtonPress(enum button_num button) {
         switch (state.state) {
         case game_state_paused:
         case game_state_running:
+            // Check that clock mode is correct
+            // I think this is right?
+            if (state.clock_mode != game_clock_off) break;
+            // TODO display something?
+            prvSwitchStateTurn(&state);
+            state.state = game_state_undo;
+            prvMovesLen = 0;
+            prvCurrentMoveIndex = 0;
+            state.hint = game_hint_unknown;
+        case game_state_undo:
             // TODO request an undo move from the uart.
-            // TODO finish this
             break;
         default:
             break;
@@ -204,13 +216,13 @@ void prvHandleButtonPress(enum button_num button) {
 // Should only be called when in the running and reset states.
 static void prvSwitchTurnRoutine() {
     // If we haven't finished getting possible moves yet, ignore the request.
-    if (prvPossibleMovesLen == 0) {
+    if (prvMovesLen == 0) {
         return;
     }
     // First, validate the most recent state.
     int16_t index =
         sFindMoveIndex(&state.last_move_state, &state.last_measured_state,
-                       prvPossibleMoves, prvPossibleMovesLen,
+                       prvMoves.possible, prvMovesLen,
                        (state.turn == game_turn_white) ? pdTRUE : pdFALSE);
     if (index == -1) {
         // TODO: flash red.
@@ -219,7 +231,7 @@ static void prvSwitchTurnRoutine() {
 
     // if it passes, proceed with switching turns.
     // Reset the possible moves.
-    prvPossibleMovesLen = 0;
+    prvMovesLen = 0;
     prvCurrentMoveIndex = 0;
     // TODO send a message back to the UART
     // Switch the player turn.
@@ -242,13 +254,58 @@ static void prvSwitchTurnRoutine() {
     }
 }
 
-void prvRenderState() {
+static void prvSwitchTurnUndo(void) {
+    // If we're still waiting for the just-requested undo, ignore the request.
+    if (prvMovesLen == 0) {
+        return;
+    }
+
+    // Validate the most recent state.
+    if (xCheckUndo(&state.last_move_state, &state.last_measured_state, prvMoves.undo[0], (state.turn == game_turn_white) ? pdTRUE : pdFALSE) != pdTRUE) {
+        // Validation failed.
+        // TODO: flash red.
+        return;
+    }
+    
+    // Dequeue and shift the completed undo move.
+    prvMovesLen--;
+    for (uint16_t i = 0; i < prvMovesLen; i++) {
+        prvMoves.undo[i] = prvMoves.undo[i+1];
+    }
+    // Update the last valid board state.
+    memcpy(&state.last_move_state, &state.last_measured_state,
+           sizeof(BoardState));
+
+    xLED_clear_board();
+    xLED_commit();
+
+    // Check: are we done with undos?
+    if (prvMovesLen == 0) {
+        // Switch back to normal mode.
+        // Do not switch the player turn.
+        state.state = game_state_running;
+        state.hint = game_hint_unknown;
+        prvCurrentMoveIndex = 0;
+        // TODO request moves from uart somehow. Dummy packet?
+        // TODO clock?
+        xClock_set_turn(state.turn == game_turn_black);
+    } else {
+        prvSwitchStateTurn(&state);
+    }
+}
+
+static void prvRenderState(void) {
     if (state.hint == game_hint_displaying) {
         // Don't override the hint if we're currently displaying it.
         return;
     }
-    if (prvPossibleMovesLen == 0) {
+    if (prvMovesLen == 0) {
         // If we don't know all the possible moves, don't render any.
+        // Alternatively, if undoing: if we don't have an undo move, don't show anything.
+        return;
+    }
+    if (state.state == game_state_undo) {
+        // Render the undo move. If it is a take
         return;
     }
     uint8_t row, col;
@@ -257,7 +314,7 @@ void prvRenderState() {
     if (xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
         pdTRUE) {
         xReturned &= xLED_clear_board();
-        xReturned &= xIlluminateMovable(prvPossibleMoves, prvPossibleMovesLen);
+        xReturned &= xIlluminateMovable(prvMoves.possible, prvMovesLen);
         xReturned &= xLED_commit();
         while (xReturned != pdTRUE) {
         }
@@ -268,8 +325,8 @@ void prvRenderState() {
                                &col) == pdTRUE) {
         // Okay, light up all the moves for that peice.
         xReturned &= xLED_clear_board();
-        xReturned &= xIlluminatePieceMoves(prvPossibleMoves,
-                                           prvPossibleMovesLen, row, col);
+        xReturned &= xIlluminatePieceMoves(prvMoves.possible,
+                                           prvMovesLen, row, col);
         xReturned &= xLED_commit();
         while (xReturned != pdTRUE) {
         }
@@ -277,7 +334,7 @@ void prvRenderState() {
     // Otherwise, leave it unchanged.
 }
 
-void prvProcessMessage(MainThread_Message *message) {
+static void prvProcessMessage(MainThread_Message *message) {
     switch (message->type) {
     case main_sensor_update:
         memcpy(&state.last_measured_state, &(message->state),
@@ -285,13 +342,21 @@ void prvProcessMessage(MainThread_Message *message) {
         prvRenderState();
         break;
     case main_uart_message:
+        // If we're in an undo state, append to the undo queue.
+        if (state.state == game_state_undo) {
+            // We can't accept any more undo moves if we're over the limit.
+            if (prvMovesLen < 256) {
+                prvMoves.undo[prvMovesLen] = message->move;
+                prvMovesLen++;
+            }
+        }
         // Check: are we currently listening for moves?
-        if (prvPossibleMovesLen == 0) {
-            prvPossibleMoves[prvCurrentMoveIndex] = message->move;
+        else if (prvMovesLen == 0) {
+            prvMoves.possible[prvCurrentMoveIndex] = message->move;
             prvCurrentMoveIndex++;
             if (IS_LAST_MOVE(message->move)) {
-                prvPossibleMovesLen = prvCurrentMoveIndex;
-                // TODO: use LEDs to show which pieces can move.
+                prvMovesLen = prvCurrentMoveIndex;
+                // Movable pieces will be rendered on the next sensor input.
             }
         } else {
             // This must be a hint move.

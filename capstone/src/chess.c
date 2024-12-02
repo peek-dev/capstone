@@ -2,8 +2,6 @@
 #include "chess.h"
 #include "game.h"
 #include "led.h"
-#include "portmacro.h"
-#include "projdefs.h"
 #include "uart.h"
 #include "uart_bidir_protocol.h"
 #include "led_translation.h"
@@ -56,12 +54,13 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
 BaseType_t xIsTake(UndoMove move) {
     if (GET_DEST_FILE(move) == GET_M2_SRC_FILE(move) &&
         GET_DEST_RANK(move) == GET_M2_SRC_RANK(move)) {
-            return pdTRUE;
+        return pdTRUE;
     }
     return pdFALSE;
 }
 
-BaseType_t xCheckUndo(BoardState *old, BoardState *new, UndoMove move) {
+BaseType_t xCheckUndo(BoardState *old, BoardState *new, UndoMove move,
+                      BaseType_t whiteToMove) {
     // Similarly, the uart protocol changing will affect this.
     BaseType_t is_take = xIsTake(move);
     for (uint8_t row = 0; row < 8; row++) {
@@ -86,7 +85,6 @@ BaseType_t xCheckUndo(BoardState *old, BoardState *new, UndoMove move) {
                 expected = EmptySquare;
             } else {
                 expected = xGetSquare(old, row, col);
-                expected_partial = expected;
             }
 
             if (post != expected) {

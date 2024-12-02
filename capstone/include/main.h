@@ -29,8 +29,11 @@ typedef struct {
 } MainThread_Message;
 
 #define MAX_POSSIBLE_MOVES 256
-static NormalMove prvPossibleMoves[MAX_POSSIBLE_MOVES];
-static uint16_t prvPossibleMovesLen = 0;
+static union {
+    NormalMove possible[MAX_POSSIBLE_MOVES];
+    UndoMove undo[MAX_POSSIBLE_MOVES];
+} prvMoves;
+static uint16_t prvMovesLen = 0;
 static uint16_t prvCurrentMoveIndex = 0;
 static GameState state;
 // IDK, maybe change this later. Profiling?
@@ -39,10 +42,11 @@ static QueueHandle_t mainQueue;
 
 BaseType_t xMain_Init(void);
 static void prvSwitchTurnRoutine(void);
+static void prvSwitchTurnUndo(void);
 static void prvSwitchStateTurn(GameState *statevar);
-void prvHandleButtonPress(enum button_num button);
-void prvProcessMessage(MainThread_Message *message);
-void prvRenderState();
+static void prvHandleButtonPress(enum button_num button);
+static void prvProcessMessage(MainThread_Message *message);
+static void prvRenderState(void);
 #endif
 
 #endif
