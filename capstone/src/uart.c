@@ -26,6 +26,8 @@ BaseType_t xUART_init(void) {
 
 /**
  * Enqueue data to be transmitted over the MSP UART TX to the Raspberry Pi.
+ *
+ * Callers should be in other threads (e.g., main)
  */
 BaseType_t xUART_to_wire(uint32_t move) {
     return xQueueSend(queue_to_wire, &move, portMAX_DELAY);

@@ -30,6 +30,8 @@ uint32_t xencode_start_for_rpi(void) { return 0 | BUTTON_START; }
 
 uint32_t xencode_restart_for_rpi(void) { return 0 | BUTTON_RESTART; }
 
+uint32_t xencode_undo_for_rpi(void) { return 0 | BUTTON_UNDO; }
+
 uint32_t xencode_hint_for_rpi(CHESS_FILE src_file, CHESS_RANK src_rank) {
     uint32_t encoded_word = 0;
     encoded_word |= (((uint32_t)src_file) << SRC_FILE_SHIFT);
