@@ -14,4 +14,6 @@ enum button_num {
     button_num_clock_mode,
 };
 
+void vButton_Init(void);
+
 #endif

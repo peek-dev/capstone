@@ -33,6 +33,7 @@ void mainThread(void *arg0) {
     xReturned = xSensor_Init();
     while (xReturned != pdPASS) {
     }
+    vButton_Init();
 
     xReturned = xPortGetFreeHeapSize();
 
