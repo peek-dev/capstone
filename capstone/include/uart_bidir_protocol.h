@@ -4,6 +4,13 @@
 #include "config.h"
 
 /**
+ * "Heartbeat" constants
+ */
+#define MSP_SYN         ((uint32_t) 0x00000000)
+#define RPI_SYNACK      ((uint32_t) 0x0000FFFF)
+#define MSP_ACK         ((uint32_t) 0xFFFFFFFF)
+
+/**
  * Constants for chessboard files.
  */
 typedef uint8_t CHESS_FILE;
