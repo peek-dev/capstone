@@ -100,7 +100,7 @@ static uint32_t prvUART_PackAndReceive(UART_Regs* uart) { uint32_t
 /**
  * The main loop for the UART task.
  */
-void vUART_Task(void* arg0) {
+void vUART_Thread(void* arg0) {
 
     /* Thread-local variables for sending and receiving words */
     uint32_t next_sent;

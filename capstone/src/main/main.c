@@ -16,8 +16,7 @@
 #include "main.h"
 
 void mainThread(void *arg0) {
-    /* FIXME: declare task handle for UART task */
-    TaskHandle_t thread_clock, thread_led, thread_sensor;
+    TaskHandle_t thread_clock, thread_led, thread_sensor, thread_uart;
     BaseType_t xReturned;
 
     xReturned = xPortGetFreeHeapSize();
@@ -38,19 +37,19 @@ void mainThread(void *arg0) {
     // Initialize the system threads.
     xReturned = xTaskCreate(vClock_Thread, "Clock", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_clock);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS);
+
     xReturned = xTaskCreate(vLED_Thread, "LED", configMINIMAL_STACK_SIZE, NULL,
                             2, &thread_led);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS);
+
     xReturned = xTaskCreate(vSensor_Thread, "Sensor", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_sensor);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS);
 
-    /* FIXME: call xTaskCreate() API to set up UART task */
-
+    xReturned = xTaskCreate(vUART_Thread, "UART", configMINIMAL_STACK_SIZE, NULL, 2, &thread_uart);
+    while (xReturned != pdPASS);
+        
     MainThread_Message message;
     while (1) {
         if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {
