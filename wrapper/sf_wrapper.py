@@ -28,6 +28,16 @@ if __name__ == '__main__':
 
     uart = serial.Serial('/dev/serial0', baudrate=MSP_BAUDRATE)
 
+    # "Heartbeat code" to establish connection with MSP
+    heartbeat = int((uart.read(4))[-1::-1].hex(), 16)
+
+    if (heartbeat == wr.MSP_SYN):
+        uart.write(wr.SYNACK.to_bytes(4, 'little'))
+
+    # "Flush out" Pi UART RX buffer until MSP's ACK is found
+    uart.read_until(wr.MSP_ACK.to_bytes(4), size=4)
+
+    # Now synchronized with MSP. Proceed with setup.
     wr.init_board()
     next_result = sf.play(board, sf_limit)
     best_move = next_result.move

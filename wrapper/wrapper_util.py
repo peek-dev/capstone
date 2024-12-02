@@ -27,7 +27,10 @@ MTYPE_CASTLE = 3
 
 # Special status constants to indicate exceptional game conditions (outcomes,
 # most often) for the MSP.
-NORMAL      = 0x00000000
+MSP_SYN = 0x00000000
+SYNACK  = 0x0000FFFF
+MSP_ACK = 0xFFFFFFFF
+
 CHECK       = 0x00000010
 CHECKMATE   = 0x00000030
 STALEMATE   = 0x00000070
