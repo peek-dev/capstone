@@ -4,6 +4,8 @@
 #include "projdefs.h"
 #include "portmacro.h"
 #include "ti_msp_dl_config.h"
+#include <queue.h>
+#define UART_QUEUE_SIZE 12
 
 // RPI_UART_INST
 
@@ -15,7 +17,7 @@ static QueueHandle_t queue_to_wire;
  * the wire.
  */
 BaseType_t xUART_init(void) {
-    queue_to_wire = xQueueCreate(QUEUE_SIZE, sizeof(uint32_t));
+    queue_to_wire = xQueueCreate(UART_QUEUE_SIZE, sizeof(uint32_t));
 
     if (queue_to_wire == NULL) {
         return pdFALSE;
