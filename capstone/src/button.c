@@ -1,5 +1,6 @@
 #include "button.h"
 #include "config.h"
+#include "ti/driverlib/dl_gpio.h"
 #include "ti_msp_dl_config.h"
 #include "main.h"
 
@@ -26,7 +27,7 @@ void GROUP1_IRQHandler(void) {
         allPinsB |= PinsB[i];
     }
     uint32_t gpioA = DL_GPIO_getEnabledInterruptStatus(GPIOA, allPinsA);
-    uint32_t gpioB = DL_GPIO_getEnabledInterruptStatus(GPIOA, allPinsB);
+    uint32_t gpioB = DL_GPIO_getEnabledInterruptStatus(GPIOB, allPinsB);
 // TODO ensure unrolled.
 #pragma clang loop unroll(enable)
     for (uint8_t i = 0; i < LenA; i++) {
@@ -49,4 +50,5 @@ void vButton_Init(void) {
     NVIC_EnableIRQ(BUTTON_GPIO_GPIOA_INT_IRQN);
     NVIC_ClearPendingIRQ(BUTTON_GPIO_GPIOB_INT_IRQN);
     NVIC_EnableIRQ(BUTTON_GPIO_GPIOB_INT_IRQN);
+    DL_GPIO_clearPins(MISC_GPIO_PORT, MISC_GPIO_BUTTON_ENABLE_PIN);
 }

@@ -1,4 +1,5 @@
 #include "config.h"
+#include "cmsis_gcc.h"
 #include <task.h>
 #include <string.h>
 #include <queue.h>
@@ -22,6 +23,9 @@ void mainThread(void *arg0) {
     xReturned = xPortGetFreeHeapSize();
 
     /* Call driver init functions */
+    xReturned = xMain_Init();
+    while (xReturned != pdPASS) {
+    }
     vButton_Init();
 
     xReturned = xPortGetFreeHeapSize();
@@ -103,6 +107,7 @@ static void prvProcessMessage(MainThread_Message *message) {
         break;
     case main_uart_message:
         button = message->move;
+        button *= 2;
         break;
     case main_button_press:
         prvHandleButtonPress(message->button);
