@@ -2,6 +2,8 @@
 #include "chess.h"
 #include "game.h"
 #include "led.h"
+#include "portmacro.h"
+#include "projdefs.h"
 #include "uart.h"
 #include "uart_bidir_protocol.h"
 #include "led_translation.h"
@@ -52,8 +54,8 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
 }
 
 BaseType_t xIsTake(UndoMove move) {
-    if (GET_DEST_FILE(move) == GET_M2_SRC_FILE(move) &&
-        GET_DEST_RANK(move) == GET_M2_SRC_RANK(move)) {
+    if (GET_M2_DEST_FILE(move) == GET_M2_SRC_FILE(move) &&
+        GET_M2_DEST_RANK(move) == GET_M2_SRC_RANK(move) && GET_M2(move) == 1) {
         return pdTRUE;
     }
     return pdFALSE;
@@ -63,6 +65,7 @@ BaseType_t xCheckUndo(BoardState *old, BoardState *new, UndoMove move,
                       BaseType_t whiteToMove) {
     // Similarly, the uart protocol changing will affect this.
     BaseType_t is_take = xIsTake(move);
+    uint8_t has_2mv = GET_M2(move) == 1;
     for (uint8_t row = 0; row < 8; row++) {
         for (uint8_t col = 0; col < 8; col++) {
             PieceType post = xGetSquare(new, row, col);
@@ -70,14 +73,14 @@ BaseType_t xCheckUndo(BoardState *old, BoardState *new, UndoMove move,
 
             if (row == GET_SRC_RANK(move) && col == GET_SRC_FILE(move)) {
                 expected = xPtypeFromWire(GET_PTYPE(move), whiteToMove);
-            } else if (row == GET_M2_SRC_RANK(move) &&
+            } else if (has_2mv && row == GET_M2_SRC_RANK(move) &&
                        col == GET_M2_SRC_FILE(move)) {
                 expected = xPtypeFromWire(
                     GET_M2_PTYPE(move), CHECK_UNDO_BW(move) ? pdFALSE : pdTRUE);
             } else if (row == GET_DEST_RANK(move) &&
                        col == GET_DEST_FILE(move)) {
                 expected = EmptySquare;
-            } else if (row == GET_M2_DEST_RANK(move) &&
+            } else if (has_2mv && row == GET_M2_DEST_RANK(move) &&
                        col == GET_M2_DEST_FILE(move)) {
                 if (is_take == pdTRUE) {
                     continue;
@@ -200,4 +203,58 @@ BaseType_t xIlluminatePieceMoves(NormalMove *moves, uint16_t moves_len,
         }
     }
     return pdTRUE;
+}
+
+BaseType_t xIlluminateUndo(UndoMove move, BaseType_t mv2ontop) {
+    BaseType_t success = pdTRUE;
+    BaseType_t is_take = xIsTake(move);
+    Color take_color = {.brightness = 31, .red = 255, .green = 0, .blue = 0};
+    Color move1from_color = {
+        .brightness = 15, .red = 255, .green = 255, .blue = 255};
+    Color move1to_color = {
+        .brightness = 31, .red = 255, .green = 255, .blue = 255};
+    Color move2from_color = {
+        .brightness = 15, .red = 0, .green = 255, .blue = 255};
+    Color move2to_color = {
+        .brightness = 31, .red = 0, .green = 255, .blue = 255};
+
+    // Render the source square of the main move.
+    uint8_t row = GET_SRC_RANK(move);
+    uint8_t col = GET_SRC_FILE(move);
+    success &= xLED_set_color(LEDTrans_Square(row, col), &move1to_color);
+
+    // Render the destination square of the main move.
+    row = GET_DEST_RANK(move);
+    col = GET_DEST_FILE(move);
+    success &= xLED_set_color(LEDTrans_Square(row, col), &move1from_color);
+
+    // If there is a second move, possibly render it.
+    if (GET_M2(move)) {
+        // Render the source square, but only if it doesn't conflict
+        // with the main move, unless we have permission to clobber.
+        if (mv2ontop == pdTRUE || row != GET_M2_SRC_RANK(move) ||
+            col != GET_M2_SRC_FILE(move)) {
+            row = GET_M2_SRC_RANK(move);
+            col = GET_M2_SRC_FILE(move);
+            success &= xLED_set_color(LEDTrans_Square(row, col),
+                                      (is_take == pdTRUE) ? &take_color
+                                                          : &move2to_color);
+        }
+        // Render the destination square. If it's a take, illuminate
+        // multiple piece outlines.
+        if (is_take == pdTRUE) {
+            PieceType taken = xPtypeFromWire(
+                GET_M2_PTYPE(move), CHECK_UNDO_BW(move) ? pdFALSE : pdTRUE);
+            ZeroToTwoInts outlines = LEDTrans_Ptype(taken);
+            for (uint8_t i = 0; i < outlines.len; i++) {
+                success &= xLED_set_color(outlines.data[i], &take_color);
+            }
+        } else {
+            row = GET_M2_DEST_RANK(move);
+            col = GET_M2_DEST_FILE(move);
+            success &=
+                xLED_set_color(LEDTrans_Square(row, col), &move2from_color);
+        }
+    }
+    return success;
 }
