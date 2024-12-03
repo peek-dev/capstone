@@ -16,7 +16,10 @@ BaseType_t xUART_init(void);
  */
 BaseType_t xUART_to_wire(uint32_t move);
 BaseType_t xUART_EncodeEvent(BUTTON_EVENT button, NormalMove move);
+BaseType_t xUART_SendCalibration(uint16_t min, uint16_t max, uint8_t row, uint8_t col, PieceType type);
 
 PieceType xPtypeFromWire(PTYPE in, BaseType_t whiteToMove);
+PTYPE xPtypeToWire(PieceType in);
+
 void vUART_Task(void *arg0);
 #endif

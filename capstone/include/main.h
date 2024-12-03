@@ -5,6 +5,7 @@
 #include "button.h"
 
 BaseType_t xMain_sensor_update(BoardState *state);
+BaseType_t xMain_sensor_calibration_update(BoardState_Calibration *state);
 BaseType_t xMain_button_press(enum button_num button);
 BaseType_t xMain_uart_message(uint32_t move);
 
@@ -20,7 +21,11 @@ enum MainThread_MsgType {
 typedef struct {
     enum MainThread_MsgType type;
     union {
+#ifdef CALIBRATION
+        BoardState_Calibration state;
+#else
         BoardState state;
+#endif
         enum button_num button;
         // Used for undo, hint, and possible moves.
         uint32_t move;
@@ -35,6 +40,11 @@ static union {
 static uint16_t prvMovesLen = 0;
 static uint16_t prvCurrentMoveIndex = 0;
 static GameState state;
+#ifdef CALIBRATION
+static PieceType selected_piece = WhitePawn;
+static uint16_t max;
+static uint16_t min;
+#endif
 // IDK, maybe change this later. Profiling?
 #define QUEUE_SIZE 10
 static QueueHandle_t mainQueue;

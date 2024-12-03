@@ -68,6 +68,7 @@ void mainThread(void *arg0) {
 
 BaseType_t xMain_Init(void) {
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
+    state.turn = game_turn_white;
     if (mainQueue == NULL) {
         return pdFALSE;
     }
@@ -418,3 +419,4 @@ static void prvProcessMessage(MainThread_Message *message) {
         break;
     }
 }
+BaseType_t xMain_sensor_calibration_update(BoardState_Calibration *state) { return pdTRUE; }

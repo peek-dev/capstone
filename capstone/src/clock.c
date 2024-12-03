@@ -86,6 +86,10 @@ void vClock_Thread(void *arg0) {
             }
             case clockmsg_set_numbers:
                 memcpy(numbers, message.numbers, 2 * sizeof(uint16_t));
+                // Request a rerender if we're displaying numbers.
+                if (state == clock_state_staticnumbers) {
+                    prvClock_render_state();
+                }
                 break;
             case clockmsg_set_turn:
                 if (state == clock_state_running && turn != message.turn &&

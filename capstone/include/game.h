@@ -25,6 +25,14 @@ typedef struct {
     uint32_t rows[8];
 } BoardState;
 
+typedef struct {
+    uint16_t columns[8];
+} CalibrationRow;
+
+typedef struct {
+    CalibrationRow rows[8];
+} BoardState_Calibration;
+
 #include "chess.h"
 typedef enum {
     game_turn_black = 1,

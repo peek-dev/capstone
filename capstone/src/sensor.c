@@ -77,6 +77,16 @@ static void prvSingleADC(BoardState *board, uint8_t row, uint8_t column) {
     vSetSquare(board, row, column, prvValueToPiece(sample));
     DL_ADC12_enableConversions(ADC_0_INST);
 }
+static void prvSingleADC_Calibration(BoardState_Calibration *board, uint8_t row, uint8_t column) {
+    DL_ADC12_startConversion(ADC_0_INST);
+    // Block the thread until ADC sampling is complete.
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+
+    volatile uint16_t sample =
+        DL_ADC12_getMemResult(ADC_0_INST, ADC_0_ADCMEM_ChessSquare);
+    board->rows[row].columns[column] = sample;
+    DL_ADC12_enableConversions(ADC_0_INST);
+}
 
 void ADC_0_INST_IRQHandler(void) {
     // I feel like we should be clearing an interrupt thing here, but the
@@ -148,6 +158,38 @@ void vSensor_Thread(void *arg0) {
             }
         }
         xMain_sensor_update(&board);
+        vTaskDelay(SENSOR_DELAY_MS / portTICK_PERIOD_MS);
+    }
+}
+
+void vSensor_Thread_Calibration(void *arg0) {
+    assert(xSensorTaskId == NULL);
+    xSensorTaskId = xTaskGetCurrentTaskHandle();
+    // TODO: maybe wait to be prompted by a fifo? Maybe have a timer do that?
+    // TODO: noise: don't read while LEDs are going?
+    while (true) {
+        // This is uninitialized, but that doesn't matter. Each element will be
+        // initialized.
+        BoardState_Calibration board;
+        for (uint8_t col = 0; col < 8; col++) {
+            prvSelectColumn(col);
+            // Set the timer for 150us delay.
+            DL_TimerG_setLoadValue(SENSOR_DELAY_TIMER_INST, COL_SWITCH_LOAD);
+            // Wait for the timer, at most waiting 1ms.
+            DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
+            ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
+            // Reduce to the smaller time for switching between the rows.
+            DL_TimerG_setLoadValue(SENSOR_DELAY_TIMER_INST, ROW_SWITCH_LOAD);
+            for (uint8_t row = 0; row < 8; row++) {
+                prvSelectRow(row);
+                // Wait again for signal propagation.
+                DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
+                ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
+                // Take the sample!
+                prvSingleADC_Calibration(&board, row, col);
+            }
+        }
+        xMain_sensor_calibration_update(&board);
         vTaskDelay(SENSOR_DELAY_MS / portTICK_PERIOD_MS);
     }
 }

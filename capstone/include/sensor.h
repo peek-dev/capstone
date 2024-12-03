@@ -5,5 +5,6 @@
 
 BaseType_t xSensor_Init(void);
 void vSensor_Thread(void *arg0);
+void vSensor_Thread_Calibration(void *arg0);
 
 #endif

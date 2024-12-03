@@ -112,3 +112,5 @@ static void prvProcessMessage(MainThread_Message *message) {
         break;
     }
 }
+
+BaseType_t xMain_sensor_calibration_update(BoardState_Calibration *state) { return pdTRUE; }
