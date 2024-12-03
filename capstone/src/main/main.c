@@ -138,10 +138,10 @@ static void prvHandleButtonPress(enum button_num button) {
                 break;
             }
             // TODO display some sort of pause message
-            xClock_stop_clock();
+            xClock_set_state(clock_state_paused);
             break;
         case game_state_paused:
-            xClock_start_clock();
+            xClock_set_state(clock_state_running);
             break;
         default:
             break;
@@ -258,10 +258,10 @@ static void prvSwitchTurnRoutine() {
     xLED_commit();
 
     // Switch the clock turn.
-    xClock_set_turn(state.turn == game_turn_black);
+    xClock_set_turn(state.turn);
     // If we're just starting, start the clock.
     if (state.state == game_state_notstarted) {
-        xClock_start_clock();
+        xClock_set_state(clock_state_running);
         state.state = game_state_running;
     }
 }

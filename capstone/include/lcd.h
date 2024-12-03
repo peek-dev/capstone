@@ -2,11 +2,14 @@
 #define CAPSTONE_LCD_H
 
 #include "config.h"
+#include "game.h"
+#include "clock.h"
 
 void vLCD_RenderTime(uint32_t *times, uint32_t *data);
 void vLCD_WriteHardware(uint32_t *data);
 void vLCD_Init(void);
 void vLCD_RunTestSequence(uint8_t seconds_per_test);
+void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn, uint32_t *times_ms, uint16_t *numbers);
 
 // In case I got the bit order wrong.
 #define SEVENSEG_A (1 << 0)
@@ -42,8 +45,10 @@ void vLCD_RunTestSequence(uint8_t seconds_per_test);
 #define CLOCK_A (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C | SEVENSEG_E | SEVENSEG_F | SEVENSEG_G)
 #define CLOCK_D (SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_E | SEVENSEG_G)
 #define CLOCK_E (SEVENSEG_A | SEVENSEG_D | SEVENSEG_E | SEVENSEG_F | SEVENSEG_G)
+#define CLOCK_F (SEVENSEG_A | SEVENSEG_E | SEVENSEG_F | SEVENSEG_G)
 #define CLOCK_N (SEVENSEG_C | SEVENSEG_E | SEVENSEG_G)
-#define CLOCK_O (SEVENSEG_C | SEVENSEG_D | SEVENSEG_E | SEVENSEG_G)
+#define CLOCK_O SEVENSEG_0
+#define CLOCK_o (SEVENSEG_C | SEVENSEG_D | SEVENSEG_E | SEVENSEG_G)
 #define CLOCK_P (SEVENSEG_A | SEVENSEG_B | SEVENSEG_E | SEVENSEG_F | SEVENSEG_G)
 #define CLOCK_S SEVENSEG_5
 #define CLOCK_U (SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_E | SEVENSEG_F)

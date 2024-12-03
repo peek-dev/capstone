@@ -1,9 +1,10 @@
 #include "config.h"
+#include "game.h"
 #include <task.h>
 #include <queue.h>
-#include "lcd.h"
 #define DELCLARE_PRIVATE_CLOCK_C
 #include "clock.h"
+#include "lcd.h"
 
 extern TaskHandle_t xClockTaskId;
 extern QueueHandle_t clockQueue;
@@ -42,36 +43,78 @@ static void prvSetSegmentForAll(uint32_t *data, uint8_t segment_id) {
     }
 }
 
-void vLCD_RenderTime(uint32_t *times, uint32_t *data) {
-    for (int i = 0; i < 3; i++) {
-        data[i] = 0;
-    }
-    uint32_t t = times[0] / 1000;
-    prvRenderDigitPair(t % 60, data, DIGITS[2][0], DIGITS[2][1]);
+void prvRenderTime_oneside(uint32_t t, uint32_t *data, game_turn side) {
+
+    uint8_t offset = (side == game_turn_black) ? 3 : 0;
+    prvRenderDigitPair(t % 60, data, DIGITS[2+offset][0], DIGITS[2+offset][1]);
     // seconds -> minutes
     t /= 60;
     if (t > 0) {
-        prvRenderDigitPair(t % 60, data, DIGITS[1][0], DIGITS[1][1]);
-        prvRenderColon(data, COL_1_2_OFFSET);
+        prvRenderDigitPair(t % 60, data, DIGITS[1+offset][0], DIGITS[1+offset][1]);
+        prvRenderColon(data, (offset == 3) ? COL_2_2_OFFSET : COL_1_2_OFFSET);
     }
     // minutes -> hours
     t /= 60;
     if (t > 0) {
-        prvRenderDigitPair(t % 60, data, DIGITS[0][0], DIGITS[0][1]);
-        prvRenderColon(data, COL_1_1_OFFSET);
+        prvRenderDigitPair(t % 60, data, DIGITS[0+offset][0], DIGITS[0+offset][1]);
+        prvRenderColon(data, (offset == 3) ? COL_2_1_OFFSET : COL_1_1_OFFSET);
     }
-    // Black's time next. TODO
-    t = times[1] / 1000;
-    prvRenderDigitPair(t % 60, data, DIGITS[5][0], DIGITS[5][1]);
-    t /= 60;
-    if (t > 0) {
-        prvRenderDigitPair(t % 60, data, DIGITS[4][0], DIGITS[4][1]);
-        prvRenderColon(data, COL_2_2_OFFSET);
+}
+
+static void prvRenderTime(uint32_t *times, uint32_t *data) {
+    // Start with white's time.
+    prvRenderTime_oneside(times[0] / 1000, data, game_turn_white);
+    // Black's time next. TODO check sides.
+    prvRenderTime_oneside(times[1] / 1000, data, game_turn_black);
+    
+}
+
+static void prvRenderPause(uint32_t *data, game_turn turn, uint32_t *times) {
+    prvRenderTime_oneside(times[turn], data, turn);
+    // This is the reverse of the usual offset.
+    uint8_t offset = (turn != game_turn_black) ? 3 : 0;
+    prvSetDigit(data, CLOCK_P, DIGITS[2+offset][0]);
+    prvSetDigit(data, CLOCK_A, DIGITS[1+offset][1]);
+    prvSetDigit(data, CLOCK_U, DIGITS[1+offset][0]);
+    prvSetDigit(data, CLOCK_S, DIGITS[0+offset][1]);
+    prvSetDigit(data, CLOCK_E, DIGITS[0+offset][0]);
+}
+
+void prvRenderNumbers_oneside(uint16_t n, uint32_t *data, game_turn side) {
+    uint8_t offset = (side == game_turn_black) ? 3 : 0;
+    for (uint8_t i = 0; i < 6 && n != 0; i++) {
+        prvSetDigit(data, NUMBERS[n % 10], DIGITS[offset+(i/2)][i%2]);
+        n /= 10;
     }
-    t /= 60;
-    if (t > 0) {
-        prvRenderDigitPair(t % 60, data, DIGITS[3][0], DIGITS[3][1]);
-        prvRenderColon(data, COL_2_1_OFFSET);
+}
+
+static void prvRenderNumbers(uint32_t *data, uint16_t *numbers) {
+    prvRenderNumbers_oneside(numbers[0], data, game_turn_white);
+    prvRenderNumbers_oneside(numbers[1], data, game_turn_black);
+}
+
+void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn, uint32_t *times_ms, uint16_t *numbers) {
+    for (uint8_t i = 0; i < 3; i++) {
+        data[i] = 0;
+    }
+    switch (state) {
+        case clock_state_off:
+            // No change. Leave it off.
+            break;
+        case clock_state_notstarted:
+        case clock_state_running:
+            // Render the current times.
+            prvRenderTime(times_ms, data);
+            break;
+        case clock_state_paused:
+            prvRenderPause(data, turn, times_ms);
+            break;
+        case clock_state_staticnumbers:
+            prvRenderNumbers(data, numbers);
+            break;
+        case clock_state_undo:
+        // TODO
+            break;
     }
 }
 
@@ -135,7 +178,7 @@ void vLCD_RunTestSequence(uint8_t seconds_per_test) {
     while (1) {
         // Hijack the queue. Use clockmsg_writehw as a once-per-second clock.
         if (xQueueReceive(clockQueue, &message, portMAX_DELAY) == pdTRUE) {
-            if (message.type == clockmsg_writehw) {
+            if (message.type == clockmsg_render_state) {
                 if (seconds_count == 0) {
                     for (int i = 0; i < 3; i++) {
                         data[i] = 0;
@@ -147,7 +190,7 @@ void vLCD_RunTestSequence(uint8_t seconds_per_test) {
                     case 7:
                         times_ms[0] = ((1 * 60 + 23) * 60 + 45) * 1000;
                         times_ms[1] = ((1 * 60 + 23) * 60 + 45) * 1000;
-                        vLCD_RenderTime(times_ms, data);
+                        prvRenderTime(times_ms, data);
                         break;
                     case 8:
                         for (uint8_t i = 0; i < 12; i++) {
@@ -161,7 +204,7 @@ void vLCD_RunTestSequence(uint8_t seconds_per_test) {
                     case 9:
                         times_ms[0] = 0;
                         times_ms[1] = 0;
-                        vLCD_RenderTime(times_ms, data);
+                        prvRenderTime(times_ms, data);
                         times_ms[0] = 10000;
                         times_ms[1] = 10000;
                         break;
@@ -170,7 +213,7 @@ void vLCD_RunTestSequence(uint8_t seconds_per_test) {
                         ;
                         times_ms[1] = ((54 * 60 + 32) * 60 + 10) * 1000;
                         ;
-                        vLCD_RenderTime(times_ms, data);
+                        prvRenderTime(times_ms, data);
                         break;
                     }
                     vLCD_WriteHardware(data);

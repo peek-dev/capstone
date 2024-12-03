@@ -26,7 +26,15 @@ typedef struct {
 } BoardState;
 
 #include "chess.h"
-
+typedef enum {
+    game_turn_black = 1,
+    game_turn_white = 0,
+} game_turn;
+typedef enum {
+    game_clock_off,
+    game_clock_90
+    // TODO more
+} chess_clock_mode;
 typedef struct {
     enum {
         game_state_paused,
@@ -35,15 +43,8 @@ typedef struct {
         game_state_undo,
         game_state_notstarted,
     } state;
-    enum {
-        game_turn_black,
-        game_turn_white,
-    } turn;
-    enum {
-        game_clock_off,
-        game_clock_90
-        // TODO more
-    } clock_mode;
+    game_turn turn;
+    chess_clock_mode clock_mode;
     enum {
         game_hint_unknown,
         game_hint_known,
