@@ -51,9 +51,6 @@ void mainThread(void *arg0) {
 
     xUART_to_wire(MSP_ACK); // Complete the "three-way handshake" and signal to RPi that comms are live
 
-    /* FIXME: remove this testing hang */
-    while (1); 
-
     /* Call driver init functions */
     xReturned = xClock_Init();
     while (xReturned != pdPASS);
