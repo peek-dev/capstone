@@ -4,8 +4,13 @@
 #include "projdefs.h"
 #include "portmacro.h"
 #include "ti_msp_dl_config.h"
+#include <queue.h>
+#include <ti/driverlib/dl_uart_main.h>
+#include "main.h"
 
-// RPI_UART_INST
+#ifndef QUEUE_SIZE
+#define QUEUE_SIZE 16
+#endif
 
 // The "private" queue handle for data to be placed on UART TX.
 static QueueHandle_t queue_to_wire; 
@@ -14,7 +19,7 @@ static QueueHandle_t queue_to_wire;
  * Initialize UART thread state, including queue handle for data to be put on 
  * the wire.
  */
-BaseType_t xUART_init(void) {
+BaseType_t xUART_Init(void) {
     queue_to_wire = xQueueCreate(QUEUE_SIZE, sizeof(uint32_t));
 
     if (queue_to_wire == NULL) {
@@ -85,8 +90,9 @@ static void prvUART_UnpackAndSend(UART_Regs* uart, uint32_t packet) {
  * Do the reverse of sending: collect 4 bytes at a time into a single protocol
  * word.
  */
-static uint32_t prvUART_PackAndReceive(UART_Regs* uart) { uint32_t
-    retrieved_word = 0; uint8_t next_byte;
+static uint32_t prvUART_PackAndReceive(UART_Regs* uart) { 
+    uint32_t retrieved_word = 0; 
+    uint8_t next_byte;
 
     for (int i = 0; i < 4; i += 1) {
         retrieved_word <<= 8;

@@ -10,6 +10,7 @@
 #include "led.h"
 #include "sensor.h"
 #include "uart_bidir_protocol.h"
+#include "uart.h"
 #include "button.h"
 
 #define DECLARE_PRIVATE_MAIN_C
@@ -49,6 +50,9 @@ void mainThread(void *arg0) {
     } while (heartbeat_move != RPI_SYNACK);
 
     xUART_to_wire(MSP_ACK); // Complete the "three-way handshake" and signal to RPi that comms are live
+
+    /* FIXME: remove this testing hang */
+    while (1); 
 
     /* Call driver init functions */
     xReturned = xClock_Init();
