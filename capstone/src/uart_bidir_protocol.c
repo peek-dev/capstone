@@ -70,4 +70,3 @@ void vdecode_undo_for_msp(uint32_t word, rpi_undo *undo) {
     undo->bw_flag = CHECK_UNDO_BW(word);
     undo->undone_ptype = GET_UNDO_PTYPE(word);
 }
-

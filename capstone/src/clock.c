@@ -88,10 +88,12 @@ void vClock_Thread(void *arg0) {
                 memcpy(numbers, message.numbers, 2 * sizeof(uint16_t));
                 break;
             case clockmsg_set_turn:
-                if (state == clock_state_running && turn != message.turn && increment_ms != 0) {
+                if (state == clock_state_running && turn != message.turn &&
+                    increment_ms != 0) {
                     times_ms[message.turn] += increment_ms;
                     prvClock_render_state();
-                } else if (state == clock_state_paused || state == clock_state_undo) {
+                } else if (state == clock_state_paused ||
+                           state == clock_state_undo) {
                     // Request a render.
                     prvClock_render_state();
                 }

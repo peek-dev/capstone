@@ -49,9 +49,7 @@ BaseType_t xMain_Init(void) {
     return pdTRUE;
 }
 
-BaseType_t xMain_sensor_update(BoardState *state) {
-    return pdTRUE;
-}
+BaseType_t xMain_sensor_update(BoardState *state) { return pdTRUE; }
 
 BaseType_t xMain_button_press(enum button_num button) {
     MainThread_Message m;
@@ -71,30 +69,31 @@ BaseType_t xMain_uart_message(uint32_t move) {
     return xQueueSend(mainQueue, &m, portMAX_DELAY);
 }
 
-__attribute__((noinline)) static void prvHandleButtonPress(enum button_num button) {
+__attribute__((noinline)) static void
+prvHandleButtonPress(enum button_num button) {
     switch (button) {
-        case button_num_black_move:
+    case button_num_black_move:
         xMain_uart_message(0);
         break;
-        case button_num_white_move:
+    case button_num_white_move:
         xMain_uart_message(1);
         break;
-        case button_num_clock_mode:
+    case button_num_clock_mode:
         xMain_uart_message(2);
         break;
-        case button_num_hint:
+    case button_num_hint:
         xMain_uart_message(3);
         break;
-        case button_num_pause:
+    case button_num_pause:
         xMain_uart_message(4);
         break;
-        case button_num_start_restart:
+    case button_num_start_restart:
         xMain_uart_message(5);
         break;
-        case button_num_undo:
+    case button_num_undo:
         xMain_uart_message(6);
         break;
-        default:
+    default:
         xMain_uart_message(7);
         break;
     }
