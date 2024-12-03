@@ -45,6 +45,8 @@ static PieceType prvValueToPiece(uint16_t value) {
 
 static void prvSelectRow(uint8_t row) {
     assert(row < 8);
+    // Hack: all rows were reversed.
+    row = 7 - row;
     DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A0_PORT, MUX_GPIO_PIN_R_A0_PIN,
                          MUX_GPIO_PIN_R_A0_PIN * !!(row & 1));
     DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A1_PORT, MUX_GPIO_PIN_R_A1_PIN,
