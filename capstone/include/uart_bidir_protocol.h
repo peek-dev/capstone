@@ -70,7 +70,7 @@ typedef uint8_t MTYPE;
  */
 typedef uint8_t BUTTON_EVENT;
 
-#define BUTTON_START ((uint8_t)0)
+#define BUTTON_TURNSWITCH ((uint8_t)0)
 #define BUTTON_RESTART ((uint8_t)1)
 #define BUTTON_HINT ((uint8_t)2)
 #define BUTTON_UNDO ((uint8_t)3)

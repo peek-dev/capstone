@@ -26,8 +26,6 @@ uint32_t xencode_move_for_rpi(msp_packet *move) {
     return encoded_word;
 }
 
-uint32_t xencode_start_for_rpi(void) { return 0 | BUTTON_START; }
-
 uint32_t xencode_restart_for_rpi(void) { return 0 | BUTTON_RESTART; }
 
 uint32_t xencode_undo_for_rpi(void) { return 0 | BUTTON_UNDO; }

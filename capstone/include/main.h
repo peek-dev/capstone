@@ -20,10 +20,9 @@ enum MainThread_MsgType {
 typedef struct {
     enum MainThread_MsgType type;
     union {
-        // TODO: this is sooo inefficient. 32 bytes vs 4?
         BoardState state;
-        // TODO: buttons, uart (separate undo and new move)
         enum button_num button;
+        // Used for undo, hint, and possible moves.
         uint32_t move;
     };
 } MainThread_Message;
@@ -39,6 +38,8 @@ static GameState state;
 // IDK, maybe change this later. Profiling?
 #define QUEUE_SIZE 10
 static QueueHandle_t mainQueue;
+
+static TaskHandle_t thread_clock, thread_led, thread_sensor, thread_uart;
 
 BaseType_t xMain_Init(void);
 static void prvSwitchTurnRoutine(void);

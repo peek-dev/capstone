@@ -5,7 +5,7 @@
 #include "uart_bidir_protocol.h"
 
 enum button_num {
-    button_num_start_restart = BUTTON_START,
+    button_num_start_restart = BUTTON_RESTART,
     button_num_hint = BUTTON_HINT,
     button_num_undo = BUTTON_UNDO,
     button_num_pause,

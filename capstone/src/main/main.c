@@ -10,6 +10,7 @@
 #include "portmacro.h"
 #include "projdefs.h"
 #include "sensor.h"
+#include "uart.h"
 #include "uart_bidir_protocol.h"
 #include "button.h"
 
@@ -18,8 +19,16 @@
 
 void mainThread(void *arg0) {
     /* FIXME: declare task handle for UART task */
-    TaskHandle_t thread_clock, thread_led, thread_sensor;
     BaseType_t xReturned;
+
+    xReturned = xMain_Init();
+    while (xReturned != pdPASS) {
+    }
+
+    // Heartbeat startup wait occurs here?
+    xReturned = xUART_init();
+    while (xReturned != pdPASS) {
+    }
 
     xReturned = xPortGetFreeHeapSize();
 
@@ -31,9 +40,6 @@ void mainThread(void *arg0) {
     while (xReturned != pdPASS) {
     }
     xReturned = xSensor_Init();
-    while (xReturned != pdPASS) {
-    }
-    xReturned = xMain_Init();
     while (xReturned != pdPASS) {
     }
     vButton_Init();
@@ -53,8 +59,10 @@ void mainThread(void *arg0) {
                             NULL, 2, &thread_sensor);
     while (xReturned != pdPASS) {
     }
-
-    /* FIXME: call xTaskCreate() API to set up UART task */
+    xReturned = xTaskCreate(vUART_Task, "UART", configMINIMAL_STACK_SIZE, NULL,
+                            2, &thread_uart);
+    while (xReturned != pdPASS) {
+    }
 
     MainThread_Message message;
     volatile BaseType_t mem = xPortGetFreeHeapSize();
@@ -109,6 +117,7 @@ static void prvSwitchStateTurn(GameState *statevar) {
 }
 
 static void prvHandleButtonPress(enum button_num button) {
+    BaseType_t xReturned;
     // If it's the turn-switch button:
     switch (button) {
     case button_num_white_move:
@@ -154,7 +163,9 @@ static void prvHandleButtonPress(enum button_num button) {
         case game_state_notstarted:
             switch (state.hint) {
             case game_hint_unknown:
-                // TODO request hint from uart;
+                // Request a hint from the pi.
+                xReturned = xUART_EncodeEvent(BUTTON_HINT, 0);
+                while (xReturned != pdPASS);
                 state.hint = game_hint_awaiting;
                 break;
             case game_hint_known:
@@ -217,7 +228,8 @@ static void prvHandleButtonPress(enum button_num button) {
             prvCurrentMoveIndex = 0;
             state.hint = game_hint_unknown;
         case game_state_undo:
-            // TODO request an undo move from the uart.
+            xReturned = xUART_EncodeEvent(BUTTON_UNDO, 0);
+            while (xReturned != pdPASS);
             break;
         default:
             break;
@@ -245,7 +257,9 @@ static void prvSwitchTurnRoutine() {
     // Reset the possible moves.
     prvMovesLen = 0;
     prvCurrentMoveIndex = 0;
-    // TODO send a message back to the UART
+    BaseType_t xReturned =
+        xUART_EncodeEvent(BUTTON_TURNSWITCH, prvMoves.possible[index]);
+    while (xReturned != pdPASS);
     // Switch the player turn.
     prvSwitchStateTurn(&state);
     // Reset the hint state.
@@ -254,19 +268,24 @@ static void prvSwitchTurnRoutine() {
     memcpy(&state.last_move_state, &state.last_measured_state,
            sizeof(BoardState));
     // Clear the LEDs.
-    xLED_clear_board();
-    xLED_commit();
+    xReturned = xLED_clear_board();
+    while (xReturned != pdPASS);
+    xReturned = xLED_commit();
+    while (xReturned != pdPASS);
 
     // Switch the clock turn.
-    xClock_set_turn(state.turn);
+    xReturned = xClock_set_turn(state.turn);
+    while (xReturned != pdPASS);
     // If we're just starting, start the clock.
     if (state.state == game_state_notstarted) {
-        xClock_set_state(clock_state_running);
+        xReturned = xClock_set_state(clock_state_running);
+        while (xReturned != pdPASS);
         state.state = game_state_running;
     }
 }
 
 static void prvSwitchTurnUndo(void) {
+    BaseType_t xReturned;
     // If we're still waiting for the just-requested undo, ignore the request.
     if (prvMovesLen == 0) {
         return;
@@ -291,8 +310,10 @@ static void prvSwitchTurnUndo(void) {
     memcpy(&state.last_move_state, &state.last_measured_state,
            sizeof(BoardState));
 
-    xLED_clear_board();
-    xLED_commit();
+    xReturned = xLED_clear_board();
+    while (xReturned != pdPASS);
+    xReturned = xLED_commit();
+    while (xReturned != pdPASS);
 
     // Check: are we done with undos?
     if (prvMovesLen == 0) {
@@ -301,9 +322,12 @@ static void prvSwitchTurnUndo(void) {
         state.state = game_state_running;
         state.hint = game_hint_unknown;
         prvCurrentMoveIndex = 0;
-        // TODO request moves from uart somehow. Dummy packet?
+        // Send dummy packet to uart to request moves.
+        xReturned = xUART_to_wire(0);
+        while (xReturned != pdPASS);
         // TODO clock?
-        xClock_set_turn(state.turn == game_turn_black);
+        xReturned = xClock_set_turn(state.turn == game_turn_black);
+        while (xReturned != pdPASS);
     } else {
         prvSwitchStateTurn(&state);
     }

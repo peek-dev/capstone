@@ -5,6 +5,8 @@
 #include "portmacro.h"
 #include "ti_msp_dl_config.h"
 #include <queue.h>
+#include "main.h"
+#include "uart_bidir_protocol.h"
 #define UART_QUEUE_SIZE 12
 
 // RPI_UART_INST
@@ -33,6 +35,16 @@ BaseType_t xUART_init(void) {
  */
 BaseType_t xUART_to_wire(uint32_t move) {
     return xQueueSend(queue_to_wire, &move, portMAX_DELAY);
+}
+
+BaseType_t xUART_EncodeEvent(BUTTON_EVENT button, NormalMove move) {
+    uint32_t request = button;
+    if (button == BUTTON_TURNSWITCH) {
+        // This works, modulo a bunch of dontcares.
+        request = move;
+        request = (request & (~0x3)) | button;
+    }
+    return xUART_to_wire(request);
 }
 
 PieceType xPtypeFromWire(PTYPE in, BaseType_t white) {
