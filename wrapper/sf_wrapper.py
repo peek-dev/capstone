@@ -8,7 +8,7 @@ import serial
 
 
 if __name__ == '__main__':
-
+ 
     MSP_BAUDRATE=115200 # UART state constant
     board = chess.Board()
 
@@ -28,14 +28,26 @@ if __name__ == '__main__':
 
     uart = serial.Serial('/dev/serial0', baudrate=MSP_BAUDRATE)
 
+    print("Waiting for SYN from MSP...")
+
     # "Heartbeat code" to establish connection with MSP
     heartbeat = int((uart.read(4))[-1::-1].hex(), 16)
 
     if (heartbeat == wr.MSP_SYN):
+        print("Got heartbeat (" + hex(heartbeat) + ")")
         uart.write(wr.SYNACK.to_bytes(4, 'little'))
+        print("Sent SYNACK (" + hex(wr.SYNACK) + ")")
 
     # "Flush out" Pi UART RX buffer until MSP's ACK is found
-    uart.read_until(wr.MSP_ACK.to_bytes(4), size=4)
+    sequence = uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
+    
+    print("Got sequence:", sequence)
+
+    # FIXME: remove testing exit
+    sf.quit() # Code should never reach this---game loops forever.
+    exit(0)
+
+    print("Now past exit (?)")
 
     # Now synchronized with MSP. Proceed with setup.
     wr.init_board()
