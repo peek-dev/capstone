@@ -21,16 +21,44 @@ void mainThread(void *arg0) {
 
     xReturned = xPortGetFreeHeapSize();
 
+    xReturned = xMain_Init();
+    while (xReturned != pdPASS);
+
+    // Initialize UART state
+    xReturned = xUART_Init();
+    while (xReturned != pdPASS);
+
+    xReturned = xTaskCreate(vUART_Thread, "UART", configMINIMAL_STACK_SIZE, NULL, 2, &thread_uart);
+    while (xReturned != pdPASS);
+
+    // Set up UART "heartbeat" to ensure that Raspberry Pi is up
+    MainThread_Message heartbeat_message;
+    uint32_t heartbeat_move = MSP_SYN; // All-zero sentinel that won't be confused with RPI_SYNACK (0x0000FFFF)
+
+    do {
+        xUART_to_wire(MSP_SYN); // "Ping" the Raspberry Pi again to see if it's up
+        vTaskDelay(UART_HEARTBEAT_MS / portTICK_PERIOD_MS); // Approximate (low-resolution) 100ms delay
+
+        if (uxQueueMessagesWaiting(mainQueue) > 0) {
+            xQueueReceive(mainQueue, &heartbeat_message, portMAX_DELAY);
+
+            if (heartbeat_message.type == main_uart_message) {    
+                heartbeat_move = heartbeat_message.move;
+            }
+        }  
+    } while (heartbeat_move != RPI_SYNACK);
+
+    xUART_to_wire(MSP_ACK); // Complete the "three-way handshake" and signal to RPi that comms are live
+
     /* Call driver init functions */
     xReturned = xClock_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS);
+
     xReturned = xLED_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS);
+
     xReturned = xSensor_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS);
 
     xReturned = xPortGetFreeHeapSize();
 
@@ -46,10 +74,7 @@ void mainThread(void *arg0) {
     xReturned = xTaskCreate(vSensor_Thread, "Sensor", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_sensor);
     while (xReturned != pdPASS);
-
-    xReturned = xTaskCreate(vUART_Thread, "UART", configMINIMAL_STACK_SIZE, NULL, 2, &thread_uart);
-    while (xReturned != pdPASS);
-        
+ 
     MainThread_Message message;
     while (1) {
         if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {

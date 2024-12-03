@@ -9,6 +9,7 @@
 #define MSP_SYN         ((uint32_t) 0x00000000)
 #define RPI_SYNACK      ((uint32_t) 0x0000FFFF)
 #define MSP_ACK         ((uint32_t) 0xFFFFFFFF)
+#define UART_HEARTBEAT_MS       100
 
 /**
  * Constants for chessboard files.
