@@ -4,3 +4,5 @@ BasedOnStyle: LLVM
 IndentWidth: 4
 InsertBraces: true
 SortIncludes: false
+AllowShortBlocksOnASingleLine: Empty
+AllowShortLoopsOnASingleLine: true

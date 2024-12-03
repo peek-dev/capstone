@@ -9,19 +9,16 @@ void mainThread(void *arg0) {
 
     /* Call driver init functions */
     xReturned = xClock_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
 
     // Make a thread to recieve messages.
     xReturned = xTaskCreate(vClock_Thread, "Clock", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_clock);
     // Loop and get stuck here if we fail.
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
 
     xReturned = xClock_run_test(1);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     vTaskDelete(NULL);
 }
 

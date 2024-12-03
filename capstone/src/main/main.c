@@ -22,26 +22,21 @@ void mainThread(void *arg0) {
     BaseType_t xReturned;
 
     xReturned = xMain_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
 
     // Heartbeat startup wait occurs here?
     xReturned = xUART_init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
 
     xReturned = xPortGetFreeHeapSize();
 
     /* Call driver init functions */
     xReturned = xClock_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     xReturned = xLED_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     xReturned = xSensor_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     vButton_Init();
 
     xReturned = xPortGetFreeHeapSize();
@@ -49,20 +44,16 @@ void mainThread(void *arg0) {
     // Initialize the system threads.
     xReturned = xTaskCreate(vClock_Thread, "Clock", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_clock);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     xReturned = xTaskCreate(vLED_Thread, "LED", configMINIMAL_STACK_SIZE, NULL,
                             2, &thread_led);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     xReturned = xTaskCreate(vSensor_Thread, "Sensor", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_sensor);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     xReturned = xTaskCreate(vUART_Task, "UART", configMINIMAL_STACK_SIZE, NULL,
                             2, &thread_uart);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
 
     MainThread_Message message;
     volatile BaseType_t mem = xPortGetFreeHeapSize();
@@ -359,8 +350,7 @@ static void prvRenderState(void) {
         xReturned &= xLED_clear_board();
         xReturned &= xIlluminateUndo(prvMoves.undo[0], clobber);
         xReturned &= xLED_commit();
-        while (xReturned != pdTRUE) {
-        }
+        while (xReturned != pdTRUE) {}
         return;
     }
     // If the board state is unchanged, show the moveable pieces.
@@ -369,8 +359,7 @@ static void prvRenderState(void) {
         xReturned &= xLED_clear_board();
         xReturned &= xIlluminateMovable(prvMoves.possible, prvMovesLen);
         xReturned &= xLED_commit();
-        while (xReturned != pdTRUE) {
-        }
+        while (xReturned != pdTRUE) {}
     }
     // If it's not, check if we've only removed one piece.
     else if (xFindSingleLifted(&state.last_move_state,
@@ -381,8 +370,7 @@ static void prvRenderState(void) {
         xReturned &=
             xIlluminatePieceMoves(prvMoves.possible, prvMovesLen, row, col);
         xReturned &= xLED_commit();
-        while (xReturned != pdTRUE) {
-        }
+        while (xReturned != pdTRUE) {}
     }
     // Otherwise, leave it unchanged.
 }

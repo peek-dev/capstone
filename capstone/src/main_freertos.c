@@ -60,8 +60,7 @@ int main(void) {
 
     xReturned = xTaskCreate(mainThread, "main", configMINIMAL_STACK_SIZE, NULL,
                             1, &thread);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     xReturned = xPortGetFreeHeapSize();
 
     /* Start the FreeRTOS scheduler */
@@ -87,8 +86,7 @@ void vApplicationMallocFailedHook(void) {
      * on how the remaining heap might be fragmented).
      */
     taskDISABLE_INTERRUPTS();
-    for (;;)
-        ;
+    for (;;);
 }
 /*-----------------------------------------------------------*/
 
@@ -135,7 +133,6 @@ void __attribute__((weak)) vApplicationStackOverflowHook(TaskHandle_t pxTask,
      * function is called if a stack overflow is detected.
      */
     taskDISABLE_INTERRUPTS();
-    for (;;)
-        ;
+    for (;;);
 }
 #endif

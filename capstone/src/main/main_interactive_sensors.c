@@ -26,29 +26,23 @@ void mainThread(void *arg0) {
 
     /* Call driver init functions */
     xReturned = xClock_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     xReturned = xLED_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     xReturned = xSensor_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     xReturned = xMain_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     vButton_Init();
 
     xReturned = xPortGetFreeHeapSize();
 
     xReturned = xTaskCreate(vLED_Thread, "LED", configMINIMAL_STACK_SIZE, NULL,
                             2, &thread_led);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     xReturned = xTaskCreate(vSensor_Thread, "Sensor", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_sensor);
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
 
     /* FIXME: call xTaskCreate() API to set up UART task */
 

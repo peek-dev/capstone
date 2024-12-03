@@ -11,15 +11,13 @@ void mainThread(void *arg0) {
 
     /* Call driver init functions */
     xReturned = xLED_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
 
     // Make a thread to recieve messages.
     xReturned = xTaskCreate(vLED_Thread, "LED", configMINIMAL_STACK_SIZE, NULL,
                             2, &thread_led);
     // Loop and get stuck here if we fail.
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
 
     Color color = {.brightness = 31, .red = 255, .blue = 0, .green = 0};
     int8_t masks[3][3] = {{-1, 1, 0}, {0, -1, 1}, {1, 0, -1}};
@@ -36,16 +34,14 @@ void mainThread(void *arg0) {
             Color color_copy = color;
 
             xReturned = xLED_clear_board();
-            while (xReturned != pdPASS) {
-            }
+            while (xReturned != pdPASS) {}
 
             for (uint8_t row = 0; row < 8; row++) {
                 for (uint8_t col = 0; col < 8; col++) {
                     color_copy.brightness = (color_copy.brightness + 4) % 32;
                     xReturned =
                         xLED_set_color(LEDTrans_Square(row, col), &color_copy);
-                    while (xReturned != pdPASS) {
-                    }
+                    while (xReturned != pdPASS) {}
                 }
                 color_copy.red = color_copy.red <= 4 ? 0 : (color_copy.red - 4);
                 color_copy.green =
@@ -54,8 +50,7 @@ void mainThread(void *arg0) {
                     color_copy.blue >= 251 ? 255 : (color_copy.blue + 4);
             }
             xReturned = xLED_commit();
-            while (xReturned != pdPASS) {
-            }
+            while (xReturned != pdPASS) {}
 
             vTaskDelay(5 / portTICK_PERIOD_MS);
         }

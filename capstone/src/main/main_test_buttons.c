@@ -24,8 +24,7 @@ void mainThread(void *arg0) {
 
     /* Call driver init functions */
     xReturned = xMain_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
     vButton_Init();
 
     xReturned = xPortGetFreeHeapSize();

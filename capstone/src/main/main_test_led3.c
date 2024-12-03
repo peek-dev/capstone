@@ -11,15 +11,13 @@ void mainThread(void *arg0) {
 
     /* Call driver init functions */
     xReturned = xLED_Init();
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
 
     // Make a thread to recieve messages.
     xReturned = xTaskCreate(vLED_Thread, "LED", configMINIMAL_STACK_SIZE, NULL,
                             2, &thread_led);
     // Loop and get stuck here if we fail.
-    while (xReturned != pdPASS) {
-    }
+    while (xReturned != pdPASS) {}
 
     Color color = {.brightness = 31, .red = 255, .blue = 255, .green = 255};
     uint8_t i = 0;
@@ -28,14 +26,11 @@ void mainThread(void *arg0) {
             i = 0;
         }
         xReturned = xLED_clear_board();
-        while (xReturned != pdPASS) {
-        }
+        while (xReturned != pdPASS) {}
         xReturned = xLED_set_color(i, &color);
-        while (xReturned != pdPASS) {
-        }
+        while (xReturned != pdPASS) {}
         xReturned = xLED_commit();
-        while (xReturned != pdPASS) {
-        }
+        while (xReturned != pdPASS) {}
         i++;
         vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
