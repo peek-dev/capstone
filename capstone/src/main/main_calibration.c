@@ -104,15 +104,12 @@ BaseType_t xMain_Init(void) {
 
 BaseType_t xMain_sensor_update(BoardState *state) { return pdTRUE; }
 
-BaseType_t xMain_button_press(enum button_num button) {
+BaseType_t xMain_button_press_FromISR(enum button_num button,
+                                      BaseType_t *pxHigherPriorityTaskWoken) {
     MainThread_Message m;
     m.type = main_button_press;
     m.button = button;
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    BaseType_t retval =
-        xQueueSendFromISR(mainQueue, &m, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    return retval;
+    return xQueueSendFromISR(mainQueue, &m, pxHigherPriorityTaskWoken);
 }
 
 BaseType_t xMain_uart_message(uint32_t move) {
@@ -221,4 +218,9 @@ static void prvProcessMessage(MainThread_Message *message) {
         prvHandleButtonPress(message->button);
         break;
     }
+}
+
+BaseType_t xMain_uart_message_FromISR(uint32_t move,
+                                      BaseType_t *pxHigherPriorityTaskWoken) {
+    return pdTRUE;
 }
