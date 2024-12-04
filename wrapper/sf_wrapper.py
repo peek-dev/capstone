@@ -5,7 +5,7 @@ import chess.engine
 import wrapper_util as wr # include helpers and UART protocol constants
 from wrapper_util import ButtonEvent
 import serial
-
+from datetime import datetime
 
 if __name__ == '__main__':
  
@@ -32,9 +32,7 @@ if __name__ == '__main__':
     heartbeat = int((uart.read(4))[-1::-1].hex(), 16)
 
     if (heartbeat == wr.MSP_SYN):
-        print("Got heartbeat (" + hex(heartbeat) + ")")
         uart.write(wr.SYNACK.to_bytes(4, 'little'))
-        print("Sent SYNACK (" + hex(wr.SYNACK) + ")")
 
     # "Flush out" Pi UART RX buffer until MSP's ACK is found
     sequence = uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
@@ -44,6 +42,8 @@ if __name__ == '__main__':
     next_result = sf.play(board, sf_limit)
     best_move = next_result.move
 
+    current_timestamp = datetime.now()
+    
     # The main loop of the program, which will never exit except in unusual 
     # circumstances.
     while True:
@@ -60,7 +60,14 @@ if __name__ == '__main__':
         # - UNDO: rewind game state one move at a time
         match (wr.parse_button_event(next_packet)):
             case ButtonEvent.RESTART:
+                data_handle = f"{current_timestamp}-game.txt"
+                
+                with open(data_handle, 'w') as game_data:
+                    for game_move in board.move_stack:
+                        print(uci(game_move), file=game_data)
+
                 board.reset()
+                current_timestamp = datetime.now()
                 continue
             case ButtonEvent.HINT:
                 uart.write(wr.encode_packet(best_move, board, True).to_bytes(4, 'little'))

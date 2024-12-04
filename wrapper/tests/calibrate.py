@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import serial
+from datetime import datetime
 
 outpath = './calibration_data.txt'
 
@@ -78,7 +79,7 @@ def parse_ptype(packet: int) -> str:
 if __name__ == '__main__':
     
     with open(outpath, 'a') as out:
-        print("SQUARE,COLOR,TYPE,VALUE,MAX?,MIN?", file=out)
+        print("TIMESTAMP,SQUARE,COLOR,TYPE,VALUE,MAX?,MIN?", file=out)
 
     uart = serial.Serial('/dev/serial0', baudrate=115200)
 
@@ -93,9 +94,9 @@ if __name__ == '__main__':
 
     while True:
         next_packet = int((uart.read(4))[-1::-1].hex(), 16)
-        
+
         with open(outpath, 'a') as out:
-            print(f"{parse_square(next_packet)},{parse_color(next_packet)},{parse_type(next_packet)},{parse_value(next_packet)},{parse_max(next_packet)},{parse_min(next_packet)}", file=out)
+            print(f"{datetime.now()},{parse_square(next_packet)},{parse_color(next_packet)},{parse_type(next_packet)},{parse_value(next_packet)},{parse_max(next_packet)},{parse_min(next_packet)}", file=out)
 
         # read first packet
         # decode first packet
