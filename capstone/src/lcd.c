@@ -84,8 +84,8 @@ static void prvRenderPause(uint32_t *data, game_turn turn, uint32_t *times) {
 
 void prvRenderNumbers_oneside(uint16_t n, uint32_t *data, game_turn side) {
     uint8_t offset = (side == game_turn_black) ? 3 : 0;
-    for (uint8_t i = 0; i < 6 && n != 0; i++) {
-        prvSetDigit(data, NUMBERS[n % 10], DIGITS[offset + (i / 2)][i % 2]);
+    for (uint8_t i = 0; i < 6 && (n != 0 || i == 0); i++) {
+        prvSetDigit(data, NUMBERS[n % 10], DIGITS[offset + 2 - (i / 2)][i % 2]);
         n /= 10;
     }
 }

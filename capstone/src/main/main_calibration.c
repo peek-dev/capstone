@@ -19,6 +19,8 @@
 #define DECLARE_PRIVATE_MAIN_C
 #include "main.h"
 
+#define ACTUALLY_USE_UART 0
+
 /*
 Calibration testbench.
 We will use the state somewhat differently here.
@@ -42,8 +44,10 @@ void mainThread(void *arg0) {
     while (xReturned != pdPASS) {}
 
     // Heartbeat startup wait occurs here?
+#if ACTUALLY_USE_UART
     xReturned = xUART_init();
     while (xReturned != pdPASS) {}
+#endif
 
     xReturned = xPortGetFreeHeapSize();
 
@@ -68,9 +72,11 @@ void mainThread(void *arg0) {
     xReturned = xTaskCreate(vSensor_Thread_Calibration, "Sensor", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_sensor);
     while (xReturned != pdPASS) {}
+#if ACTUALLY_USE_UART
     xReturned = xTaskCreate(vUART_Task, "UART", configMINIMAL_STACK_SIZE, NULL,
                             2, &thread_uart);
     while (xReturned != pdPASS) {}
+#endif
 
     xClock_set_numbers(numbers);
     xClock_set_state(clock_state_staticnumbers);
@@ -150,7 +156,9 @@ static void prvHandleButtonPress(enum button_num button) {
     case button_num_undo:
         if (state.turn == game_turn_white) {
             // If we just finished a calibration stage, send it to the UART.
+#if ACTUALLY_USE_UART
             xUART_SendCalibration(min, max, row, col, selected_piece);
+#endif
             // reset min and max.
             min = 65535;
             max = 0;
@@ -162,6 +170,7 @@ static void prvHandleButtonPress(enum button_num button) {
         break;
     }
     prvRenderState();
+    xClock_set_state(clock_state_off);
 }
 
 
@@ -188,7 +197,6 @@ static void prvProcessMessage(MainThread_Message *message) {
     switch (message->type) {
     case main_sensor_update:
         if (state.turn == game_turn_black) {
-            xClock_set_state(clock_state_off);
             break;
         }
         value = message->state.rows[row].columns[col];

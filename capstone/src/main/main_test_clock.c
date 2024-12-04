@@ -2,6 +2,9 @@
 #include <task.h>
 
 #include "clock.h"
+#include "main.h"
+
+uint16_t numbers[2] = {0};
 
 void mainThread(void *arg0) {
     TaskHandle_t thread_clock;
@@ -17,6 +20,23 @@ void mainThread(void *arg0) {
     // Loop and get stuck here if we fail.
     while (xReturned != pdPASS) {}
 
+    for (uint8_t i = 0; i < 3; i++) {
+        switch (i) {
+            case 1:
+            numbers[0] = 65535;
+            numbers[1] = 65535;
+            break;
+            case 2:
+            numbers[0] = 1200;
+            numbers[1] = 42;
+            break;
+            default:
+            break;
+        }
+        xClock_set_numbers(numbers);
+        xClock_set_state(clock_state_staticnumbers);
+        vTaskDelay(1000);
+    }
     xReturned = xClock_run_test(1);
     while (xReturned != pdPASS) {}
     vTaskDelete(NULL);
