@@ -42,7 +42,7 @@ if __name__ == '__main__':
     next_result = sf.play(board, sf_limit)
     best_move = next_result.move
 
-    current_timestamp = datetime.now()
+    current_timestamp = datetime.now().isoformat()
     
     # The main loop of the program, which will never exit except in unusual 
     # circumstances.
@@ -67,7 +67,7 @@ if __name__ == '__main__':
                         print(uci(game_move), file=game_data)
 
                 board.reset()
-                current_timestamp = datetime.now()
+                current_timestamp = datetime.now().isoformat()
                 continue
             case ButtonEvent.HINT:
                 uart.write(wr.encode_packet(best_move, board, True).to_bytes(4, 'little'))

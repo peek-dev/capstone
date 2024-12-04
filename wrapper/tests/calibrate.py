@@ -96,7 +96,7 @@ if __name__ == '__main__':
         next_packet = int((uart.read(4))[-1::-1].hex(), 16)
 
         with open(outpath, 'a') as out:
-            print(f"{datetime.now()},{parse_square(next_packet)},{parse_color(next_packet)},{parse_type(next_packet)},{parse_value(next_packet)},{parse_max(next_packet)},{parse_min(next_packet)}", file=out)
+            print(f"{datetime.now().isoformat()},{parse_square(next_packet)},{parse_color(next_packet)},{parse_type(next_packet)},{parse_value(next_packet)},{parse_max(next_packet)},{parse_min(next_packet)}", file=out)
 
         # read first packet
         # decode first packet
