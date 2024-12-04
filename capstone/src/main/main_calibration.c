@@ -94,6 +94,8 @@ void mainThread(void *arg0) {
 }
 
 BaseType_t xMain_Init(void) {
+    max = 0;
+    min = 65535;
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
     state.turn = game_turn_black;
     if (mainQueue == NULL) {
@@ -167,7 +169,6 @@ static void prvHandleButtonPress(enum button_num button) {
     default:
         break;
     }
-    prvRenderState();
     xClock_set_state(clock_state_off);
 }
 
@@ -193,6 +194,7 @@ static void prvProcessMessage(MainThread_Message *message) {
     uint16_t value;
     switch (message->type) {
     case main_sensor_update:
+        prvRenderState();
         if (state.turn == game_turn_black) {
             break;
         }
