@@ -64,7 +64,7 @@ if __name__ == '__main__':
                 
                 with open(data_handle, 'w') as game_data:
                     for game_move in board.move_stack:
-                        print(uci(game_move), file=game_data)
+                        print(game_move.uci(), file=game_data)
 
                 board.reset()
                 current_timestamp = datetime.now().isoformat()
