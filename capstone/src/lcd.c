@@ -1,5 +1,8 @@
 #include "config.h"
 #include "game.h"
+#include "ti/driverlib/dl_timer.h"
+#include "ti/driverlib/dl_timerg.h"
+#include "ti_msp_dl_config.h"
 #include <task.h>
 #include <queue.h>
 #define DELCLARE_PRIVATE_CLOCK_C
@@ -153,6 +156,8 @@ void LCD_DELAY_LOAD_INST_IRQHandler(void) {
     switch (DL_TimerG_getPendingInterrupt(LCD_DELAY_LOAD_INST)) {
     case DL_TIMER_IIDX_ZERO:
         vTaskNotifyGiveFromISR(xClockTaskId, &xHigherPriorityTaskWoken);
+        DL_TimerG_clearInterruptStatus(LCD_DELAY_LOAD_INST,
+                                       DL_TIMERG_INTERRUPT_ZERO_EVENT);
         break;
     default:
         break;

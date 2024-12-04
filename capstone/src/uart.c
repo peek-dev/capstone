@@ -3,6 +3,7 @@
 #include "game.h"
 #include "projdefs.h"
 #include "portmacro.h"
+#include "ti/driverlib/dl_uart.h"
 #include "ti_msp_dl_config.h"
 #include <queue.h>
 #include "main.h"
@@ -165,15 +166,18 @@ void RPI_UART_INST_IRQHandler(void) {
     case DL_UART_IIDX_RX:
         // There are at least two chunks waiting for us. This will not block.
         // If there were fewer than two chunks, the interrupt wouldn't fire.
-        packet |= ((uint32_t) DL_UART_receiveDataBlocking(RPI_UART_INST)) << shift;
+        packet |= ((uint32_t)DL_UART_receiveDataBlocking(RPI_UART_INST))
+                  << shift;
         shift += 8;
-        packet |= ((uint32_t) DL_UART_receiveDataBlocking(RPI_UART_INST)) << shift;
+        packet |= ((uint32_t)DL_UART_receiveDataBlocking(RPI_UART_INST))
+                  << shift;
         shift += 8;
         if (shift == 32) {
             shift = 0;
             xMain_uart_message_FromISR(packet, &xHigherPriorityTaskWoken);
             packet = 0;
         }
+        DL_UART_clearInterruptStatus(RPI_UART_INST, DL_UART_INTERRUPT_RX);
         break;
     case DL_UART_IIDX_TX:
         // Only actually do this if the thread exists...
@@ -181,6 +185,7 @@ void RPI_UART_INST_IRQHandler(void) {
             // The TX hardware fifo is empty. Wake up the task if it's blocked.
             vTaskNotifyGiveFromISR(xUARTTaskId, &xHigherPriorityTaskWoken);
         }
+        DL_UART_clearInterruptStatus(RPI_UART_INST, DL_UART_INTERRUPT_TX);
         break;
     default:
         break;

@@ -97,6 +97,8 @@ void ADC_0_INST_IRQHandler(void) {
     switch (DL_ADC12_getPendingInterrupt(ADC_0_INST)) {
     case DL_ADC12_IIDX_MEM0_RESULT_LOADED:
         vTaskNotifyGiveFromISR(xSensorTaskId, &xHigherPriorityTaskWoken);
+        DL_ADC12_clearInterruptStatus(ADC_0_INST,
+                                      DL_ADC12_INTERRUPT_MEM0_RESULT_LOADED);
         break;
     default:
         break;
@@ -113,6 +115,8 @@ void SENSOR_DELAY_TIMER_INST_IRQHandler(void) {
     switch (DL_TimerG_getPendingInterrupt(SENSOR_DELAY_TIMER_INST)) {
     case DL_TIMER_IIDX_ZERO:
         vTaskNotifyGiveFromISR(xSensorTaskId, &xHigherPriorityTaskWoken);
+        DL_TimerG_clearInterruptStatus(SENSOR_DELAY_TIMER_INST,
+                                       DL_TIMERG_INTERRUPT_ZERO_EVENT);
         break;
     default:
         break;
