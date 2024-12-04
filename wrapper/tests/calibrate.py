@@ -82,6 +82,15 @@ if __name__ == '__main__':
 
     uart = serial.Serial('/dev/serial0', baudrate=115200)
 
+    # "Heartbeat code" to establish connection with MSP
+    heartbeat = int((uart.read(4))[-1::-1].hex(), 16)
+
+    if (heartbeat == wr.MSP_SYN):
+        uart.write(wr.SYNACK.to_bytes(4, 'little'))
+
+    # "Flush out" Pi UART RX buffer until MSP's ACK is found
+    sequence = uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
+
     while True:
         next_packet = int((uart.read(4))[-1::-1].hex(), 16)
         
