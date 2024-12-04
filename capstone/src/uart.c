@@ -15,6 +15,10 @@
 // The "private" queue handle for data to be placed on UART TX.
 static QueueHandle_t queue_to_wire; 
 
+static void prvUART_UnpackAndSend(UART_Regs* uart, uint32_t packet);
+static uint32_t prvUART_PackAndReceive(UART_Regs* uart);
+static void prvUART_EstablishHeartbeat(void);
+
 /**
  * Initialize UART thread state, including queue handle for data to be put on 
  * the wire.
@@ -101,6 +105,18 @@ static uint32_t prvUART_PackAndReceive(UART_Regs* uart) {
     }
 
     return retrieved_word;
+}
+
+static void prvUART_EstablishHeartbeat(void) {
+    uint32_t heartbeat_response = 0x00000000;
+
+    do {
+        prvUART_UnpackAndSend(RPI_UART_INST, MSP_SYN);
+        vTaskDelay(UART_HEARTBEAT_MS / portTICK_PERIOD_MS); // Approximate (low-resolution) 100ms delay 
+        // TODO: Check if any messages received. If not, continue to next loop iteration.
+    } while (heartbeat_response != RPI_SYNACK);
+
+    prvUART_UnpackAndSend(RPI_UART_INST, MSP_ACK); // Complete the "three-way handshake" and signal to RPi that comms are live
 }
 
 /**
