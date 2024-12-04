@@ -60,7 +60,7 @@ if __name__ == '__main__':
         # - UNDO: rewind game state one move at a time
         match (wr.parse_button_event(next_packet)):
             case ButtonEvent.RESTART:
-                data_handle = f"{current_timestamp}-game.txt"
+                data_handle = f"/opt/chessboard/{current_timestamp}-game.txt"
                 
                 with open(data_handle, 'w') as game_data:
                     for game_move in board.move_stack:
