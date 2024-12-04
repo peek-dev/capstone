@@ -22,15 +22,15 @@ void mainThread(void *arg0) {
 
     for (uint8_t i = 0; i < 3; i++) {
         switch (i) {
-            case 1:
+        case 1:
             numbers[0] = 65535;
             numbers[1] = 65535;
             break;
-            case 2:
+        case 2:
             numbers[0] = 1200;
             numbers[1] = 42;
             break;
-            default:
+        default:
             break;
         }
         xClock_set_numbers(numbers);
@@ -48,4 +48,6 @@ BaseType_t xMain_button_press(enum button_num button) { return pdTRUE; }
 
 BaseType_t xMain_uart_message(uint32_t move) { return pdTRUE; }
 
-BaseType_t xMain_sensor_calibration_update(BoardState_Calibration *state) { return pdTRUE; }
+BaseType_t xMain_sensor_calibration_update(BoardState_Calibration *state) {
+    return pdTRUE;
+}

@@ -77,7 +77,8 @@ static void prvSingleADC(BoardState *board, uint8_t row, uint8_t column) {
     vSetSquare(board, row, column, prvValueToPiece(sample));
     DL_ADC12_enableConversions(ADC_0_INST);
 }
-static void prvSingleADC_Calibration(BoardState_Calibration *board, uint8_t row, uint8_t column) {
+static void prvSingleADC_Calibration(BoardState_Calibration *board, uint8_t row,
+                                     uint8_t column) {
     DL_ADC12_startConversion(ADC_0_INST);
     // Block the thread until ADC sampling is complete.
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);

@@ -43,4 +43,6 @@ BaseType_t xMain_button_press(enum button_num button) { return pdTRUE; }
 
 BaseType_t xMain_uart_message(uint32_t move) { return pdTRUE; }
 
-BaseType_t xMain_sensor_calibration_update(BoardState_Calibration *state) { return pdTRUE; }
+BaseType_t xMain_sensor_calibration_update(BoardState_Calibration *state) {
+    return pdTRUE;
+}

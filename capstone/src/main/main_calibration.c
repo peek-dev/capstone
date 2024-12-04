@@ -29,10 +29,11 @@ There are four pieces of state we care about:
  - selected ptype
  - sampling state (running or paused)
  - measured value limits (min, max)
-Because we need raw ADC values, we will use a 
+Because we need raw ADC values, we will use a
 modified version of the sensor thread.
 
-We will use the turn to encode the sampling state. white is running, black is paused.
+We will use the turn to encode the sampling state. white is running, black is
+paused.
 */
 uint16_t numbers[2] = {0};
 
@@ -69,8 +70,8 @@ void mainThread(void *arg0) {
     xReturned = xTaskCreate(vLED_Thread, "LED", configMINIMAL_STACK_SIZE, NULL,
                             2, &thread_led);
     while (xReturned != pdPASS) {}
-    xReturned = xTaskCreate(vSensor_Thread_Calibration, "Sensor", configMINIMAL_STACK_SIZE,
-                            NULL, 2, &thread_sensor);
+    xReturned = xTaskCreate(vSensor_Thread_Calibration, "Sensor",
+                            configMINIMAL_STACK_SIZE, NULL, 2, &thread_sensor);
     while (xReturned != pdPASS) {}
 #if ACTUALLY_USE_UART
     xReturned = xTaskCreate(vUART_Task, "UART", configMINIMAL_STACK_SIZE, NULL,
@@ -173,7 +174,6 @@ static void prvHandleButtonPress(enum button_num button) {
     xClock_set_state(clock_state_off);
 }
 
-
 static void prvRenderState(void) {
     uint8_t row = prvMovesLen / 8;
     uint8_t col = prvMovesLen % 8;
@@ -202,7 +202,7 @@ static void prvProcessMessage(MainThread_Message *message) {
         value = message->state.rows[row].columns[col];
         oldmax = max;
         oldmin = min;
-        if (value > max) { 
+        if (value > max) {
             max = value;
         }
         if (value < min) {

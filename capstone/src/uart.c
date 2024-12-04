@@ -47,14 +47,15 @@ BaseType_t xUART_EncodeEvent(BUTTON_EVENT button, NormalMove move) {
     return xUART_to_wire(request);
 }
 
-BaseType_t xUART_SendCalibration(uint16_t min, uint16_t max, uint8_t row, uint8_t col, PieceType type) {
+BaseType_t xUART_SendCalibration(uint16_t min, uint16_t max, uint8_t row,
+                                 uint8_t col, PieceType type) {
     BaseType_t xReturned;
     uint32_t word = (max << 4) | M2_MASK;
     word |= xPtypeToWire(type) << 0;
     word |= (type >= BlackKing) << 3;
     word |= row << SRC_RANK_SHIFT;
     word |= col << SRC_FILE_SHIFT;
-    
+
     xReturned = xUART_to_wire(word);
     while (xReturned != pdPASS);
 
@@ -69,26 +70,26 @@ BaseType_t xUART_SendCalibration(uint16_t min, uint16_t max, uint8_t row, uint8_
 
 PTYPE xPtypeToWire(PieceType in) {
     switch (in) {
-        case BlackPawn:
-        case WhitePawn:
-            return PTYPE_PAWN;
-        case BlackBishop:
-        case WhiteBishop:
-            return PTYPE_BISHOP;
-        case BlackRook:
-        case WhiteRook:
-            return PTYPE_ROOK;
-        case BlackKnight:
-        case WhiteKnight:
-            return PTYPE_KNIGHT;
-        case BlackKing:
-        case WhiteKing:
-            return PTYPE_KING;
-        case BlackQueen:
-        case WhiteQueen:
-            return PTYPE_QUEEN;
-        case EmptySquare:
-            return PTYPE_NULL;
+    case BlackPawn:
+    case WhitePawn:
+        return PTYPE_PAWN;
+    case BlackBishop:
+    case WhiteBishop:
+        return PTYPE_BISHOP;
+    case BlackRook:
+    case WhiteRook:
+        return PTYPE_ROOK;
+    case BlackKnight:
+    case WhiteKnight:
+        return PTYPE_KNIGHT;
+    case BlackKing:
+    case WhiteKing:
+        return PTYPE_KING;
+    case BlackQueen:
+    case WhiteQueen:
+        return PTYPE_QUEEN;
+    case EmptySquare:
+        return PTYPE_NULL;
     }
 }
 PieceType xPtypeFromWire(PTYPE in, BaseType_t white) {
