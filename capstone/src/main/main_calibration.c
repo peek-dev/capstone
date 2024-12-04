@@ -46,7 +46,7 @@ void mainThread(void *arg0) {
 
     // Heartbeat startup wait occurs here?
 #if ACTUALLY_USE_UART
-    xReturned = xUART_init();
+    xReturned = xUART_Init();
     while (xReturned != pdPASS) {}
 #endif
 

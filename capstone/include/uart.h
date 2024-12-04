@@ -5,18 +5,23 @@
 #include "game.h"
 #include "uart_bidir_protocol.h"
 
+#define HEARTBEAT_TIME_MS (100)
+#define MSP_SYN (0x00000000ul)
+#define SYNACK  (0x0000FFFFul)
+#define MSP_ACK (0xFFFFFFFFul)
+
 /**
  * Initialize UART thread state, including queue handle for data to be put on 
  * the wire.
  */
-BaseType_t xUART_init(void);
+BaseType_t xUART_Init(void);
 
 /**
  * Enqueue data to be transmitted over the MSP UART TX to the Raspberry Pi.
  */
 BaseType_t xUART_to_wire(uint32_t move);
 BaseType_t xUART_EncodeEvent(BUTTON_EVENT button, NormalMove move);
-BaseType_t xUART_SendCalibration(uint16_t min, uint16_t max, uint8_t row, uint8_t col, PieceType type);
+void vUART_SendCalibration(uint16_t min, uint16_t max, uint8_t row, uint8_t col, PieceType type);
 
 PieceType xPtypeFromWire(PTYPE in, BaseType_t whiteToMove);
 PTYPE xPtypeToWire(PieceType in);

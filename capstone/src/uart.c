@@ -7,6 +7,8 @@
 #include <queue.h>
 #include "main.h"
 #include "uart_bidir_protocol.h"
+#include "assert.h"
+
 #define UART_QUEUE_SIZE 12
 
 // RPI_UART_INST
@@ -14,20 +16,24 @@
 // The "private" queue handle for data to be placed on UART TX.
 static QueueHandle_t queue_to_wire;
 
-static void prvUART_UnpackAndSend(UART_Regs* uart, uint32_t packet);
-static uint32_t prvUART_PackAndReceive(UART_Regs* uart);
-static void prvUART_EstablishHeartbeat(void);
+// For blocking/unblocking from interrupts.
+static TaskHandle_t xUARTTaskId = NULL;
+
+static void prvUART_UnpackAndSend(uint32_t packet);
 
 /**
  * Initialize UART thread state, including queue handle for data to be put on
  * the wire.
  */
-BaseType_t xUART_init(void) {
+BaseType_t xUART_Init(void) {
     queue_to_wire = xQueueCreate(UART_QUEUE_SIZE, sizeof(uint32_t));
 
     if (queue_to_wire == NULL) {
         return pdFALSE;
     }
+
+    NVIC_ClearPendingIRQ(RPI_UART_INST_INT_IRQN);
+    NVIC_EnableIRQ(RPI_UART_INST_INT_IRQN);
 
     return pdTRUE;
 }
@@ -51,8 +57,8 @@ BaseType_t xUART_EncodeEvent(BUTTON_EVENT button, NormalMove move) {
     return xUART_to_wire(request);
 }
 
-BaseType_t xUART_SendCalibration(uint16_t min, uint16_t max, uint8_t row,
-                                 uint8_t col, PieceType type) {
+void vUART_SendCalibration(uint16_t min, uint16_t max, uint8_t row, uint8_t col,
+                           PieceType type) {
     BaseType_t xReturned;
     uint32_t word = (max << 4) | M2_MASK;
     word |= xPtypeToWire(type) << 0;
@@ -136,73 +142,68 @@ PieceType xPtypeFromWire(PTYPE in, BaseType_t white) {
  * "Break up" the 32-bit word into 8-bit packets to send (UART capacity is
  * 8 data bits)
  */
-static void prvUART_UnpackAndSend(UART_Regs *uart, uint32_t packet) {
+static void prvUART_UnpackAndSend(uint32_t packet) {
     uint8_t next_byte;
 
     for (int i = 0; i < 4; i += 1) {
         next_byte = (uint8_t)(packet & 0xFF);
-        DL_UART_transmitDataBlocking(uart, next_byte);
+        // Try to transmit.
+        while (!DL_UART_transmitDataCheck(RPI_UART_INST, next_byte)) {
+            // If the fifo is full, wait for up to 3ms for the fifo to clear
+            // out. An interrupt will wake us up when it's empty.
+            ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(3));
+        }
         packet >>= 8;
     }
 }
 
-/**
- * Do the reverse of sending: collect 4 bytes at a time into a single protocol
- * word.
- */
-static uint32_t prvUART_PackAndReceive(UART_Regs *uart) {
-    uint32_t retrieved_word = 0;
-    uint8_t next_byte;
-
-    for (int i = 0; i < 4; i += 1) {
-        retrieved_word <<= 8;
-        next_byte = DL_UART_receiveDataBlocking(uart);
-        retrieved_word |= (((uint32_t)next_byte) & 0xFF);
+void RPI_UART_INST_IRQHandler(void) {
+    static uint8_t shift = 0;
+    static uint32_t packet = 0;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    switch (DL_UART_getPendingInterrupt(RPI_UART_INST)) {
+    case DL_UART_IIDX_RX:
+        // There are at least two chunks waiting for us. This will not block.
+        // If there were fewer than two chunks, the interrupt wouldn't fire.
+        packet |= DL_UART_receiveDataBlocking(RPI_UART_INST) << shift;
+        shift += 8;
+        packet |= DL_UART_receiveDataBlocking(RPI_UART_INST) << shift;
+        shift += 8;
+        if (shift == 32) {
+            shift = 0;
+            xMain_uart_message_FromISR(packet, &xHigherPriorityTaskWoken);
+            packet = 0;
+        }
+        break;
+    case DL_UART_IIDX_TX:
+        // Only actually do this if the thread exists...
+        if (xUARTTaskId != NULL) {
+            // The TX hardware fifo is empty. Wake up the task if it's blocked.
+            vTaskNotifyGiveFromISR(xUARTTaskId, &xHigherPriorityTaskWoken);
+        }
+        break;
+    default:
+        break;
     }
 
-    return retrieved_word;
-}
-
-static void prvUART_EstablishHeartbeat(void) {
-    uint32_t heartbeat_response = 0x00000000;
-
-    do {
-        prvUART_UnpackAndSend(RPI_UART_INST, MSP_SYN);
-        vTaskDelay(UART_HEARTBEAT_MS / portTICK_PERIOD_MS); // Approximate (low-resolution) 100ms delay 
-        // TODO: Check if any messages received. If not, continue to next loop iteration.
-    } while (heartbeat_response != RPI_SYNACK);
-
-    prvUART_UnpackAndSend(RPI_UART_INST, MSP_ACK); // Complete the "three-way handshake" and signal to RPi that comms are live
+    // If we woke up a higher-priority task than the one currently running,
+    // we should let the scheduler know so that it can switch.
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 /**
  * The main loop for the UART task.
  */
 void vUART_Task(void *arg0) {
+    assert(xUARTTaskId == NULL);
+    xUARTTaskId = xTaskGetCurrentTaskHandle();
 
-    /* Thread-local variables for sending and receiving words */
+    /* Thread-local variable for sending words */
     uint32_t next_sent;
-    uint32_t next_packet;
 
     while (1) {
-        BaseType_t available_from_main = uxQueueMessagesWaiting(queue_to_wire);
-
-        if (available_from_main > 0) {
-            // Send all ready data from main to the Raspberry Pi
-            for (BaseType_t i = 0; i < available_from_main; i += 1) {
-                next_sent =
-                    xQueueReceive(queue_to_wire, &next_sent, portMAX_DELAY);
-                prvUART_UnpackAndSend(RPI_UART_INST, next_sent);
-            }
+        if (xQueueReceive(queue_to_wire, &next_sent, portMAX_DELAY) == pdPASS) {
+            prvUART_UnpackAndSend(next_sent);
         }
-
-        do {
-            next_packet = prvUART_PackAndReceive(RPI_UART_INST);
-            xMain_uart_message(next_packet);
-        } while (!IS_LAST_MOVE(
-            next_packet)); // While the last packet received is **not** the last
-                           // packet in this series
-
-        taskYIELD(); // Rather than busy wait on FIFOs, yield to other tasks
     }
 }

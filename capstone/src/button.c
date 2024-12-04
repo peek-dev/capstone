@@ -1,5 +1,7 @@
 #include "button.h"
 #include "config.h"
+#include "portmacro.h"
+#include "projdefs.h"
 #include "ti/driverlib/dl_gpio.h"
 #include "ti_msp_dl_config.h"
 #include "main.h"
@@ -18,6 +20,7 @@ static const uint32_t PinsB[] = {BUTTON_GPIO_PIN_UNDO_PIN,
 static const enum button_num ButtonsB[] = {button_num_undo, button_num_pause};
 
 void GROUP1_IRQHandler(void) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     uint32_t allPinsA = 0, allPinsB = 0;
     // TODO ensure optimizer precomputes this
     for (uint8_t i = 0; i < LenA; i++) {
@@ -32,17 +35,18 @@ void GROUP1_IRQHandler(void) {
 #pragma clang loop unroll(enable)
     for (uint8_t i = 0; i < LenA; i++) {
         if ((gpioA & PinsA[i]) == PinsA[i]) {
-            xMain_button_press(ButtonsA[i]);
+            xMain_button_press_FromISR(ButtonsA[i], &xHigherPriorityTaskWoken);
             DL_GPIO_clearInterruptStatus(GPIOA, PinsA[i]);
         }
     }
 #pragma clang loop unroll(enable)
     for (uint8_t i = 0; i < LenB; i++) {
         if ((gpioB & PinsB[i]) == PinsB[i]) {
-            xMain_button_press(ButtonsB[i]);
+            xMain_button_press_FromISR(ButtonsB[i], &xHigherPriorityTaskWoken);
             DL_GPIO_clearInterruptStatus(GPIOB, PinsB[i]);
         }
     }
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 void vButton_Init(void) {

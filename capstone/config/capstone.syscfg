@@ -186,10 +186,12 @@ TIMER2.overrideRetention  = true;
 TIMER2.peripheral.$assign = "TIMG6";
 
 UART1.$name                            = "RPI_UART";
-UART1.targetBaudRate                   = 115200;
 UART1.enableFIFO                       = true;
 UART1.overrideRetention                = true;
 UART1.analogGlitchFilter               = "DL_UART_PULSE_WIDTH_25_NS";
+UART1.targetBaudRate                   = 115200;
+UART1.enabledInterrupts                = ["RX","TX"];
+UART1.txFifoThreshold                  = "DL_UART_TX_FIFO_LEVEL_EMPTY";
 UART1.peripheral.rxPin.$assign         = "boosterpack.14";
 UART1.peripheral.txPin.$assign         = "boosterpack.13";
 UART1.txPinConfig.direction            = scripting.forceWrite("OUTPUT");

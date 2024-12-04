@@ -305,10 +305,15 @@ SYSCONFIG_WEAK void SYSCFG_DL_RPI_UART_init(void)
     DL_UART_Main_setBaudRateDivisor(RPI_UART_INST, RPI_UART_IBRD_32_MHZ_115200_BAUD, RPI_UART_FBRD_32_MHZ_115200_BAUD);
 
 
+    /* Configure Interrupts */
+    DL_UART_Main_enableInterrupt(RPI_UART_INST,
+                                 DL_UART_MAIN_INTERRUPT_RX |
+                                 DL_UART_MAIN_INTERRUPT_TX);
+
     /* Configure FIFOs */
     DL_UART_Main_enableFIFOs(RPI_UART_INST);
     DL_UART_Main_setRXFIFOThreshold(RPI_UART_INST, DL_UART_RX_FIFO_LEVEL_1_2_FULL);
-    DL_UART_Main_setTXFIFOThreshold(RPI_UART_INST, DL_UART_TX_FIFO_LEVEL_1_2_EMPTY);
+    DL_UART_Main_setTXFIFOThreshold(RPI_UART_INST, DL_UART_TX_FIFO_LEVEL_EMPTY);
 
     /* Configure analog glitch filter */
     DL_UART_Main_enableAnalogGlitchFilter(RPI_UART_INST);

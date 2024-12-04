@@ -18,15 +18,29 @@
 #include "main.h"
 
 void mainThread(void *arg0) {
-    /* FIXME: declare task handle for UART task */
+    MainThread_Message message;
     BaseType_t xReturned;
 
     xReturned = xMain_Init();
     while (xReturned != pdPASS) {}
 
-    // Heartbeat startup wait occurs here?
-    xReturned = xUART_init();
+    xReturned = xUART_Init();
     while (xReturned != pdPASS) {}
+    xReturned = xTaskCreate(vUART_Task, "UART", configMINIMAL_STACK_SIZE, NULL,
+                            3, &thread_uart);
+    while (xReturned != pdPASS) {}
+
+    // Wait until we get the proper synack packet from the RPi.
+    // If we've waited more than HEARTBEAT_TIME_MS, try again.
+    while (xQueueReceive(mainQueue, &message,
+                         HEARTBEAT_TIME_MS / portTICK_PERIOD_MS) == pdFAIL ||
+           message.move != SYNACK) {
+        // Send our syn packet.
+        xReturned = xUART_to_wire(MSP_SYN);
+        while (xReturned != pdPASS);
+    }
+    // Okay, we've gotten the right synack packet. Cool.
+    // Send the ack after we've initialized all our hardware and threads.
 
     xReturned = xPortGetFreeHeapSize();
 
@@ -51,11 +65,10 @@ void mainThread(void *arg0) {
     xReturned = xTaskCreate(vSensor_Thread, "Sensor", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_sensor);
     while (xReturned != pdPASS) {}
-    xReturned = xTaskCreate(vUART_Task, "UART", configMINIMAL_STACK_SIZE, NULL,
-                            2, &thread_uart);
-    while (xReturned != pdPASS) {}
 
-    MainThread_Message message;
+    xReturned = xUART_to_wire(MSP_ACK);
+    while (xReturned != pdPASS);
+
     volatile BaseType_t mem = xPortGetFreeHeapSize();
     while (1) {
         if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {
@@ -82,15 +95,12 @@ BaseType_t xMain_sensor_update(BoardState *state) {
     return xQueueSend(mainQueue, &m, portMAX_DELAY);
 }
 
-BaseType_t xMain_button_press(enum button_num button) {
+BaseType_t xMain_button_press_FromISR(enum button_num button,
+                                      BaseType_t *pxHigherPriorityTaskWoken) {
     MainThread_Message m;
     m.type = main_button_press;
     m.button = button;
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    BaseType_t retval =
-        xQueueSendFromISR(mainQueue, &m, &xHigherPriorityTaskWoken);
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-    return retval;
+    return xQueueSendFromISR(mainQueue, &m, pxHigherPriorityTaskWoken);
 }
 
 BaseType_t xMain_uart_message(uint32_t move) {
@@ -98,6 +108,14 @@ BaseType_t xMain_uart_message(uint32_t move) {
     m.type = main_uart_message;
     m.move = move;
     return xQueueSend(mainQueue, &m, portMAX_DELAY);
+}
+
+BaseType_t xMain_uart_message_FromISR(uint32_t move,
+                                      BaseType_t *pxHigherPriorityTaskWoken) {
+    MainThread_Message m;
+    m.type = main_uart_message;
+    m.move = move;
+    return xQueueSendFromISR(mainQueue, &m, pxHigherPriorityTaskWoken);
 }
 
 static void prvSwitchStateTurn(GameState *statevar) {
