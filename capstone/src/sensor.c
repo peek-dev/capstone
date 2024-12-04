@@ -134,7 +134,6 @@ BaseType_t xSensor_Init(void) {
 void vSensor_Thread(void *arg0) {
     assert(xSensorTaskId == NULL);
     xSensorTaskId = xTaskGetCurrentTaskHandle();
-    // TODO: maybe wait to be prompted by a fifo? Maybe have a timer do that?
     // TODO: noise: don't read while LEDs are going?
     while (true) {
         // This is uninitialized, but that doesn't matter. Each element will be
@@ -166,8 +165,6 @@ void vSensor_Thread(void *arg0) {
 void vSensor_Thread_Calibration(void *arg0) {
     assert(xSensorTaskId == NULL);
     xSensorTaskId = xTaskGetCurrentTaskHandle();
-    // TODO: maybe wait to be prompted by a fifo? Maybe have a timer do that?
-    // TODO: noise: don't read while LEDs are going?
     while (true) {
         // This is uninitialized, but that doesn't matter. Each element will be
         // initialized.
