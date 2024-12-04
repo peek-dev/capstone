@@ -1,6 +1,7 @@
 #include "config.h"
 #include <string.h>
 #include <queue.h>
+#include "assert.h"
 
 #include "projdefs.h"
 #include "ti/driverlib/dl_spi.h"
@@ -17,6 +18,7 @@
 static QueueHandle_t ledQueue;
 static Color state[NUM_LEDS];
 static Color saved_state[NUM_LEDS];
+static TaskHandle_t xLEDTaskId = NULL;
 
 enum LED_MsgType {
     led_clear_board,
@@ -89,11 +91,26 @@ BaseType_t xLED_restore() {
     return xQueueSend(ledQueue, &m, portMAX_DELAY);
 }
 
+void LED_SPI_INST_IRQHandler(void) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    switch (DL_SPI_getPendingInterrupt(LED_SPI_INST)) {
+    case DL_SPI_IIDX_TX:
+        if (xLEDTaskId != NULL) {
+            // The TX hardware fifo is empty. Wake up the task if it's blocked.
+            vTaskNotifyGiveFromISR(xLEDTaskId, &xHigherPriorityTaskWoken);
+        }
+        break;
+    default:
+        break;
+    }
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
 static void prvTransmitHalfFrame(uint16_t halfframe) {
     // My own reimplementation of DL_SPI_transmitDataBlocking32,
-    // but using yield instead of busy-wait.
+    // but using efficient task notifications instead of busy-wait.
     while (DL_SPI_isTXFIFOFull(LED_SPI_INST)) {
-        taskYIELD();
+        ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
     }
     DL_SPI_transmitData16(LED_SPI_INST, halfframe);
 }
@@ -107,7 +124,6 @@ static void prvLED_commit() {
     // https://cpldcpu.wordpress.com/2016/12/13/sk9822-a-clone-of-the-apa102/
     // First, send a zero frame.
     prvTransmitFrame(0);
-    uint32_t temp;
     // Then, send a frame for every LED.
     for (uint8_t i = 0; i < NUM_LEDS; i++) {
         prvTransmitFrame(prvPackFrame(&state[i]));
@@ -130,10 +146,14 @@ BaseType_t xLED_Init(void) {
     if (ledQueue == NULL) {
         return pdFALSE;
     }
+    NVIC_ClearPendingIRQ(LED_SPI_INST_INT_IRQN);
+    NVIC_EnableIRQ(LED_SPI_INST_INT_IRQN);
     return pdTRUE;
 }
 
 void vLED_Thread(void *arg0) {
+    assert(xLEDTaskId == NULL);
+    xLEDTaskId = xTaskGetCurrentTaskHandle();
     LED_Message message;
     while (1) {
         if (xQueueReceive(ledQueue, &message, portMAX_DELAY) == pdTRUE) {

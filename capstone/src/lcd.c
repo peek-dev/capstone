@@ -1,5 +1,7 @@
 #include "config.h"
 #include "game.h"
+#include "ti/driverlib/dl_spi.h"
+#include "ti_msp_dl_config.h"
 #include <task.h>
 #include <queue.h>
 #define DELCLARE_PRIVATE_CLOCK_C
@@ -8,6 +10,16 @@
 
 extern TaskHandle_t xClockTaskId;
 extern QueueHandle_t clockQueue;
+
+// The task notification indicies for various interrupts
+// to wake up the task with.
+// The write process can be divided into three stages:
+//  1. Write data to hardware over SPI
+#define CLOCK_NOTIFYIDX_TXFIFOSPACE (0)
+//  2. Wait until all data is written successfully
+#define CLOCK_NOTIFYIDX_TXDONE (1)
+//  3. Pulse the load pin high for 1us.
+#define CLOCK_NOTIFYIDX_LOADTIMER (2)
 
 // [left, right], each element [ones, tens]
 static const uint8_t DIGITS[6][2] = {
@@ -121,9 +133,31 @@ void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn,
     }
 }
 
+void CLOCK_SPI_INST_IRQHandler(void) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    if (xClockTaskId != NULL) {
+        switch (DL_SPI_getPendingInterrupt(CLOCK_SPI_INST)) {
+        case DL_SPI_IIDX_TX:
+            // The TX hardware fifo is empty. Wake up the task if it's blocked.
+            vTaskNotifyGiveIndexedFromISR(xClockTaskId,
+                                          CLOCK_NOTIFYIDX_TXFIFOSPACE,
+                                          &xHigherPriorityTaskWoken);
+            break;
+        case DL_SPI_IIDX_IDLE:
+            vTaskNotifyGiveIndexedFromISR(xClockTaskId, CLOCK_NOTIFYIDX_TXDONE,
+                                          &xHigherPriorityTaskWoken);
+            break;
+        default:
+            break;
+        }
+    }
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
 static void prvTransmitHalfFrame(uint16_t half) {
     while (DL_SPI_isTXFIFOFull(CLOCK_SPI_INST)) {
-        taskYIELD();
+        ulTaskNotifyTakeIndexed(CLOCK_NOTIFYIDX_TXFIFOSPACE, pdTRUE,
+                                pdMS_TO_TICKS(1));
     }
     DL_SPI_transmitData16(CLOCK_SPI_INST, half);
 }
@@ -139,23 +173,30 @@ void vLCD_WriteHardware(uint32_t *data) {
         prvTransmitFrame(data[2 - i]);
     }
     while (DL_SPI_isBusy(CLOCK_SPI_INST)) {
-        taskYIELD();
+        ulTaskNotifyTakeIndexed(CLOCK_NOTIFYIDX_TXDONE, pdTRUE,
+                                pdMS_TO_TICKS(1));
     }
     DL_GPIO_setPins(MISC_GPIO_PORT, MISC_GPIO_CLOCK_LOAD_PIN);
     DL_TimerG_startCounter(LCD_DELAY_LOAD_INST);
-    ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
+    ulTaskNotifyTakeIndexed(CLOCK_NOTIFYIDX_LOADTIMER, pdTRUE,
+                            pdMS_TO_TICKS(1));
     DL_GPIO_clearPins(MISC_GPIO_PORT, MISC_GPIO_CLOCK_LOAD_PIN);
 }
 
 void LCD_DELAY_LOAD_INST_IRQHandler(void) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
-    switch (DL_TimerG_getPendingInterrupt(LCD_DELAY_LOAD_INST)) {
-    case DL_TIMER_IIDX_ZERO:
-        vTaskNotifyGiveFromISR(xClockTaskId, &xHigherPriorityTaskWoken);
-        break;
-    default:
-        break;
+    if (xClockTaskId != NULL) {
+        switch (DL_TimerG_getPendingInterrupt(LCD_DELAY_LOAD_INST)) {
+        case DL_TIMER_IIDX_ZERO:
+            vTaskNotifyGiveIndexedFromISR(xClockTaskId,
+                                          CLOCK_NOTIFYIDX_LOADTIMER,
+                                          &xHigherPriorityTaskWoken);
+
+            break;
+        default:
+            break;
+        }
     }
 
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -167,6 +208,8 @@ void vLCD_Init(void) {
     prvRenderColon(data, COL_1_2_OFFSET);
     prvRenderColon(data, COL_2_1_OFFSET);
     prvRenderColon(data, COL_2_2_OFFSET);
+    NVIC_ClearPendingIRQ(CLOCK_SPI_INST_INT_IRQN);
+    NVIC_EnableIRQ(CLOCK_SPI_INST_INT_IRQN);
     vLCD_WriteHardware(data);
     NVIC_ClearPendingIRQ(LCD_DELAY_LOAD_INST_INT_IRQN);
     NVIC_EnableIRQ(LCD_DELAY_LOAD_INST_INT_IRQN);
