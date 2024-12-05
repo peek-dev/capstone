@@ -161,16 +161,28 @@ static void prvHandleButtonPress(enum button_num button) {
     // If it's the turn-switch button:
     switch (button) {
     case button_num_white_move:
-        prvMovesLen = (prvMovesLen + 63) % 64;
+        if (state.turn == game_turn_black) {
+            prvMovesLen = (prvMovesLen + 63) % 64;
+            xClock_set_state(clock_state_off);
+        }
         break;
     case button_num_black_move:
-        prvMovesLen = (prvMovesLen + 1) % 64;
+        if (state.turn == game_turn_black) {
+            prvMovesLen = (prvMovesLen + 1) % 64;
+            xClock_set_state(clock_state_off);
+        }        
         break;
     case button_num_start_restart:
-        selected_piece = (selected_piece + 1) % (BlackPawn + 1);
+        if (state.turn == game_turn_black) {
+            selected_piece = (selected_piece + 1) % (BlackPawn + 1);
+            xClock_set_state(clock_state_off);
+        }
         break;
     case button_num_clock_mode:
-        selected_piece = (selected_piece + BlackPawn) % (BlackPawn + 1);
+        if (state.turn == game_turn_black) {
+            selected_piece = (selected_piece + BlackPawn) % (BlackPawn + 1);
+            xClock_set_state(clock_state_off);
+        }
         break;
     case button_num_undo:
         if (state.turn == game_turn_white) {
@@ -186,7 +198,6 @@ static void prvHandleButtonPress(enum button_num button) {
     default:
         break;
     }
-    xClock_set_state(clock_state_off);
 }
 
 static void prvRenderState(void) {
