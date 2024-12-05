@@ -41,7 +41,7 @@ def parse_rank(packet: int) -> str:
 def parse_square(packet: int) -> str:
     return parse_file(packet) + parse_rank(packet)
 
-def parse_min(packet: int) -> str: 
+def parse_min(packet: int) -> str:
     masked_min = (packet >> 16) & 0x1
     return str(bool(masked_min == 0))
 
@@ -79,6 +79,12 @@ def parse_ptype(packet: int) -> str:
         case _:
             return 'X'
 
+def heartbeat_response(uart):
+    print("Got syn, sending synack.")
+    uart.write(wr.SYNACK.to_bytes(4, 'little'))
+    # "Flush out" Pi UART RX buffer until MSP's ACK is found
+    sequence = uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
+    print("Got msp ack, starting.")
 
 if __name__ == '__main__':
     if not outpath.exists():
@@ -91,13 +97,15 @@ if __name__ == '__main__':
     heartbeat = int((uart.read(4))[-1::-1].hex(), 16)
 
     if (heartbeat == wr.MSP_SYN):
-        uart.write(wr.SYNACK.to_bytes(4, 'little'))
-
-    # "Flush out" Pi UART RX buffer until MSP's ACK is found
-    sequence = uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
+        heartbeat_response(uart)
 
     while True:
         next_packet = int((uart.read(4))[-1::-1].hex(), 16)
+
+        # Allow MSP restarts without restarting calibration code.
+        if (next_packet == wr.MSP_SYN):
+            heartbeat_response(uart)
+            continue
 
         with open(outpath, 'a') as out:
             print(f"{datetime.now().isoformat()},{parse_square(next_packet)},{parse_color(next_packet)},{parse_ptype(next_packet)},{parse_value(next_packet)},{parse_max(next_packet)},{parse_min(next_packet)}", file=out)
