@@ -171,9 +171,11 @@ void RPI_UART_INST_IRQHandler(void) {
     case DL_UART_IIDX_RX:
         // There are at least two chunks waiting for us. This will not block.
         // If there were fewer than two chunks, the interrupt wouldn't fire.
-        packet |= ((uint32_t) DL_UART_receiveDataBlocking(RPI_UART_INST)) << shift;
+        packet |= ((uint32_t)DL_UART_receiveDataBlocking(RPI_UART_INST))
+                  << shift;
         shift += 8;
-        packet |= ((uint32_t) DL_UART_receiveDataBlocking(RPI_UART_INST)) << shift;
+        packet |= ((uint32_t)DL_UART_receiveDataBlocking(RPI_UART_INST))
+                  << shift;
         shift += 8;
         if (shift == 32) {
             shift = 0;

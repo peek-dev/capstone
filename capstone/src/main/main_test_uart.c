@@ -130,7 +130,7 @@ static void prvProcessMessage(MainThread_Message *message) {
             if (IS_LAST_MOVE(message->move)) {
                 prvMovesLen = prvCurrentMoveIndex;
                 // Movable pieces will be rendered on the next sensor input.
-                //vTaskDelay(pdMS_TO_TICKS(1000));
+                // vTaskDelay(pdMS_TO_TICKS(1000));
                 prvSwitchTurnRoutine();
             }
         }

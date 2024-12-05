@@ -24,7 +24,7 @@ void mainThread(void *arg0) {
     xReturned = xMain_Init();
     while (xReturned != pdPASS) {}
 
-    // Make the display consistent while we initialize.    
+    // Make the display consistent while we initialize.
     xReturned = xClock_Init();
     while (xReturned != pdPASS) {}
     xReturned = xLED_Init();

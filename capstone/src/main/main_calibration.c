@@ -170,7 +170,7 @@ static void prvHandleButtonPress(enum button_num button) {
         if (state.turn == game_turn_black) {
             prvMovesLen = (prvMovesLen + 1) % 64;
             xClock_set_state(clock_state_off);
-        }        
+        }
         break;
     case button_num_start_restart:
         if (state.turn == game_turn_black) {
