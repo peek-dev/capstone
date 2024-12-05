@@ -19,8 +19,6 @@
 #define DECLARE_PRIVATE_MAIN_C
 #include "main.h"
 
-#define ACTUALLY_USE_UART 0
-
 /*
 Calibration testbench.
 We will use the state somewhat differently here.
@@ -38,17 +36,29 @@ paused.
 uint16_t numbers[2] = {0};
 
 void mainThread(void *arg0) {
-    /* FIXME: declare task handle for UART task */
+    MainThread_Message message;
     BaseType_t xReturned;
 
     xReturned = xMain_Init();
     while (xReturned != pdPASS) {}
 
-    // Heartbeat startup wait occurs here?
-#if ACTUALLY_USE_UART
     xReturned = xUART_Init();
     while (xReturned != pdPASS) {}
-#endif
+    xReturned = xTaskCreate(vUART_Task, "UART", configMINIMAL_STACK_SIZE, NULL,
+                            3, &thread_uart);
+    while (xReturned != pdPASS) {}
+
+    // Wait until we get the proper synack packet from the RPi.
+    // If we've waited more than HEARTBEAT_TIME_MS, try again.
+    while (xQueueReceive(mainQueue, &message,
+                         HEARTBEAT_TIME_MS / portTICK_PERIOD_MS) == pdFAIL ||
+           message.move != SYNACK) {
+        // Send our syn packet.
+        xReturned = xUART_to_wire(MSP_SYN);
+        while (xReturned != pdPASS);
+    }
+    // Okay, we've gotten the right synack packet. Cool.
+    // Send the ack after we've initialized all our hardware and threads.
 
     xReturned = xPortGetFreeHeapSize();
 
@@ -73,16 +83,13 @@ void mainThread(void *arg0) {
     xReturned = xTaskCreate(vSensor_Thread_Calibration, "Sensor",
                             configMINIMAL_STACK_SIZE, NULL, 2, &thread_sensor);
     while (xReturned != pdPASS) {}
-#if ACTUALLY_USE_UART
-    xReturned = xTaskCreate(vUART_Task, "UART", configMINIMAL_STACK_SIZE, NULL,
-                            2, &thread_uart);
-    while (xReturned != pdPASS) {}
-#endif
 
     xClock_set_numbers(numbers);
     xClock_set_state(clock_state_staticnumbers);
 
-    MainThread_Message message;
+    xReturned = xUART_to_wire(MSP_ACK);
+    while (xReturned != pdPASS);
+
     volatile BaseType_t mem = xPortGetFreeHeapSize();
     while (1) {
         if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {
@@ -121,6 +128,14 @@ BaseType_t xMain_uart_message(uint32_t move) {
     return xQueueSend(mainQueue, &m, portMAX_DELAY);
 }
 
+BaseType_t xMain_uart_message_FromISR(uint32_t move,
+                                      BaseType_t *pxHigherPriorityTaskWoken) {
+    MainThread_Message m;
+    m.type = main_uart_message;
+    m.move = move;
+    return xQueueSendFromISR(mainQueue, &m, pxHigherPriorityTaskWoken);
+}
+
 BaseType_t xMain_sensor_calibration_update(BoardState_Calibration *state) {
     MainThread_Message m;
     m.type = main_sensor_update;
@@ -156,9 +171,7 @@ static void prvHandleButtonPress(enum button_num button) {
     case button_num_undo:
         if (state.turn == game_turn_white) {
             // If we just finished a calibration stage, send it to the UART.
-#if ACTUALLY_USE_UART
-            xUART_SendCalibration(min, max, row, col, selected_piece);
-#endif
+            vUART_SendCalibration(min, max, row, col, selected_piece);
             // reset min and max.
             min = 65535;
             max = 0;
@@ -220,9 +233,4 @@ static void prvProcessMessage(MainThread_Message *message) {
         prvHandleButtonPress(message->button);
         break;
     }
-}
-
-BaseType_t xMain_uart_message_FromISR(uint32_t move,
-                                      BaseType_t *pxHigherPriorityTaskWoken) {
-    return pdTRUE;
 }
