@@ -5,3 +5,4 @@ Release/
 *.so
 *.o
 __pycache__
+calibration_data.txt
