@@ -58,6 +58,7 @@ void mainThread(void *arg0) {
 }
 
 BaseType_t xMain_Init(void) {
+    sensor_mutex = xSemaphoreCreateMutex();
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
     if (mainQueue == NULL) {
         return pdFALSE;

@@ -9,6 +9,7 @@
 void mainThread(void *arg0) {
     TaskHandle_t thread_led;
     BaseType_t xReturned;
+    sensor_mutex = xSemaphoreCreateMutex();
 
     /* Call driver init functions */
     xReturned = xLED_Init();

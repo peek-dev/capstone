@@ -82,6 +82,7 @@ void mainThread(void *arg0) {
 }
 
 BaseType_t xMain_Init(void) {
+    sensor_mutex = xSemaphoreCreateMutex();
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
     state.turn = game_turn_white;
     if (mainQueue == NULL) {
