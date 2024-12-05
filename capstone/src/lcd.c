@@ -2,6 +2,7 @@
 #include "game.h"
 #include <task.h>
 #include <queue.h>
+#include "sensor_mutex.h"
 #define DELCLARE_PRIVATE_CLOCK_C
 #include "clock.h"
 #include "lcd.h"
@@ -135,6 +136,9 @@ static void prvTransmitFrame(uint32_t frame) {
 }
 
 void vLCD_WriteHardware(uint32_t *data) {
+#if LCD_USE_SENSOR_MUTEX
+    xSemaphoreTake(sensor_mutex, portMAX_DELAY);
+#endif
     for (int i = 0; i < 3; i++) {
         prvTransmitFrame(data[2 - i]);
     }
@@ -145,6 +149,9 @@ void vLCD_WriteHardware(uint32_t *data) {
     DL_TimerG_startCounter(LCD_DELAY_LOAD_INST);
     ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
     DL_GPIO_clearPins(MISC_GPIO_PORT, MISC_GPIO_CLOCK_LOAD_PIN);
+#if LCD_USE_SENSOR_MUTEX
+    xSemaphoreGive(sensor_mutex);
+#endif
 }
 
 void LCD_DELAY_LOAD_INST_IRQHandler(void) {

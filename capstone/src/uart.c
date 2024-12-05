@@ -8,6 +8,7 @@
 #include "main.h"
 #include "uart_bidir_protocol.h"
 #include "assert.h"
+#include "sensor_mutex.h"
 
 #define UART_QUEUE_SIZE 12
 
@@ -99,7 +100,7 @@ PTYPE xPtypeToWire(PieceType in) {
     case WhiteQueen:
         return PTYPE_QUEEN;
     case EmptySquare:
-        return PTYPE_NULL;
+        return PTYPE_NULL_ALT;
     }
 }
 PieceType xPtypeFromWire(PTYPE in, BaseType_t white) {
@@ -144,7 +145,9 @@ PieceType xPtypeFromWire(PTYPE in, BaseType_t white) {
  */
 static void prvUART_UnpackAndSend(uint32_t packet) {
     uint8_t next_byte;
-
+#if UART_USE_SENSOR_MUTEX
+    xSemaphoreTake(sensor_mutex, portMAX_DELAY);
+#endif
     for (int i = 0; i < 4; i += 1) {
         next_byte = (uint8_t)(packet & 0xFF);
         // Try to transmit.
@@ -155,6 +158,9 @@ static void prvUART_UnpackAndSend(uint32_t packet) {
         }
         packet >>= 8;
     }
+#if UART_USE_SENSOR_MUTEX
+    xSemaphoreGive(sensor_mutex);
+#endif
 }
 
 void RPI_UART_INST_IRQHandler(void) {

@@ -24,6 +24,12 @@ void mainThread(void *arg0) {
     xReturned = xMain_Init();
     while (xReturned != pdPASS) {}
 
+    // Make the display consistent while we initialize.    
+    xReturned = xClock_Init();
+    while (xReturned != pdPASS) {}
+    xReturned = xLED_Init();
+    while (xReturned != pdPASS) {}
+
     xReturned = xUART_Init();
     while (xReturned != pdPASS) {}
     xReturned = xTaskCreate(vUART_Task, "UART", configMINIMAL_STACK_SIZE, NULL,
@@ -45,10 +51,6 @@ void mainThread(void *arg0) {
     xReturned = xPortGetFreeHeapSize();
 
     /* Call driver init functions */
-    xReturned = xClock_Init();
-    while (xReturned != pdPASS) {}
-    xReturned = xLED_Init();
-    while (xReturned != pdPASS) {}
     xReturned = xSensor_Init();
     while (xReturned != pdPASS) {}
     vButton_Init();

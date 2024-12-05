@@ -10,6 +10,8 @@
 #include "sensor.h"
 #include "main.h"
 #include "ti_msp_dl_config.h"
+#include "semphr.h"
+#include "util.h"
 
 #define SENSOR_DELAY_MS 20
 #define NBINS 13
@@ -22,6 +24,8 @@
 // For the ADC: ADC samples are asynchronous, so we need to wakeup the task from
 // an ISR.
 static TaskHandle_t xSensorTaskId = NULL;
+
+SemaphoreHandle_t sensor_mutex;
 
 // Lower bounds for hall effect sensor reading bins.
 // Generate this with python (numpy):
@@ -72,21 +76,20 @@ static void prvSingleADC(BoardState *board, uint8_t row, uint8_t column) {
     // Block the thread until ADC sampling is complete.
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-    volatile uint16_t sample =
+    uint16_t sample =
         DL_ADC12_getMemResult(ADC_0_INST, ADC_0_ADCMEM_ChessSquare);
     vSetSquare(board, row, column, prvValueToPiece(sample));
     DL_ADC12_enableConversions(ADC_0_INST);
 }
-static void prvSingleADC_Calibration(BoardState_Calibration *board, uint8_t row,
-                                     uint8_t column) {
+static uint16_t prvSingleADC_Calibration() {
     DL_ADC12_startConversion(ADC_0_INST);
     // Block the thread until ADC sampling is complete.
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
-    volatile uint16_t sample =
+    uint16_t sample =
         DL_ADC12_getMemResult(ADC_0_INST, ADC_0_ADCMEM_ChessSquare);
-    board->rows[row].columns[column] = sample;
     DL_ADC12_enableConversions(ADC_0_INST);
+    return sample;
 }
 
 void ADC_0_INST_IRQHandler(void) {
@@ -134,11 +137,13 @@ BaseType_t xSensor_Init(void) {
 void vSensor_Thread(void *arg0) {
     assert(xSensorTaskId == NULL);
     xSensorTaskId = xTaskGetCurrentTaskHandle();
+
     // TODO: noise: don't read while LEDs are going?
     while (true) {
         // This is uninitialized, but that doesn't matter. Each element will be
         // initialized.
         BoardState board;
+        xSemaphoreTake(sensor_mutex, portMAX_DELAY);
         for (uint8_t col = 0; col < 8; col++) {
             prvSelectColumn(col);
             // Set the timer for 150us delay.
@@ -154,9 +159,11 @@ void vSensor_Thread(void *arg0) {
                 DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
                 ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
                 // Take the sample!
+
                 prvSingleADC(&board, row, col);
             }
         }
+        xSemaphoreGive(sensor_mutex);
         xMain_sensor_update(&board);
         vTaskDelay(SENSOR_DELAY_MS / portTICK_PERIOD_MS);
     }
@@ -169,6 +176,8 @@ void vSensor_Thread_Calibration(void *arg0) {
         // This is uninitialized, but that doesn't matter. Each element will be
         // initialized.
         BoardState_Calibration board;
+        uint16_t samples[5];
+        xSemaphoreTake(sensor_mutex, portMAX_DELAY);
         for (uint8_t col = 0; col < 8; col++) {
             prvSelectColumn(col);
             // Set the timer for 150us delay.
@@ -184,9 +193,13 @@ void vSensor_Thread_Calibration(void *arg0) {
                 DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
                 ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
                 // Take the sample!
-                prvSingleADC_Calibration(&board, row, col);
+                for (uint8_t i = 0; i < 5; i++) {
+                    samples[i] = prvSingleADC_Calibration();
+                }
+                board.rows[row].columns[col] = MedianOfFive(samples);
             }
         }
+        xSemaphoreGive(sensor_mutex);
         xMain_sensor_calibration_update(&board);
         vTaskDelay(SENSOR_DELAY_MS / portTICK_PERIOD_MS);
     }

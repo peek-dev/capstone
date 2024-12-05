@@ -14,6 +14,7 @@
 #include "uart_bidir_protocol.h"
 #include "led_translation.h"
 #include "button.h"
+#include "sensor_mutex.h"
 
 #define CALIBRATION
 #define DECLARE_PRIVATE_MAIN_C
@@ -42,6 +43,12 @@ void mainThread(void *arg0) {
     xReturned = xMain_Init();
     while (xReturned != pdPASS) {}
 
+    // Make the display consistent while we initialize.
+    xReturned = xClock_Init();
+    while (xReturned != pdPASS) {}
+    xReturned = xLED_Init();
+    while (xReturned != pdPASS) {}
+
     xReturned = xUART_Init();
     while (xReturned != pdPASS) {}
     xReturned = xTaskCreate(vUART_Task, "UART", configMINIMAL_STACK_SIZE, NULL,
@@ -63,10 +70,6 @@ void mainThread(void *arg0) {
     xReturned = xPortGetFreeHeapSize();
 
     /* Call driver init functions */
-    xReturned = xClock_Init();
-    while (xReturned != pdPASS) {}
-    xReturned = xLED_Init();
-    while (xReturned != pdPASS) {}
     xReturned = xSensor_Init();
     while (xReturned != pdPASS) {}
     vButton_Init();
@@ -101,6 +104,7 @@ void mainThread(void *arg0) {
 }
 
 BaseType_t xMain_Init(void) {
+    sensor_mutex = xSemaphoreCreateMutex();
     max = 0;
     min = 65535;
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));

@@ -5,6 +5,7 @@
 #include "projdefs.h"
 #include "ti/driverlib/dl_spi.h"
 #include "ti_msp_dl_config.h"
+#include "sensor_mutex.h"
 
 #include "led.h"
 
@@ -103,11 +104,13 @@ static void prvTransmitFrame(uint32_t frame) {
 }
 
 static void prvLED_commit() {
+#if LED_USE_SENSOR_MUTEX
+    xSemaphoreTake(sensor_mutex, portMAX_DELAY);
+#endif
     // As documented here:
     // https://cpldcpu.wordpress.com/2016/12/13/sk9822-a-clone-of-the-apa102/
     // First, send a zero frame.
     prvTransmitFrame(0);
-    uint32_t temp;
     // Then, send a frame for every LED.
     for (uint8_t i = 0; i < NUM_LEDS; i++) {
         prvTransmitFrame(prvPackFrame(&state[i]));
@@ -120,6 +123,9 @@ static void prvLED_commit() {
     for (uint8_t i = 0; i < (NUM_LEDS + 63) / 64; i++) {
         prvTransmitFrame(0);
     }
+#if LED_USE_SENSOR_MUTEX
+    xSemaphoreGive(sensor_mutex);
+#endif
 }
 
 BaseType_t xLED_Init(void) {
