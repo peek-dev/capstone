@@ -221,14 +221,16 @@ static void prvHandleButtonPress(enum button_num button) {
         if (state.state == game_state_notstarted &&
             xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
                 pdTRUE) {
-            prvSwitchStateTurn(&state);
+            //prvSwitchStateTurn(&state);
+            vResetState();
         } else {
-            state.turn = game_turn_white;
+            vResetState();
         }
-        state.state = game_state_notstarted;
+        // TODO non-standard states
+        //state.state = game_state_notstarted;
         // Set the latest state to the board state.
-        memcpy(&state.last_move_state, &state.last_measured_state,
-               sizeof(BoardState));
+        /*memcpy(&state.last_move_state, &state.last_measured_state,
+               sizeof(BoardState));*/
         // TODO send the state to the uart somehow.
         break;
     case button_num_clock_mode:
@@ -245,7 +247,7 @@ static void prvHandleButtonPress(enum button_num button) {
             if (state.clock_mode != game_clock_off) {
                 break;
             }
-            // TODO display something?
+            //xClock//TODO
             prvSwitchStateTurn(&state);
             state.state = game_state_undo;
             prvMovesLen = 0;
