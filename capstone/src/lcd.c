@@ -76,11 +76,11 @@ static void prvRenderPause(uint32_t *data, game_turn turn, uint32_t *times) {
     prvRenderTime_oneside(times[turn], data, turn);
     // This is the reverse of the usual offset.
     uint8_t offset = (turn != game_turn_black) ? 3 : 0;
-    prvSetDigit(data, CLOCK_P, DIGITS[2 + offset][0]);
+    prvSetDigit(data, CLOCK_P, DIGITS[0 + offset][0]);
     prvSetDigit(data, CLOCK_A, DIGITS[1 + offset][1]);
     prvSetDigit(data, CLOCK_U, DIGITS[1 + offset][0]);
-    prvSetDigit(data, CLOCK_S, DIGITS[0 + offset][1]);
-    prvSetDigit(data, CLOCK_E, DIGITS[0 + offset][0]);
+    prvSetDigit(data, CLOCK_S, DIGITS[2 + offset][1]);
+    prvSetDigit(data, CLOCK_E, DIGITS[2 + offset][0]);
 }
 
 void prvRenderNumbers_oneside(uint16_t n, uint32_t *data, game_turn side) {
@@ -89,6 +89,15 @@ void prvRenderNumbers_oneside(uint16_t n, uint32_t *data, game_turn side) {
         prvSetDigit(data, NUMBERS[n % 10], DIGITS[offset + 2 - (i / 2)][i % 2]);
         n /= 10;
     }
+}
+
+static void prvRenderUndo(uint32_t *data, game_turn turn, uint16_t *numbers) {
+    prvRenderNumbers_oneside(numbers[1-turn], data, 1-turn);
+    uint8_t offset = (turn == game_turn_black) ? 3 : 0;
+    prvSetDigit(data, CLOCK_U, DIGITS[1 + offset][1]);
+    prvSetDigit(data, CLOCK_N, DIGITS[1 + offset][0]);
+    prvSetDigit(data, CLOCK_D, DIGITS[2 + offset][1]);
+    prvSetDigit(data, CLOCK_o, DIGITS[2 + offset][0]);
 }
 
 static void prvRenderNumbers(uint32_t *data, uint16_t *numbers) {
@@ -117,7 +126,7 @@ void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn,
         prvRenderNumbers(data, numbers);
         break;
     case clock_state_undo:
-        // TODO
+        prvRenderUndo(data, turn, numbers);
         break;
     }
 }
