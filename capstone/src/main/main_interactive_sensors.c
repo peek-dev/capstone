@@ -13,6 +13,7 @@
 #include "uart_bidir_protocol.h"
 #include "led_translation.h"
 #include "button.h"
+#include "sensor_mutex.h"
 
 #define DECLARE_PRIVATE_MAIN_C
 #include "main.h"
@@ -22,6 +23,9 @@ void mainThread(void *arg0) {
     TaskHandle_t thread_led, thread_sensor;
     BaseType_t xReturned;
 
+    xReturned = xMain_Init();
+    while (xReturned != pdPASS) {}
+    
     xReturned = xPortGetFreeHeapSize();
 
     /* Call driver init functions */
@@ -30,8 +34,6 @@ void mainThread(void *arg0) {
     xReturned = xLED_Init();
     while (xReturned != pdPASS) {}
     xReturned = xSensor_Init();
-    while (xReturned != pdPASS) {}
-    xReturned = xMain_Init();
     while (xReturned != pdPASS) {}
     vButton_Init();
 
