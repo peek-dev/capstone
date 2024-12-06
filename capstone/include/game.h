@@ -40,8 +40,9 @@ typedef enum {
 } game_turn;
 typedef enum {
     game_clock_off,
-    game_clock_90
-    // TODO more
+    game_clock_90_plus30,
+    game_clock_25_plus10,
+    game_clock_5_plus3
 } chess_clock_mode;
 typedef struct {
     enum {
@@ -70,5 +71,5 @@ void vSetSquare(BoardState *board, uint8_t row, uint8_t column, PieceType type);
 BaseType_t xBoardEqual(BoardState *a, BoardState *b);
 BaseType_t isWhite(PieceType p);
 PieceType xChangeColor(PieceType p);
-
+void vBoardSetDefault(BoardState *board);
 #endif

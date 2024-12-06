@@ -29,3 +29,14 @@ BaseType_t xBoardEqual(BoardState *a, BoardState *b) {
     }
     return pdTRUE;
 }
+
+// The normal starting state for chess.
+void vBoardSetDefault(BoardState *board) {
+    board->rows[0] = 0x12354321ul;
+    board->rows[1] = 0x00000000ul;
+    for (uint8_t i = 2; i < 6; i++) {
+        board->rows[i] = 0x66666666ul;
+    }
+    board->rows[6] = 0xccccccccul;
+    board->rows[7] = 0xba9789abul;
+}

@@ -13,6 +13,7 @@
 #include "uart.h"
 #include "uart_bidir_protocol.h"
 #include "button.h"
+#include "sensor_mutex.h"
 
 #define DECLARE_PRIVATE_MAIN_C
 #include "main.h"
@@ -81,10 +82,20 @@ void mainThread(void *arg0) {
     vTaskDelete(NULL);
 }
 
+void vResetState() {
+    state.turn = game_turn_white;
+    state.clock_mode = game_clock_off;
+    state.state = game_state_notstarted;
+    state.hint = game_hint_unknown;
+    vBoardSetDefault(&state.last_move_state);
+    prvMovesLen = 0;
+    prvCurrentMoveIndex = 0;
+}
+
 BaseType_t xMain_Init(void) {
     sensor_mutex = xSemaphoreCreateMutex();
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
-    state.turn = game_turn_white;
+    vResetState();
     if (mainQueue == NULL) {
         return pdFALSE;
     }
