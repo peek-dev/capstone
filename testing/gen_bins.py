@@ -3,6 +3,7 @@ import numpy as np
 from pathlib import Path
 import sys
 import re
+import matplotlib.pyplot as plt
 
 maxes = np.zeros([8,8,13], dtype=np.int16)
 mins = np.zeros([8,8,13], dtype=np.int16)
@@ -53,15 +54,23 @@ with open(infile, 'r') as f:
 for i in range(0,12):
     bins[:,:,i+1] = (maxes[:,:,i]+mins[:,:,i+1])/2
 
-#print(mins)
-#print(maxes)
+print(mins)
+print(maxes)
 print(bins)
-bins_good = (bins[:,:,1:]-bins[:,:,:-1]) < 30
-if np.any(bins_good):
+bins_width = (bins[:,:,1:]-bins[:,:,:-1])
+if np.any(bins_width < 100):
     print("Error! Bins too small!")
-    print(bins_good)
+    print(bins_width)
+    row, col = np.meshgrid(np.arange(8), np.arange(8))
+    for i in range(12):
+        fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
+        surf = ax.plot_surface(row,col,bins_width[:,:,i],linewidth=0)
+        ax.set_xlabel("Row")
+        ax.set_ylabel("Col")
+        ax.set_title(f"Bin transition: {i} to {i+1}")
+        plt.show(block=(i==11))
 
 bins_str = f"{bins}"
-bins_str_c = re.sub('},},},', '}}}', re.sub(r'\]', '},', re.sub(r'\[', r'{', bins_str)))
+bins_str_c = re.sub(r'(\d) ', r'\1, ', re.sub('},},},', '}}}', re.sub(r'\]', '},', re.sub(r'\[', r'{', bins_str))))
 print("C format:")
 print(f"uint16_t bins[][][] =\n{bins_str_c};")
