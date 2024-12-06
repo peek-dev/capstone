@@ -31,9 +31,9 @@ MSP_SYN = 0x00000000
 SYNACK  = 0x0000FFFF
 MSP_ACK = 0xFFFFFFFF
 
-CHECK       = 0x00000010
-CHECKMATE   = 0x00000030
-STALEMATE   = 0x00000070
+CHECK       = 0x00000011
+CHECKMATE   = 0x00000031
+STALEMATE   = 0x00000071
 
 
 class ButtonEvent(Enum):
@@ -148,7 +148,7 @@ def parse_button_event(packet: int) -> ButtonEvent:
             return ButtonEvent.NORMAL
 
 
-def send_legal(board: chess.Board, shandle: serial.Serial):
+def send_legal(board: chess.Board, shandle: serial.Serial, logpath=None):
     possible_moves = board.legal_moves
     possible_count = possible_moves.count()
 
@@ -165,7 +165,7 @@ def send_legal(board: chess.Board, shandle: serial.Serial):
         if move_src_square not in moves_dict.keys():
             moves_dict[move_src_square] = []
 
-        moves_dict[move_src_square].append(wr.encode_packet(move, board))
+        moves_dict[move_src_square].append(encode_packet(move, board))
 
     packet_no = 0
 
@@ -176,6 +176,10 @@ def send_legal(board: chess.Board, shandle: serial.Serial):
             if packet_no == possible_count:
                 packet |= 1 # Set the packet's LSB to mark it as the last packet in series
             
+            if (logpath):
+                with open(logpath, 'a') as log:
+                    print("[DEBUG]: (wr.send_legal): sending packet {hex(packet)}", file=log)
+
             shandle.write(packet.to_bytes(4, 'little'))
 
 
