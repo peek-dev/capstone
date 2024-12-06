@@ -1,3 +1,4 @@
+#include "calibration.h"
 #include "config.h"
 #include "portmacro.h"
 #include "task.h"
@@ -27,16 +28,8 @@ static TaskHandle_t xSensorTaskId = NULL;
 
 SemaphoreHandle_t sensor_mutex;
 
-// Lower bounds for hall effect sensor reading bins.
-// Generate this with python (numpy):
-// np.round((2**12-1)*np.array([0, 0.2, 0.6,
-// 0.95, 1.1, 1.3, 1.55, 1.9, 2.1, 2.3, 2.4, 2.8, 3.0])/3.3).astype(int) OPT:
-// make this packed 12-bit?
-// TODO: calibration?
-static uint16_t bins[] = {0,    249,  746,  1118, 1402, 1626, 1985,
-                          2097, 2234, 2569, 2792, 3164, 3723};
 
-static PieceType prvValueToPiece(uint16_t value) {
+static PieceType prvValueToPiece(uint16_t value, uint16_t *bins) {
     uint8_t i;
     for (i = 0; i < NBINS; i++) {
         if (bins[i] > value) {
@@ -78,7 +71,7 @@ static void prvSingleADC(BoardState *board, uint8_t row, uint8_t column) {
 
     uint16_t sample =
         DL_ADC12_getMemResult(ADC_0_INST, ADC_0_ADCMEM_ChessSquare);
-    vSetSquare(board, row, column, prvValueToPiece(sample));
+    vSetSquare(board, row, column, prvValueToPiece(sample, GetBins(row, column)));
     DL_ADC12_enableConversions(ADC_0_INST);
 }
 static uint16_t prvSingleADC_Calibration() {
