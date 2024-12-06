@@ -1,0 +1,8 @@
+[Unit]
+BindTo=%i.device
+After=%i.device
+
+[Service]
+Type=oneshot
+TimeoutStartSec=10
+ExecStart=/root/copy_data.sh /%I
