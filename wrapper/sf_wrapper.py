@@ -27,8 +27,10 @@ if __name__ == '__main__':
             debug = True
         else:
             debug = False
+            log_path = None
     except IndexError:
         debug = False
+        log_path = None
 
     if debug:
         push_msg(f"STARTED at: {overall_timestamp}")
@@ -100,7 +102,6 @@ if __name__ == '__main__':
     # The main loop of the program, which will never exit except in unusual 
     # circumstances.
     while True:
-
         if debug:
             push_msg("Waiting for next packet...")
 
@@ -110,6 +111,14 @@ if __name__ == '__main__':
 
         if debug:
             push_msg(f"Got packet: {hex(next_packet)}")
+
+        # Sentinel move/dummy move ("done undoing"). No useful information encoded here, so continue.
+        if (next_packet == 0x0):
+            if debug:
+                push_msg("Packet is sentinel move/dummy move (\"done undoing\").")
+
+            wr.send_legal(board, uart, log_path)
+            continue
 
         next_move = chess.Move.null()
 
@@ -160,15 +169,7 @@ if __name__ == '__main__':
                     # IndexError innocuous; stack is empty, but not an error
                     continue 
             case _:
-                # Standard move. Add move to playing stack and update state...
-
-                # ...unless it's a sentinel move/dummy move ("done undoing").
-                if (next_packet == 0x0):
-                    if debug:
-                        push_msg("Packet is sentinel move/dummy move (\"done undoing\").")
-
-                    continue
-
+                # Standard move. Add move to playing stack and update state
                 next_move = wr.decode_packet(next_packet)
 
                 if debug:
