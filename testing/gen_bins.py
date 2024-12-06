@@ -56,6 +56,10 @@ for i in range(0,12):
 #print(mins)
 #print(maxes)
 print(bins)
+bins_good = (bins[:,:,1:]-bins[:,:,:-1]) < 30
+if np.any(bins_good):
+    print("Error! Bins too small!")
+    print(bins_good)
 
 bins_str = f"{bins}"
 bins_str_c = re.sub('},},},', '}}}', re.sub(r'\]', '},', re.sub(r'\[', r'{', bins_str)))
