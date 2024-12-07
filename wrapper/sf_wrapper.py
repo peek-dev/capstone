@@ -8,9 +8,6 @@ import serial
 from datetime import datetime
 import sys  # for basic argparsing: argv[1] 
 
-overall_timestamp = datetime.now().isoformat() # for logging
-log_path = f"log-{overall_timestamp}.txt"
-
 
 def push_msg(msg: str):
     global log_path
@@ -19,18 +16,16 @@ def push_msg(msg: str):
 
 
 if __name__ == '__main__':
-
     debug = None
 
     try:
-        if (sys.argv[1] == '-d') or ('-debug' in sys.argv[1]):
-            debug = True
-        else:
+        if (sys.argv[1] == '-s') or ('-suppress' in sys.argv[1]):
             debug = False
-            log_path = None
+        else:
+            debug = True
     except IndexError:
-        debug = False
-        log_path = None
+        debug = True
+
 
     if debug:
         push_msg(f"STARTED at: {overall_timestamp}")

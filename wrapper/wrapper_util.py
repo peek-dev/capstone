@@ -86,10 +86,10 @@ def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -
             packet |= ((3 + 2*board.is_kingside_castling(move)) << M2_DEST_FILE_SHIFT)
         else:
             packet |= (0 << M2_PTYPE_SHIFT)
-            packet |= (chess.square_file(move.ep_square) << M2_SRC_FILE_SHIFT)
-            packet |= (chess.square_rank(move.ep_square) << M2_SRC_RANK_SHIFT)
-            packet |= (chess.square_file(move.ep_square) << M2_DEST_FILE_SHIFT)
-            packet |= (chess.square_rank(move.ep_square) << M2_DEST_RANK_SHIFT)
+            packet |= (chess.square_file(board.ep_square) << M2_SRC_FILE_SHIFT)
+            packet |= (chess.square_rank(board.ep_square) << M2_SRC_RANK_SHIFT)
+            packet |= (chess.square_file(board.ep_square) << M2_DEST_FILE_SHIFT)
+            packet |= (chess.square_rank(board.ep_square) << M2_DEST_RANK_SHIFT)
     packet |= encode_movetype(move, board) << MTYPE_SHIFT
     packet |= 0x00000002 if board.is_castling(move) else 0x00000000
     packet |= (1 if last_move else 0)
