@@ -76,7 +76,20 @@ def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -
     packet |= chess.square_file(move.to_square) << DEST_FILE_SHIFT
     packet |= chess.square_rank(move.to_square) << DEST_RANK_SHIFT
     packet |= board.piece_type_at(move.from_square) << PTYPE_SHIFT
-    packet |= (1 << M2_SHIFT) if (board.is_castling(move) or board.is_capture(move)) else (0 << M2_SHIFT) 
+    if (board.is_castling(move) or board.is_en_passant(move)):
+        packet |= (1 << M2_SHIFT)
+        if board.is_castling(move):
+            packet |= (1 << M2_PTYPE_SHIFT)
+            packet |= ((7*(board.turn==chess.WHITE)) << M2_SRC_RANK_SHIFT)
+            packet |= ((7*(board.turn==chess.WHITE)) << M2_DEST_RANK_SHIFT)
+            packet |= ((7*board.is_kingside_castling(move)) << M2_SRC_FILE_SHIFT)
+            packet |= ((3 + 2*board.is_kingside_castling(move)) << M2_DEST_FILE_SHIFT)
+        else:
+            packet |= (0 << M2_PTYPE_SHIFT)
+            packet |= (chess.square_file(move.ep_square) << M2_SRC_FILE_SHIFT)
+            packet |= (chess.square_rank(move.ep_square) << M2_SRC_RANK_SHIFT)
+            packet |= (chess.square_file(move.ep_square) << M2_DEST_FILE_SHIFT)
+            packet |= (chess.square_rank(move.ep_square) << M2_DEST_RANK_SHIFT)
     packet |= encode_movetype(move, board) << MTYPE_SHIFT
     packet |= 0x00000002 if board.is_castling(move) else 0x00000000
     packet |= (1 if last_move else 0)
