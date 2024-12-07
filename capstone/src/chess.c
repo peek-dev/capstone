@@ -24,7 +24,7 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
             } else if (row == GET_DEST_RANK(move) &&
                        col == GET_DEST_FILE(move)) {
                 expected = xPtypeFromWire(GET_PTYPE(move), whiteToMove);
-            } else if (row == GET_M2_DEST_RANK(move) &&
+            } else if (GET_M2(move) == 1 && row == GET_M2_DEST_RANK(move) &&
                        col == GET_M2_DEST_FILE(move)) {
                 // For M2, we check dest first. This is because having dest and
                 // src be the same square is valid for a second move (e.g. en
@@ -33,7 +33,7 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
                 // is en passant, which gives EmptySquare for either.
                 expected = xPtypeFromWire(
                     GET_M2_PTYPE(move) ? PTYPE_ROOK : PTYPE_NULL, whiteToMove);
-            } else if (row == GET_M2_SRC_RANK(move) &&
+            } else if (GET_M2(move) == 1 && row == GET_M2_SRC_RANK(move) &&
                        col == GET_M2_SRC_FILE(move)) {
                 // If this square was a source but not a destination, it should
                 // be empty.
