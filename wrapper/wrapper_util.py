@@ -129,6 +129,24 @@ def encode_undo(move: chess.Move, board: chess.Board) -> int:
     return packet
 
 
+def encode_check(board: chess.Board) -> int:
+    global MTYPE_SHIFT
+    global MTYPE_CHECK
+    global M2_DEST_FILE_SHIFT
+    global M2_DEST_RANK_SHIFT
+    global PTYPE_SHIFT
+
+    check_packet = 0
+    check_packet |= (MTYPE_CHECK << MTYPE_SHIFT)
+
+    king_square = chess.square_name(board.king(board.turn))
+    check_packet |= (chess.square_file(king_square) << M2_DEST_FILE_SHIFT)
+    check_packet |= (chess.square_rank(king_square) << M2_DEST_RANK_SHIFT)
+    check_packet |= (int(chess.KING) << PTYPE_SHIFT)
+
+    return check_packet
+
+
 def decode_packet(packet: int) -> chess.Move:
     global SRC_FILE_SHIFT
     global SRC_RANK_SHIFT
@@ -161,7 +179,7 @@ def parse_button_event(packet: int) -> ButtonEvent:
             return ButtonEvent.NORMAL
 
 
-def send_legal(board: chess.Board, shandle: serial.Serial, logpath=None):
+def send_legal(board: chess.Board, shandle: serial.Serial, log: bool=True):
     possible_moves = board.legal_moves
     possible_count = possible_moves.count()
 
@@ -189,17 +207,16 @@ def send_legal(board: chess.Board, shandle: serial.Serial, logpath=None):
             if packet_no == possible_count:
                 packet |= 1 # Set the packet's LSB to mark it as the last packet in series
             
-            if (logpath):
-                with open(logpath, 'a') as log:
-                    print("[DEBUG]: (wr.send_legal): sending packet {hex(packet)}", file=log)
+            if log:
+                print("[DEBUG]: (wr.send_legal): sending packet {hex(packet)}")
 
             shandle.write(packet.to_bytes(4, 'little'))
 
 
-def init_board(board: chess.Board, shandle: serial.Serial):
+def init_board(board: chess.Board, shandle: serial.Serial, log:bool=True):
     # Clear playing stack and refresh list of valid moves
     board.reset()
-    send_legal(board, shandle)
+    send_legal(board, shandle, log=log)
 
 
 if __name__ == '__main__':
