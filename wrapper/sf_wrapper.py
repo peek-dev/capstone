@@ -10,9 +10,7 @@ import sys  # for basic argparsing: argv[1]
 
 
 def push_msg(msg: str):
-    global log_path
-    with open(log_path, 'a') as log:
-        print("[DEBUG]:", msg, file=log)
+    print("[DEBUG]:", msg, file=log)
 
 
 if __name__ == '__main__':
@@ -75,13 +73,13 @@ if __name__ == '__main__':
         push_msg(f"Sent SYNACK: {hex(wr.SYNACK)}")
 
     # "Flush out" Pi UART RX buffer until MSP's ACK is found
-    sequence = uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
+    uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
     
     if debug:
         push_msg(f"Received ACK ({hex(wr.MSP_ACK)}) from MSP.")
 
     # Now synchronized with MSP. Proceed with setup.
-    wr.init_board(board, uart)
+    wr.init_board(board, uart, log=debug)
 
     if debug:
         push_msg("Initialized board.")
@@ -112,7 +110,7 @@ if __name__ == '__main__':
             if debug:
                 push_msg("Packet is sentinel move/dummy move (\"done undoing\").")
 
-            wr.send_legal(board, uart, log_path)
+            wr.send_legal(board, uart, log=debug)
             continue
 
         next_move = chess.Move.null()
@@ -190,9 +188,16 @@ if __name__ == '__main__':
                         push_msg("ENDGAME: board indicates STALEMATE!")
 
                     uart.write(wr.STALEMATE.to_bytes(4, 'little'))
+                elif (board.is_check()):
+                    check_packet = wr.encode_check(board)
+                    
+                    if debug:
+                        push_msg(f"CHECK! Sending packet {hex(check_packet)}")
+
+                    uart.write(check_packet.to_bytes(4, 'little'))
 
                 # Send all legal moves for the new board state
-                wr.send_legal(board, uart, log_path)
+                wr.send_legal(board, uart, log=debug)
 
         # ...then proceed to the next turn
 
