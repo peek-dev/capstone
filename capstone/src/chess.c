@@ -203,6 +203,18 @@ BaseType_t xIlluminateMove(NormalMove move, uint8_t do_src) {
             color.red = 150;
             color.green = 0;
             color.blue = 255;
+            if (GET_M2(move) == 0) {
+                // Promotion. Highlight piece type outlines.
+                ZeroToTwoInts z = LEDTrans_Ptype(xPtypeFromWire(
+                    // Kinda a hack. White pawns promote in the direction of
+                    // increasing rank.
+                    GET_PTYPE(move), (GET_DEST_RANK(move) > GET_SRC_RANK(move))
+                                         ? pdTRUE
+                                         : pdFALSE));
+                for (uint8_t i = 0; i < z.len; i++) {
+                    xLED_set_color(z.data[i], &color);
+                }
+            }
             break;
         }
     }
