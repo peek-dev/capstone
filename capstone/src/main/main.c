@@ -4,6 +4,7 @@
 #include <queue.h>
 
 #include "chess.h"
+#include "flash_square.h"
 #include "game.h"
 #include "clock.h"
 #include "led.h"
@@ -55,6 +56,8 @@ void mainThread(void *arg0) {
     /* Call driver init functions */
     xReturned = xSensor_Init();
     while (xReturned != pdPASS) {}
+    xReturned = xFlashSquare_Init();
+    while (xReturned != pdPASS) {}
     vButton_Init();
 
     xReturned = xPortGetFreeHeapSize();
@@ -68,6 +71,11 @@ void mainThread(void *arg0) {
     while (xReturned != pdPASS) {}
     xReturned = xTaskCreate(vSensor_Thread, "Sensor", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_sensor);
+    while (xReturned != pdPASS) {}
+    // Much higher priority so that it gets scheduling precedence.
+    xReturned =
+        xTaskCreate(vFlashSquare_Thread, "FlashSquare",
+                    configMINIMAL_STACK_SIZE, NULL, 5, &thread_flashsquare);
     while (xReturned != pdPASS) {}
 
     xReturned = xUART_to_wire(MSP_ACK);
@@ -315,7 +323,7 @@ static void prvSwitchTurnRoutine() {
         &state.last_move_state, &state.last_measured_state, prvMoves.possible,
         prvMovesLen, (state.turn == game_turn_white) ? pdTRUE : pdFALSE);
     if (index == -1) {
-        // TODO: flash red.
+        vFlashDifferent(&state.last_move_state, &state.last_measured_state);
         return;
     }
 
@@ -364,7 +372,7 @@ static void prvSwitchTurnUndo(void) {
                    (state.turn == game_turn_white) ? pdTRUE : pdFALSE) !=
         pdTRUE) {
         // Validation failed.
-        // TODO: flash red.
+        vFlashDifferent(&state.last_move_state, &state.last_measured_state);
         return;
     }
 
@@ -451,8 +459,8 @@ static void prvRenderState(void) {
     BaseType_t board_changed = pdTRUE;
     Color c = {.brightness = 31, .red = 255, .green = 255, .blue = 0};
     // If the board state is unchanged, show the moveable pieces.
-    if (xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
-        pdTRUE) {
+    if (xBoardEqu xReturned &= xFlashSquare_DisableAll();
+        al(&state.last_move_state, &state.last_measured_state) == pdTRUE) {
         xReturned &= xLED_clear_board();
         xReturned &= xIlluminateMovable(prvMoves.possible, prvMovesLen);
     }
@@ -460,7 +468,9 @@ static void prvRenderState(void) {
     else if (xFindSingleLifted(&state.last_move_state,
                                &state.last_measured_state, &row,
                                &col) == pdTRUE) {
-        // Okay, light up all the moves for that peice.
+
+        xReturned &= xFlashSquare_DisableAll(); // Okay, light up all the moves
+                                                // for that peice.
         xReturned &= xLED_clear_board();
         xReturned &=
             xIlluminatePieceMoves(prvMoves.possible, prvMovesLen, row, col);

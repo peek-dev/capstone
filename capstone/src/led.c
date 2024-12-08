@@ -61,7 +61,7 @@ static void prvLED_clear_board() {
 }
 
 // OPT: maybe split this into three to prevent stack passing? Or reference?
-BaseType_t xLED_set_color(uint8_t num, Color *pColor) {
+BaseType_t xLED_set_color(uint8_t num, const Color *pColor) {
     LED_Message m;
     m.type = led_set_color;
     m.led_num = num;

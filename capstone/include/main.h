@@ -52,7 +52,8 @@ static uint16_t min;
 #define QUEUE_SIZE 10
 static QueueHandle_t mainQueue;
 
-static TaskHandle_t thread_clock, thread_led, thread_sensor, thread_uart;
+static TaskHandle_t thread_clock, thread_led, thread_sensor, thread_uart,
+    thread_flashsquare;
 
 BaseType_t xMain_Init(void);
 static void prvSwitchTurnRoutine(void);

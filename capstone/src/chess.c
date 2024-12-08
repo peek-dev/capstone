@@ -1,5 +1,6 @@
 #include "config.h"
 #include "chess.h"
+#include "flash_square.h"
 #include "game.h"
 #include "led.h"
 #include "portmacro.h"
@@ -7,6 +8,25 @@
 #include "uart.h"
 #include "uart_bidir_protocol.h"
 #include "led_translation.h"
+
+const Color Color_InvalidMove = {
+    .brightness = 31,
+    .red = 255,
+    .green = 0,
+    .blue = 0,
+};
+const Color Color_Checkmate = {
+    .brightness = 31,
+    .red = 255,
+    .green = 0,
+    .blue = 0,
+};
+const Color Color_PieceAdjust = {
+    .brightness = 31,
+    .red = 255,
+    .green = 136,
+    .blue = 0,
+};
 
 BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
                            BaseType_t whiteToMove) {
@@ -259,4 +279,15 @@ BaseType_t xIlluminateUndo(UndoMove move, BaseType_t mv2ontop) {
         }
     }
     return success;
+}
+
+void vFlashDifferent(BoardState *old, BoardState *new) {
+    for (uint8_t row = 0; row < 8; row++) {
+        for (uint8_t col = 0; col < 8; col++) {
+            if (xGetSquare(old, row, col) != xGetSquare(new, row, col)) {
+                xFlashSquare_Enable(LEDTrans_Square(row, col), 500,
+                                    Color_InvalidMove);
+            }
+        }
+    }
 }

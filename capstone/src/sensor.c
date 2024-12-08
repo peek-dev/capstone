@@ -15,7 +15,7 @@
 #include "util.h"
 
 #define SENSOR_DELAY_MS 20
-#define NBINS 13
+#define NBINS           13
 // Based on our filter step responses, we should wait 150us for a column switch.
 // (150 us * 32 MHz) - 1
 #define COL_SWITCH_LOAD (150U * 64U / 10U - 1U)
