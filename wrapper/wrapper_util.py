@@ -125,7 +125,7 @@ def encode_undo(move: chess.Move, board: chess.Board) -> int:
     undone_ptype = None
     undone_pcolor = 0
 
-    if board.is_en_passant(undone_move):
+    if board.is_en_passant(move):
         undone_ptype = chess.PAWN # en passant captures can only capture pawns
         dest_file = chess.square_file(move.to_square)
         dest_rank = chess.square_rank(move.from_square)
@@ -230,7 +230,7 @@ def send_legal(board: chess.Board, shandle: serial.Serial, log: bool=True):
                 packet |= 1 # Set the packet's LSB to mark it as the last packet in series
             
             if log:
-                print("[DEBUG]: (wr.send_legal): sending packet {hex(packet)}")
+                print(f"[DEBUG]: (wr.send_legal): sending packet {hex(packet)}")
 
             shandle.write(packet.to_bytes(4, 'little'))
 
