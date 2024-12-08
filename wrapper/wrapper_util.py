@@ -31,7 +31,8 @@ MSP_SYN = 0x00000000
 SYNACK  = 0x0000FFFF
 MSP_ACK = 0xFFFFFFFF
 
-MSP_REREQ   = 0x00000004
+MSP_REREQ       = 0x00000004
+UNDO_EXHAUST    = 0x00000008
 
 CHECK       = 0x00000011
 CHECKMATE   = 0x00000031
@@ -182,6 +183,20 @@ def decode_packet(packet: int) -> chess.Move:
     move_str += chess.FILE_NAMES[(packet >> DEST_FILE_SHIFT) & 0x7]
     move_str += chess.RANK_NAMES[(packet >> DEST_RANK_SHIFT) & 0x7]
 
+    # if packet is tagged as promotion move
+    if ((packet >> MTYPE_SHIFT) & 0x3) == 1:
+        match ((packet >> PTYPE_SHIFT) & 0x7):
+            case 2:
+                move_str += 'n' # promoting to knight
+            case 3:
+                move_str += 'b' # promoting to bishop
+            case 4:
+                move_str += 'r' # promoting to rook
+            case 5:
+                move_str += 'q' # promoting to queen
+            case _:
+                pass # move string does not need to be appended
+
     return chess.Move.from_uci(move_str)
 
 
@@ -230,7 +245,7 @@ def send_legal(board: chess.Board, shandle: serial.Serial, log: bool=True):
                 packet |= 1 # Set the packet's LSB to mark it as the last packet in series
             
             if log:
-                print(f"[DEBUG]: (wr.send_legal): sending packet {hex(packet)}")
+                print(f"[DEBUG]: (wr.send_legal): sending packet 0x{packet:08X}")
 
             shandle.write(packet.to_bytes(4, 'little'))
 

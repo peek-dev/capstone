@@ -78,6 +78,7 @@ if __name__ == '__main__':
 
         # "Flush out" Pi UART RX buffer until MSP's ACK is found
         uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
+        msp_alive = True
         
         if debug:
             push_msg(f"Received ACK ({hex(wr.MSP_ACK)}) from MSP.")
@@ -171,6 +172,8 @@ if __name__ == '__main__':
                         continue
                     except IndexError:
                         # IndexError innocuous; stack is empty, but not an error
+                        push_msg("Move stack empty--can't undo! Sending undo exhaust sentinel (0x00000008).")
+                        uart.write(wr.UNDO_EXHAUST.to_bytes(4, 'little'))
                         continue 
                 case _:
                     # Standard move. Add move to playing stack and update state
