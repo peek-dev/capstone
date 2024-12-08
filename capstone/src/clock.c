@@ -33,7 +33,7 @@ void vApplicationTickHook(void) {
         // Abuse enums being numbers to index.
         times_ms[turn] -= (1000 / configTICK_RATE_HZ);
         // If we've just finished a second, wakeup the thread to signal the LCD.
-        if (times_ms[state] % 1000 == 0) {
+        if (times_ms[turn] % 1000 == 0) {
             Clock_Message msg = {.type = clockmsg_render_state};
             xQueueSendFromISR(clockQueue, &msg, &xHigherPriorityTaskWoken);
         }
@@ -45,7 +45,7 @@ BaseType_t xClock_Init(void) {
     vLCD_Init();
     times_ms[0] = 0;
     times_ms[1] = 0;
-    state = clock_state_notstarted;
+    state = clock_state_off;
     turn = game_turn_white;
     clockQueue = xQueueCreate(QUEUE_SIZE, sizeof(Clock_Message));
     if (clockQueue == NULL) {
@@ -80,14 +80,16 @@ void vClock_Thread(void *arg0) {
                 }
             case clockmsg_render_state: {
                 uint32_t data[3];
-                vLCD_RenderState(data, state, turn, times_ms, numbers, increment_ms);
+                vLCD_RenderState(data, state, turn, times_ms, numbers,
+                                 increment_ms);
                 vLCD_WriteHardware(data);
                 break;
             }
             case clockmsg_set_numbers:
                 memcpy(numbers, message.numbers, 2 * sizeof(uint16_t));
                 // Request a rerender if we're displaying numbers.
-                if (state == clock_state_staticnumbers || state == clock_state_undo) {
+                if (state == clock_state_staticnumbers ||
+                    state == clock_state_undo) {
                     prvClock_render_state();
                 }
                 break;
@@ -110,6 +112,7 @@ void vClock_Thread(void *arg0) {
                 break;
             case clockmsg_set_increment:
                 increment_ms = message.times[0];
+                prvClock_render_state();
                 break;
             }
         }

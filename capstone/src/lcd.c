@@ -73,7 +73,7 @@ static void prvRenderTime(uint32_t *times, uint32_t *data) {
 }
 
 static void prvRenderPause(uint32_t *data, game_turn turn, uint32_t *times) {
-    prvRenderTime_oneside(times[turn], data, turn);
+    prvRenderTime_oneside(times[turn] / 1000, data, turn);
     // This is the reverse of the usual offset.
     uint8_t offset = (turn != game_turn_black) ? 3 : 0;
     prvSetDigit(data, CLOCK_P, DIGITS[0 + offset][0]);
@@ -92,7 +92,7 @@ void prvRenderNumbers_oneside(uint16_t n, uint32_t *data, game_turn side) {
 }
 
 static void prvRenderUndo(uint32_t *data, game_turn turn, uint16_t *numbers) {
-    prvRenderNumbers_oneside(numbers[1-turn], data, 1-turn);
+    prvRenderNumbers_oneside(numbers[1 - turn], data, 1 - turn);
     uint8_t offset = (turn == game_turn_black) ? 3 : 0;
     prvSetDigit(data, CLOCK_U, DIGITS[1 + offset][1]);
     prvSetDigit(data, CLOCK_N, DIGITS[1 + offset][0]);
@@ -105,6 +105,13 @@ static void prvRenderNumbers(uint32_t *data, uint16_t *numbers) {
     prvRenderNumbers_oneside(numbers[1], data, game_turn_black);
 }
 
+static void prvRenderColons(uint32_t *data) {
+    prvRenderColon(data, COL_1_1_OFFSET);
+    prvRenderColon(data, COL_1_2_OFFSET);
+    prvRenderColon(data, COL_2_1_OFFSET);
+    prvRenderColon(data, COL_2_2_OFFSET);
+}
+
 void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn,
                       uint32_t *times_ms, uint16_t *numbers, uint32_t inc) {
     for (uint8_t i = 0; i < 3; i++) {
@@ -112,11 +119,11 @@ void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn,
     }
     switch (state) {
     case clock_state_off:
-        // No change. Leave it off.
+        prvRenderColons(data);
         break;
     case clock_state_notstarted:
-        prvRenderTime(times_ms, data);
-        prvRenderNumbers_oneside(inc, data, game_turn_black);
+        prvRenderTime_oneside(times_ms[0] / 1000, data, game_turn_white);
+        prvRenderNumbers_oneside(inc / 1000, data, game_turn_black);
         break;
     case clock_state_running:
         // Render the current times.
@@ -182,10 +189,7 @@ void LCD_DELAY_LOAD_INST_IRQHandler(void) {
 
 void vLCD_Init(void) {
     uint32_t data[3] = {0};
-    prvRenderColon(data, COL_1_1_OFFSET);
-    prvRenderColon(data, COL_1_2_OFFSET);
-    prvRenderColon(data, COL_2_1_OFFSET);
-    prvRenderColon(data, COL_2_2_OFFSET);
+    prvRenderColons(data);
     vLCD_WriteHardware(data);
     NVIC_ClearPendingIRQ(LCD_DELAY_LOAD_INST_INT_IRQN);
     NVIC_EnableIRQ(LCD_DELAY_LOAD_INST_INT_IRQN);

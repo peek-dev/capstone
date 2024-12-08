@@ -100,28 +100,30 @@ static void vSetClockState() {
     uint32_t inc = 0;
     uint32_t times[2] = {0};
     switch (state.clock_mode) {
-        case game_clock_off:
-            xReturned &= xClock_set_state(clock_state_off);
-            prep_clock = pdFALSE;
-            break;
-        case game_clock_90_plus30:
-            times[0] = 90*60*1000;
-            inc = 30*1000;
-            break;
-        case game_clock_25_plus10:
-            times[0] = 25*60*1000;
-            inc = 10*1000;
-            break;
-        case game_clock_5_plus3:
-            times[0] = 5*60*1000;
-            inc = 3*1000;
-            break;
+    case game_clock_off:
+        xReturned &= xClock_set_state(clock_state_off);
+        prep_clock = pdFALSE;
+        break;
+    case game_clock_90_plus30:
+        times[0] = 90 * 60 * 1000;
+        inc = 30 * 1000;
+        break;
+    case game_clock_25_plus10:
+        times[0] = 25 * 60 * 1000;
+        inc = 10 * 1000;
+        break;
+    case game_clock_5_plus3:
+        times[0] = 5 * 60 * 1000;
+        inc = 3 * 1000;
+        break;
     }
     if (prep_clock == pdTRUE) {
         times[1] = times[0];
-        xReturned &= xClock_set_state(clock_state_notstarted);
-        xReturned &= xClock_set_increment(inc);
         xReturned &= xClock_set_times(times);
+        // Setting inc forces a rerender, which is needed when switching
+        // between the timing modes. So the order unfortunately matters.
+        xReturned &= xClock_set_increment(inc);
+        xReturned &= xClock_set_state(clock_state_notstarted);
     }
     while (xReturned != pdPASS);
 }
@@ -205,9 +207,11 @@ static void prvHandleButtonPress(enum button_num button) {
                 break;
             }
             xClock_set_state(clock_state_paused);
+            state.state = game_state_paused;
             break;
         case game_state_paused:
             xClock_set_state(clock_state_running);
+            state.state = game_state_running;
             break;
         default:
             break;
@@ -220,10 +224,12 @@ static void prvHandleButtonPress(enum button_num button) {
         case game_state_notstarted:
             switch (state.hint) {
             case game_hint_unknown:
-                // Request a hint from the pi.
-                xReturned = xUART_EncodeEvent(BUTTON_HINT, 0);
-                while (xReturned != pdPASS);
-                state.hint = game_hint_awaiting;
+                if (prvMovesLen != 0) {
+                    // Request a hint from the pi.
+                    xReturned = xUART_EncodeEvent(BUTTON_HINT, 0);
+                    while (xReturned != pdPASS);
+                    state.hint = game_hint_awaiting;
+                }
                 break;
             case game_hint_known:
                 // Display the hint, clearing other things.
@@ -253,13 +259,13 @@ static void prvHandleButtonPress(enum button_num button) {
         if (state.state == game_state_notstarted &&
             xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
                 pdTRUE) {
-            //prvSwitchStateTurn(&state);
+            // prvSwitchStateTurn(&state);
             vResetState();
         } else {
             vResetState();
         }
         // TODO non-standard states
-        //state.state = game_state_notstarted;
+        // state.state = game_state_notstarted;
         // Set the latest state to the board state.
         /*memcpy(&state.last_move_state, &state.last_measured_state,
                sizeof(BoardState));*/
@@ -267,7 +273,8 @@ static void prvHandleButtonPress(enum button_num button) {
         break;
     case button_num_clock_mode:
         if (state.state == game_state_notstarted) {
-            state.clock_mode = (state.clock_mode + 1) % (game_clock_5_plus3 + 1);
+            state.clock_mode =
+                (state.clock_mode + 1) % (game_clock_5_plus3 + 1);
             vSetClockState();
         }
         break;
@@ -280,7 +287,7 @@ static void prvHandleButtonPress(enum button_num button) {
             if (state.clock_mode != game_clock_off) {
                 break;
             }
-            //xClock//TODO
+            // xClock//TODO
             prvSwitchStateTurn(&state);
             state.state = game_state_undo;
             prvMovesLen = 0;
@@ -384,10 +391,12 @@ static void prvSwitchTurnUndo(void) {
         state.in_check = pdFALSE;
         prvCurrentMoveIndex = 0;
         // Send dummy packet to uart to request moves.
-        xReturned = xUART_to_wire(0);
+        xReturned = xUART_to_wire(SENTINEL_REQUEST_RESEND_MOVES);
         while (xReturned != pdPASS);
         xReturned = xClock_set_turn(state.turn == game_turn_black);
-        xReturned &= xClock_set_state(clock_state_running);
+        if (state.clock_mode != game_clock_off) {
+            xReturned &= xClock_set_state(clock_state_running);
+        }
         while (xReturned != pdPASS);
     } else {
         prvSwitchStateTurn(&state);
@@ -397,17 +406,17 @@ static void prvSwitchTurnUndo(void) {
 static BaseType_t prvCheckSentinel(uint32_t packet) {
     if ((packet >> 16) == 0) {
         switch (packet) {
-            case SENTINEL_CHECKMATE:
+        case SENTINEL_CHECKMATE:
             // TODO checkmate
-                break;
-            case SENTINEL_STALEMATE:
+            break;
+        case SENTINEL_STALEMATE:
             // TODO stalemate
-                break;
-            default:
-                state.check_col = GET_M2_DEST_FILE(packet);
-                state.check_row = GET_M2_DEST_RANK(packet);
-                state.in_check = pdTRUE;
-                break;
+            break;
+        default:
+            state.check_col = GET_M2_DEST_FILE(packet);
+            state.check_row = GET_M2_DEST_RANK(packet);
+            state.in_check = pdTRUE;
+            break;
         }
         return pdTRUE;
     }
@@ -421,7 +430,7 @@ static void prvRenderState(void) {
         // anything.
         return;
     }
-    uint8_t row=12, col=12;
+    uint8_t row = 12, col = 12;
     BaseType_t xReturned = pdTRUE;
     if (state.state == game_state_undo) {
         // Render the undo move. If the dest square contents have
@@ -440,7 +449,7 @@ static void prvRenderState(void) {
         return;
     }
     BaseType_t board_changed = pdTRUE;
-    Color c = {.brightness=31,.red=255,.green=255,.blue=0};
+    Color c = {.brightness = 31, .red = 255, .green = 255, .blue = 0};
     // If the board state is unchanged, show the moveable pieces.
     if (xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
         pdTRUE) {
@@ -455,13 +464,15 @@ static void prvRenderState(void) {
         xReturned &= xLED_clear_board();
         xReturned &=
             xIlluminatePieceMoves(prvMoves.possible, prvMovesLen, row, col);
-        
+
     } else {
         board_changed = pdFALSE;
     }
     if (board_changed) {
-        if (state.in_check == pdTRUE && (row != state.check_row || col != state.check_col)) {
-            xReturned &=xLED_set_color(LEDTrans_Square(state.check_row, state.check_col), &c);
+        if (state.in_check == pdTRUE &&
+            (row != state.check_row || col != state.check_col)) {
+            xReturned &= xLED_set_color(
+                LEDTrans_Square(state.check_row, state.check_col), &c);
         }
         if (state.hint == game_hint_displaying) {
             xReturned &= xLED_save();
@@ -472,12 +483,9 @@ static void prvRenderState(void) {
         xReturned &= xLED_commit();
         while (xReturned != pdTRUE) {}
     }
-    
-    
+
     // Otherwise, leave it unchanged.
 }
-
-
 
 static void prvProcessMessage(MainThread_Message *message) {
     switch (message->type) {
