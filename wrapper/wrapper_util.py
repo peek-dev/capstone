@@ -74,6 +74,7 @@ def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -
     packet |= chess.square_rank(move.from_square) << SRC_RANK_SHIFT
     packet |= chess.square_file(move.to_square) << DEST_FILE_SHIFT
     packet |= chess.square_rank(move.to_square) << DEST_RANK_SHIFT
+    if 
     packet |= board.piece_type_at(move.from_square) << PTYPE_SHIFT
     if (board.is_castling(move) or board.is_en_passant(move)):
         packet |= (1 << M2_SHIFT)
@@ -90,7 +91,6 @@ def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -
             packet |= (chess.square_file(move.to_square) << M2_DEST_FILE_SHIFT)
             packet |= (chess.square_rank(move.from_square) << M2_DEST_RANK_SHIFT)
     packet |= encode_movetype(move, board) << MTYPE_SHIFT
-    packet |= 0x00000002 if board.is_castling(move) else 0x00000000
     packet |= (1 if last_move else 0)
 
     return packet
@@ -116,18 +116,23 @@ def encode_undo(move: chess.Move, board: chess.Board) -> int:
     packet |= board.piece_type_at(move.from_square) << PTYPE_SHIFT
     packet |= (1 << M2_SHIFT) if (board.is_castling(move) or board.is_capture(move)) else (0 << M2_SHIFT) 
 
-    undone_ptype = None
-# was keeping it from running
-#    if board.is_en_passant()
 
-    undone_ptype = board.piece_type_at(move.to_square)
+    undone_ptype = None
+
+    if board.is_en_passant(undone_move):
+        undone_ptype = chess.PAWN # en passant captures can only capture pawns
+        dest_file = chess.square_file(move.to_square)
+        dest_rank = chess.square_rank(move.from_square)
+    elif (board.is_capture(move)):
+        undone_ptype = board.piece_type_at(move.to_square)
+    elif (board.is_castling(move)):
+        undone_ptype = chess.ROOK # The second piece type for castling can only be a rook
 
     if undone_ptype != None:
-        packet = packet | (dest_file << M2_SRC_FILE_SHIFT) | (dest_file << M2_DEST_FILE_SHIFT)
-        packet = packet | (dest_rank << M2_SRC_RANK_SHIFT) | (dest_rank << M2_DEST_RANK_SHIFT)
-        packet |= undone_ptype if (undone_ptype != None) else 0
-
-    packet |= (1 if board.color_at(move.to_square) == chess.BLACK else 0) << 3
+        packet |= (dest_file << M2_SRC_FILE_SHIFT) | (dest_file << M2_DEST_FILE_SHIFT)
+        packet |= (dest_rank << M2_SRC_RANK_SHIFT) | (dest_rank << M2_DEST_RANK_SHIFT)
+        packet |= undone_ptype
+        packet |= (1 if board.color_at(move.from_square) == chess.WHITE) else 0) << 3
 
     return packet
 
