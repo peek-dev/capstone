@@ -29,7 +29,7 @@ static TaskHandle_t xSensorTaskId = NULL;
 SemaphoreHandle_t sensor_mutex;
 
 
-static PieceType prvValueToPiece(uint16_t value, uint16_t *bins) {
+static PieceType prvValueToPiece(uint16_t value, const uint16_t *bins) {
     uint8_t i;
     for (i = 0; i < NBINS; i++) {
         if (bins[i] > value) {
@@ -64,17 +64,7 @@ static void prvSelectColumn(uint8_t column) {
                          MUX_GPIO_PIN_R_A2_PIN * !!(column & 4));
 }
 
-static void prvSingleADC(BoardState *board, uint8_t row, uint8_t column) {
-    DL_ADC12_startConversion(ADC_0_INST);
-    // Block the thread until ADC sampling is complete.
-    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-
-    uint16_t sample =
-        DL_ADC12_getMemResult(ADC_0_INST, ADC_0_ADCMEM_ChessSquare);
-    vSetSquare(board, row, column, prvValueToPiece(sample, GetBins(row, column)));
-    DL_ADC12_enableConversions(ADC_0_INST);
-}
-static uint16_t prvSingleADC_Calibration() {
+static uint16_t prvSingleADC() {
     DL_ADC12_startConversion(ADC_0_INST);
     // Block the thread until ADC sampling is complete.
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
@@ -136,6 +126,7 @@ void vSensor_Thread(void *arg0) {
         // This is uninitialized, but that doesn't matter. Each element will be
         // initialized.
         BoardState board;
+        uint16_t samples[5];
         xSemaphoreTake(sensor_mutex, portMAX_DELAY);
         for (uint8_t col = 0; col < 8; col++) {
             prvSelectColumn(col);
@@ -149,11 +140,16 @@ void vSensor_Thread(void *arg0) {
             for (uint8_t row = 0; row < 8; row++) {
                 prvSelectRow(row);
                 // Wait again for signal propagation.
+                //for (uint8_t j = 0; j < 1 + (row==4)*5; j++) {
                 DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
                 ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
-                // Take the sample!
-
-                prvSingleADC(&board, row, col);
+                //}
+                // Take the samples!
+                for (uint8_t i = 0; i < 5; i++) {
+                    samples[i] = prvSingleADC();
+                }
+                uint16_t sample = MedianOfFive(samples);
+                vSetSquare(&board, row, col, prvValueToPiece(sample, GetBins(row, col)));
             }
         }
         xSemaphoreGive(sensor_mutex);
@@ -187,7 +183,7 @@ void vSensor_Thread_Calibration(void *arg0) {
                 ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
                 // Take the sample!
                 for (uint8_t i = 0; i < 5; i++) {
-                    samples[i] = prvSingleADC_Calibration();
+                    samples[i] = prvSingleADC();
                 }
                 board.rows[row].columns[col] = MedianOfFive(samples);
             }
