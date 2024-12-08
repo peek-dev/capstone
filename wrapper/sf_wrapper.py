@@ -143,7 +143,7 @@ if __name__ == '__main__':
                         push_msg(f"(Attempted to) log game data in file \"{data_handle}\".")
                         push_msg("Resetting board state...")
 
-                    wr.init_board(board, uart, log=log_path)
+                    wr.init_board(board, uart, log=debug)
 
                     if debug:
                         push_msg(f"Reset board state. Board now: TURN: {board.turn}, MOVES: {board.move_stack}")
@@ -158,7 +158,12 @@ if __name__ == '__main__':
                     if (board.is_checkmate() or board.is_stalemate()): 
                         continue
 
-                    uart.write(wr.encode_packet(best_move, board, True).to_bytes(4, 'little'))
+                    encoded_best_move = wr.encode_packet(best_move, board, True)
+
+                    if debug:
+                        push_msg(f"Providing {encoded_best_move:08x} as best move.")
+
+                    uart.write(encoded_best_move.to_bytes(4, 'little'))
                 case ButtonEvent.UNDO:
                     try:
                         # Rewinds the board state---no further action needed.
@@ -167,14 +172,22 @@ if __name__ == '__main__':
                         if debug:
                             push_msg(f"Popped move: {undone_move.uci()}")
 
+                        next_result = sf.play(board, sf_limit)
+                        best_move = next_result.move
+                        
                         # Indicate to the MSP which specific move has been undone
                         uart.write(wr.encode_undo(undone_move, board).to_bytes(4, 'little'))
-                        continue
                     except IndexError:
                         # IndexError innocuous; stack is empty, but not an error
-                        push_msg("Move stack empty--can't undo! Sending undo exhaust sentinel (0x00000008).")
+                        push_msg("Move stack empty--can't undo! Sending undo exhaust sentinel {wr.UNDO_EXHAUST:08x}.")
                         uart.write(wr.UNDO_EXHAUST.to_bytes(4, 'little'))
-                        continue 
+                    finally:
+                        # Log the updated move transcript
+                        with open(data_handle, 'w') as game_data:
+                            for game_move in board.move_stack:
+                                print(game_move.uci(), file=game_data)
+
+                        continue
                 case _:
                     # Standard move. Add move to playing stack and update state
                     next_move = wr.decode_packet(next_packet)
