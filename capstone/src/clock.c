@@ -80,7 +80,7 @@ void vClock_Thread(void *arg0) {
                 }
             case clockmsg_render_state: {
                 uint32_t data[3];
-                vLCD_RenderState(data, state, turn, times_ms, numbers);
+                vLCD_RenderState(data, state, turn, times_ms, numbers, increment_ms);
                 vLCD_WriteHardware(data);
                 break;
             }

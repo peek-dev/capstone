@@ -83,7 +83,7 @@ void mainThread(void *arg0) {
     vTaskDelete(NULL);
 }
 
-void vResetState() {
+static void vResetState() {
     state.turn = game_turn_white;
     state.clock_mode = game_clock_off;
     state.state = game_state_notstarted;
@@ -92,6 +92,38 @@ void vResetState() {
     vBoardSetDefault(&state.last_move_state);
     prvMovesLen = 0;
     prvCurrentMoveIndex = 0;
+}
+
+static void vSetClockState() {
+    BaseType_t xReturned = pdTRUE;
+    BaseType_t prep_clock = pdTRUE;
+    uint32_t inc = 0;
+    uint32_t times[2] = {0};
+    switch (state.clock_mode) {
+        case game_clock_off:
+            xReturned &= xClock_set_state(clock_state_off);
+            prep_clock = pdFALSE;
+            break;
+        case game_clock_90_plus30:
+            times[0] = 90*60*1000;
+            inc = 30*1000;
+            break;
+        case game_clock_25_plus10:
+            times[0] = 25*60*1000;
+            inc = 10*1000;
+            break;
+        case game_clock_5_plus3:
+            times[0] = 5*60*1000;
+            inc = 3*1000;
+            break;
+    }
+    if (prep_clock == pdTRUE) {
+        times[1] = times[0];
+        xReturned &= xClock_set_state(clock_state_notstarted);
+        xReturned &= xClock_set_increment(inc);
+        xReturned &= xClock_set_times(times);
+    }
+    while (xReturned != pdPASS);
 }
 
 BaseType_t xMain_Init(void) {
@@ -172,7 +204,6 @@ static void prvHandleButtonPress(enum button_num button) {
             if (state.clock_mode == game_clock_off) {
                 break;
             }
-            // TODO display some sort of pause message
             xClock_set_state(clock_state_paused);
             break;
         case game_state_paused:
@@ -196,7 +227,6 @@ static void prvHandleButtonPress(enum button_num button) {
                 break;
             case game_hint_known:
                 // Display the hint, clearing other things.
-                xLED_save();
                 xLED_clear_board();
                 xIlluminateMove(state.hint_move, 0);
                 xIlluminateMove(state.hint_move, 1);
@@ -237,7 +267,8 @@ static void prvHandleButtonPress(enum button_num button) {
         break;
     case button_num_clock_mode:
         if (state.state == game_state_notstarted) {
-            // TODO cycle through clock modes.
+            state.clock_mode = (state.clock_mode + 1) % (game_clock_5_plus3 + 1);
+            vSetClockState();
         }
         break;
     case button_num_undo:
@@ -355,8 +386,8 @@ static void prvSwitchTurnUndo(void) {
         // Send dummy packet to uart to request moves.
         xReturned = xUART_to_wire(0);
         while (xReturned != pdPASS);
-        // TODO clock?
         xReturned = xClock_set_turn(state.turn == game_turn_black);
+        xReturned &= xClock_set_state(clock_state_running);
         while (xReturned != pdPASS);
     } else {
         prvSwitchStateTurn(&state);
@@ -384,10 +415,6 @@ static BaseType_t prvCheckSentinel(uint32_t packet) {
 }
 
 static void prvRenderState(void) {
-    if (state.hint == game_hint_displaying) {
-        // Don't override the hint if we're currently displaying it.
-        return;
-    }
     if (prvMovesLen == 0) {
         // If we don't know all the possible moves, don't render any.
         // Alternatively, if undoing: if we don't have an undo move, don't show
@@ -436,6 +463,12 @@ static void prvRenderState(void) {
         if (state.in_check == pdTRUE && (row != state.check_row || col != state.check_col)) {
             xReturned &=xLED_set_color(LEDTrans_Square(state.check_row, state.check_col), &c);
         }
+        if (state.hint == game_hint_displaying) {
+            xReturned &= xLED_save();
+            xReturned &= xLED_clear_board();
+            xReturned &= xIlluminateMove(state.hint_move, 0);
+            xReturned &= xIlluminateMove(state.hint_move, 1);
+        }
         xReturned &= xLED_commit();
         while (xReturned != pdTRUE) {}
     }
@@ -479,7 +512,6 @@ static void prvProcessMessage(MainThread_Message *message) {
                 state.hint_move = message->move;
                 state.hint = game_hint_displaying;
                 // Save the current board display state.
-                xLED_save();
                 xLED_clear_board();
                 xIlluminateMove(state.hint_move, 0);
                 xIlluminateMove(state.hint_move, 1);

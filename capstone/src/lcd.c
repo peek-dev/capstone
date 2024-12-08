@@ -106,7 +106,7 @@ static void prvRenderNumbers(uint32_t *data, uint16_t *numbers) {
 }
 
 void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn,
-                      uint32_t *times_ms, uint16_t *numbers) {
+                      uint32_t *times_ms, uint16_t *numbers, uint32_t inc) {
     for (uint8_t i = 0; i < 3; i++) {
         data[i] = 0;
     }
@@ -115,6 +115,9 @@ void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn,
         // No change. Leave it off.
         break;
     case clock_state_notstarted:
+        prvRenderTime(times_ms, data);
+        prvRenderNumbers_oneside(inc, data, game_turn_black);
+        break;
     case clock_state_running:
         // Render the current times.
         prvRenderTime(times_ms, data);
