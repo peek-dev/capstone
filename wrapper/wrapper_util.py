@@ -133,11 +133,11 @@ def encode_undo(move: chess.Move, board: chess.Board) -> int:
         packet |= (dest_rank << M2_SRC_RANK_SHIFT) | (dest_rank << M2_DEST_RANK_SHIFT)
     elif (board.is_capture(move)):
         undone_ptype = board.piece_type_at(move.to_square)
-        undone_pcolor = (1 if board.color_at(move.from_square) == chess.WHITE) else 0) << 3
+        undone_pcolor = (1 if board.color_at(move.from_square) == chess.WHITE else 0) << 3
         packet |= (dest_file << M2_SRC_FILE_SHIFT) | (dest_file << M2_DEST_FILE_SHIFT)
         packet |= (dest_rank << M2_SRC_RANK_SHIFT) | (dest_rank << M2_DEST_RANK_SHIFT)
     elif (board.is_castling(move)):
-        undone_pcolor = (1 if board.color_at(move.from_square) == chess.BLACK) else 0) << 3
+        undone_pcolor = (1 if board.color_at(move.from_square) == chess.BLACK else 0) << 3
         undone_ptype = chess.ROOK # The second piece type for castling can only be a rook
         packet |= ((7*(board.turn==chess.BLACK)) << M2_SRC_RANK_SHIFT)
         packet |= ((7*(board.turn==chess.BLACK)) << M2_DEST_RANK_SHIFT)
