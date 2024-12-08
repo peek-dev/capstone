@@ -93,7 +93,7 @@ void mainThread(void *arg0) {
     xReturned = xUART_to_wire(MSP_ACK);
     while (xReturned != pdPASS);
 
-    volatile BaseType_t mem = xPortGetFreeHeapSize();
+    MAKEVISIBLE BaseType_t mem = xPortGetFreeHeapSize();
     while (1) {
         if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {
             prvProcessMessage(&message);

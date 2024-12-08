@@ -3,6 +3,7 @@
 
 // For the moment, allow assertions despite the code size and memory overhead.
 #undef NDEBUG
+#define MAKEVISIBLE volatile
 #include <inttypes.h>
 #include "ti_msp_dl_config.h"
 #include "FreeRTOS.h"

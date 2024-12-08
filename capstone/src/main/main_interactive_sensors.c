@@ -48,7 +48,7 @@ void mainThread(void *arg0) {
 
 
     MainThread_Message message;
-    volatile BaseType_t mem = xPortGetFreeHeapSize();
+    MAKEVISIBLE BaseType_t mem = xPortGetFreeHeapSize();
     while (1) {
         if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {
             prvProcessMessage(&message);

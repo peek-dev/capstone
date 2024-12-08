@@ -14,8 +14,8 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
     // changes, these will need to too.
     for (uint8_t row = 0; row < 8; row++) {
         for (uint8_t col = 0; col < 8; col++) {
-            volatile PieceType post = xGetSquare(new, row, col);
-            volatile PieceType expected;
+            MAKEVISIBLE PieceType post = xGetSquare(new, row, col);
+            MAKEVISIBLE PieceType expected;
             // If this square should change, confirm that it does.
             if (row == GET_SRC_RANK(move) && col == GET_SRC_FILE(move)) {
                 // Squares that pieces moved from should be empty

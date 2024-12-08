@@ -30,7 +30,7 @@ void mainThread(void *arg0) {
     xReturned = xPortGetFreeHeapSize();
 
     MainThread_Message message;
-    volatile BaseType_t mem = xPortGetFreeHeapSize();
+    MAKEVISIBLE BaseType_t mem = xPortGetFreeHeapSize();
     while (1) {
         if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {
             prvProcessMessage(&message);
@@ -97,7 +97,7 @@ prvHandleButtonPress(enum button_num button) {
 }
 
 static void prvProcessMessage(MainThread_Message *message) {
-    volatile NormalMove button;
+    MAKEVISIBLE NormalMove button;
     switch (message->type) {
     case main_sensor_update:
         break;
