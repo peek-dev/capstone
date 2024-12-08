@@ -21,7 +21,7 @@ M2_PTYPE_SHIFT = 1
 
 MTYPE_SHIFT = 2
 MTYPE_NORMAL = 0
-MTYPE_CHECK = 1
+MTYPE_PROMO = 1
 MTYPE_CAPTURE = 2
 MTYPE_CASTLE = 3
 
@@ -49,10 +49,13 @@ class ButtonEvent(Enum):
 # Extracted here since the logic is more complex than a match-case.
 def encode_movetype(move: chess.Move, board: chess.Board) -> int:
     global MTYPE_NORMAL
+    global MTYPE_PROMO
     global MTYPE_CAPTURE
     global MTYPE_CASTLE
 
-    if (board.is_capture(move)):
+    if (move.promotion != None):
+        return MTYPE_PROMO
+    elif (board.is_capture(move)):
         return MTYPE_CAPTURE
     elif (board.is_castling(move)):
         return MTYPE_CASTLE
@@ -155,13 +158,11 @@ def encode_undo(move: chess.Move, board: chess.Board) -> int:
 
 def encode_check(board: chess.Board) -> int:
     global MTYPE_SHIFT
-    global MTYPE_CHECK
     global M2_DEST_FILE_SHIFT
     global M2_DEST_RANK_SHIFT
     global PTYPE_SHIFT
 
-    check_packet = 0
-    check_packet |= (MTYPE_CHECK << MTYPE_SHIFT)
+    check_packet = 4
 
     king_square = board.king(board.turn)
     check_packet |= (chess.square_file(king_square) << M2_DEST_FILE_SHIFT)
