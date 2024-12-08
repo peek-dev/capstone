@@ -31,6 +31,8 @@ MSP_SYN = 0x00000000
 SYNACK  = 0x0000FFFF
 MSP_ACK = 0xFFFFFFFF
 
+MSP_REREQ   = 0x00000004
+
 CHECK       = 0x00000011
 CHECKMATE   = 0x00000031
 STALEMATE   = 0x00000071
@@ -46,13 +48,10 @@ class ButtonEvent(Enum):
 # Extracted here since the logic is more complex than a match-case.
 def encode_movetype(move: chess.Move, board: chess.Board) -> int:
     global MTYPE_NORMAL
-    global MTYPE_CHECK
     global MTYPE_CAPTURE
     global MTYPE_CASTLE
 
-    if (board.gives_check(move)):
-        return MTYPE_CHECK
-    elif (board.is_capture(move)):
+    if (board.is_capture(move)):
         return MTYPE_CAPTURE
     elif (board.is_castling(move)):
         return MTYPE_CASTLE
@@ -80,16 +79,16 @@ def encode_packet(move: chess.Move, board: chess.Board, last_move: bool=False) -
         packet |= (1 << M2_SHIFT)
         if board.is_castling(move):
             packet |= (1 << M2_PTYPE_SHIFT)
-            packet |= ((7*(board.turn==chess.WHITE)) << M2_SRC_RANK_SHIFT)
-            packet |= ((7*(board.turn==chess.WHITE)) << M2_DEST_RANK_SHIFT)
+            packet |= ((7*(board.turn==chess.BLACK)) << M2_SRC_RANK_SHIFT)
+            packet |= ((7*(board.turn==chess.BLACK)) << M2_DEST_RANK_SHIFT)
             packet |= ((7*board.is_kingside_castling(move)) << M2_SRC_FILE_SHIFT)
             packet |= ((3 + 2*board.is_kingside_castling(move)) << M2_DEST_FILE_SHIFT)
         else:
             packet |= (0 << M2_PTYPE_SHIFT)
-            packet |= (chess.square_file(board.ep_square) << M2_SRC_FILE_SHIFT)
-            packet |= (chess.square_rank(board.ep_square) << M2_SRC_RANK_SHIFT)
-            packet |= (chess.square_file(board.ep_square) << M2_DEST_FILE_SHIFT)
-            packet |= (chess.square_rank(board.ep_square) << M2_DEST_RANK_SHIFT)
+            packet |= (chess.square_file(move.to_square) << M2_SRC_FILE_SHIFT)
+            packet |= (chess.square_rank(move.from_square) << M2_SRC_RANK_SHIFT)
+            packet |= (chess.square_file(move.to_square) << M2_DEST_FILE_SHIFT)
+            packet |= (chess.square_rank(move.from_square) << M2_DEST_RANK_SHIFT)
     packet |= encode_movetype(move, board) << MTYPE_SHIFT
     packet |= 0x00000002 if board.is_castling(move) else 0x00000000
     packet |= (1 if last_move else 0)
@@ -117,6 +116,10 @@ def encode_undo(move: chess.Move, board: chess.Board) -> int:
     packet |= board.piece_type_at(move.from_square) << PTYPE_SHIFT
     packet |= (1 << M2_SHIFT) if (board.is_castling(move) or board.is_capture(move)) else (0 << M2_SHIFT) 
 
+    undone_ptype = None
+# was keeping it from running
+#    if board.is_en_passant()
+
     undone_ptype = board.piece_type_at(move.to_square)
 
     if undone_ptype != None:
@@ -139,10 +142,9 @@ def encode_check(board: chess.Board) -> int:
     check_packet = 0
     check_packet |= (MTYPE_CHECK << MTYPE_SHIFT)
 
-    king_square = chess.square_name(board.king(board.turn))
+    king_square = board.king(board.turn)
     check_packet |= (chess.square_file(king_square) << M2_DEST_FILE_SHIFT)
     check_packet |= (chess.square_rank(king_square) << M2_DEST_RANK_SHIFT)
-    check_packet |= (int(chess.KING) << PTYPE_SHIFT)
 
     return check_packet
 

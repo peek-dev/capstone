@@ -10,7 +10,7 @@ import sys  # for basic argparsing: argv[1]
 
 
 def push_msg(msg: str):
-    print("[DEBUG]:", msg, file=log)
+    print("[DEBUG]:", msg)
 
 
 if __name__ == '__main__':
@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
 
     if debug:
-        push_msg(f"STARTED at: {overall_timestamp}")
+        push_msg(f"STARTED at: {datetime.now().isoformat()}")
 
     MSP_BAUDRATE=115200 # UART state constant
     board = chess.Board()
