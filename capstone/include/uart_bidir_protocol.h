@@ -36,33 +36,33 @@ typedef uint8_t CHESS_RANK;
  */
 typedef uint8_t PTYPE;
 
-#define PTYPE_NULL ((uint8_t)0x0)
+#define PTYPE_NULL     ((uint8_t)0x0)
 #define PTYPE_NULL_ALT ((uint8_t)0x7)
-#define PTYPE_PAWN ((uint8_t)0x1)
-#define PTYPE_KNIGHT ((uint8_t)0x2)
-#define PTYPE_BISHOP ((uint8_t)0x3)
-#define PTYPE_ROOK ((uint8_t)0x4)
-#define PTYPE_QUEEN ((uint8_t)0x5)
-#define PTYPE_KING ((uint8_t)0x6)
+#define PTYPE_PAWN     ((uint8_t)0x1)
+#define PTYPE_KNIGHT   ((uint8_t)0x2)
+#define PTYPE_BISHOP   ((uint8_t)0x3)
+#define PTYPE_ROOK     ((uint8_t)0x4)
+#define PTYPE_QUEEN    ((uint8_t)0x5)
+#define PTYPE_KING     ((uint8_t)0x6)
 
 // Friendly ptype aliases
-#define PIECE_NULL PTYPE_NULL
+#define PIECE_NULL     PTYPE_NULL
 #define PIECE_NULL_ALT PTYPE_NULL_ALT
-#define PAWN PTYPE_PAWN
-#define KNIGHT PTYPE_KNIGHT
-#define BISHOP PTYPE_BISHOP
-#define ROOK PTYPE_ROOK
-#define QUEEN PTYPE_QUEEN
-#define KING PTYPE_KING
+#define PAWN           PTYPE_PAWN
+#define KNIGHT         PTYPE_KNIGHT
+#define BISHOP         PTYPE_BISHOP
+#define ROOK           PTYPE_ROOK
+#define QUEEN          PTYPE_QUEEN
+#define KING           PTYPE_KING
 
 /**
  * Constants for encoded move types ("mtypes")
  */
 typedef uint8_t MTYPE;
 
-#define MTYPE_NORMAL ((uint8_t)0)
-#define MTYPE_CHECK ((uint8_t)1)
-#define MTYPE_CAPTURE ((uint8_t)2)
+#define MTYPE_NORMAL         ((uint8_t)0)
+#define MTYPE_CHECK          ((uint8_t)1)
+#define MTYPE_CAPTURE        ((uint8_t)2)
 #define MTYPE_CASTLE_PROMOTE ((uint8_t)3)
 
 /**
@@ -71,40 +71,40 @@ typedef uint8_t MTYPE;
 typedef uint8_t BUTTON_EVENT;
 
 #define BUTTON_TURNSWITCH ((uint8_t)0)
-#define BUTTON_RESTART ((uint8_t)1)
-#define BUTTON_HINT ((uint8_t)2)
-#define BUTTON_UNDO ((uint8_t)3)
+#define BUTTON_RESTART    ((uint8_t)1)
+#define BUTTON_HINT       ((uint8_t)2)
+#define BUTTON_UNDO       ((uint8_t)3)
 
 /**
  * Constants (shifts and masks) for upper 16 bits of 32-bit UART encoded word
  * (almost completely shared between Pi->MSP and MSP-Pi packets)
  */
 #define SRC_FILE_SHIFT 29
-#define SRC_FILE_MASK (((uint32_t)0x7) << SRC_FILE_SHIFT)
+#define SRC_FILE_MASK  (((uint32_t)0x7) << SRC_FILE_SHIFT)
 #define GET_SRC_FILE(word)                                                     \
     (uint8_t)(((word & SRC_FILE_MASK) >> SRC_FILE_SHIFT) & 0x7)
 
 #define SRC_RANK_SHIFT 26
-#define SRC_RANK_MASK (((uint32_t)0x7) << SRC_RANK_SHIFT)
+#define SRC_RANK_MASK  (((uint32_t)0x7) << SRC_RANK_SHIFT)
 #define GET_SRC_RANK(word)                                                     \
     (uint8_t)(((word & SRC_RANK_MASK) >> SRC_RANK_SHIFT) & 0x7)
 
 #define DEST_FILE_SHIFT 23
-#define DEST_FILE_MASK (((uint32_t)0x7) << DEST_FILE_SHIFT)
+#define DEST_FILE_MASK  (((uint32_t)0x7) << DEST_FILE_SHIFT)
 #define GET_DEST_FILE(word)                                                    \
     (uint8_t)(((word & DEST_FILE_MASK) >> DEST_FILE_SHIFT) & 0x7)
 
 #define DEST_RANK_SHIFT 20
-#define DEST_RANK_MASK (((uint32_t)0x7) << DEST_RANK_SHIFT)
+#define DEST_RANK_MASK  (((uint32_t)0x7) << DEST_RANK_SHIFT)
 #define GET_DEST_RANK(word)                                                    \
     (uint8_t)(((word & DEST_RANK_MASK) >> DEST_RANK_SHIFT) & 0x7)
 
-#define PTYPE_SHIFT 17
-#define PTYPE_MASK (((uint32_t)0x7) << PTYPE_SHIFT)
+#define PTYPE_SHIFT     17
+#define PTYPE_MASK      (((uint32_t)0x7) << PTYPE_SHIFT)
 #define GET_PTYPE(word) (uint8_t)(((word & PTYPE_MASK) >> PTYPE_SHIFT) & 0x7)
 
-#define M2_SHIFT 16
-#define M2_MASK ((uint32_t)0x1 << M2_SHIFT)
+#define M2_SHIFT     16
+#define M2_MASK      ((uint32_t)0x1 << M2_SHIFT)
 #define GET_M2(word) (uint8_t)(((word & M2_MASK) >> M2_SHIFT) & 0x1)
 
 /**
@@ -112,22 +112,22 @@ typedef uint8_t BUTTON_EVENT;
  * encoded word (shared between Pi->MSP move and undo packets)
  */
 #define M2_SRC_FILE_SHIFT 13
-#define M2_SRC_FILE_MASK ((uint32_t)0x7 << M2_SRC_FILE_SHIFT)
+#define M2_SRC_FILE_MASK  ((uint32_t)0x7 << M2_SRC_FILE_SHIFT)
 #define GET_M2_SRC_FILE(word)                                                  \
     (uint8_t)(((word & M2_SRC_FILE_MASK) >> M2_SRC_FILE_SHIFT) & 0x7)
 
 #define M2_SRC_RANK_SHIFT 10
-#define M2_SRC_RANK_MASK ((uint32_t)0x7 << M2_SRC_RANK_SHIFT)
+#define M2_SRC_RANK_MASK  ((uint32_t)0x7 << M2_SRC_RANK_SHIFT)
 #define GET_M2_SRC_RANK(word)                                                  \
     (uint8_t)(((word & M2_SRC_RANK_MASK) >> M2_SRC_RANK_SHIFT) & 0x7)
 
 #define M2_DEST_FILE_SHIFT 7
-#define M2_DEST_FILE_MASK ((uint32_t)0x7 << M2_DEST_FILE_SHIFT)
+#define M2_DEST_FILE_MASK  ((uint32_t)0x7 << M2_DEST_FILE_SHIFT)
 #define GET_M2_DEST_FILE(word)                                                 \
     (uint8_t)(((word & M2_DEST_FILE_MASK) >> M2_DEST_FILE_SHIFT) & 0x7)
 
 #define M2_DEST_RANK_SHIFT 4
-#define M2_DEST_RANK_MASK ((uint32_t)0x7 << M2_DEST_RANK_SHIFT)
+#define M2_DEST_RANK_MASK  ((uint32_t)0x7 << M2_DEST_RANK_SHIFT)
 #define GET_M2_DEST_RANK(word)                                                 \
     (uint8_t)(((word & M2_DEST_RANK_MASK) >> M2_DEST_RANK_SHIFT) & 0x7)
 
@@ -138,12 +138,12 @@ typedef uint8_t BUTTON_EVENT;
  * The lowest-order 4 bits are variable depending on packet type: Pi->MSP
  * normal move, Pi->MSP undo move, or MSP->Pi record move.
  */
-#define MTYPE_SHIFT 2
-#define MTYPE_MASK ((uint32_t)0x3 << MTYPE_SHIFT)
+#define MTYPE_SHIFT     2
+#define MTYPE_MASK      ((uint32_t)0x3 << MTYPE_SHIFT)
 #define GET_MTYPE(word) (uint8_t)(((word & MTYPE_MASK) >> MTYPE_SHIFT) & 0x3)
 
-#define M2_PTYPE_SHIFT 1
-#define M2_PTYPE_MASK ((uint32_t)0x2)
+#define M2_PTYPE_SHIFT     1
+#define M2_PTYPE_MASK      ((uint32_t)0x2)
 #define GET_M2_PTYPE(word) (uint8_t)(((word & M2_PTYPE_MASK) >> 1) & 0x1)
 
 #define IS_LAST_MOVE(word) ((uint8_t)word & 0x1)

@@ -6,3 +6,4 @@ InsertBraces: true
 SortIncludes: false
 AllowShortBlocksOnASingleLine: Empty
 AllowShortLoopsOnASingleLine: true
+AlignConsecutiveMacros: true

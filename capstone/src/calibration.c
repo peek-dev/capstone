@@ -76,7 +76,7 @@ const uint16_t bins[8][8][13] =
   {   0,  491, 1109, 1403, 1618, 1792, 1956, 2113, 2277, 2438, 2664, 2977, 3681},
   {   0,  541, 1158, 1427, 1638, 1804, 1957, 2114, 2270, 2416, 2638, 2944, 3640}}};
 
-const uint16_t * GetBins(uint8_t row, uint8_t col) {
+const uint16_t *GetBins(uint8_t row, uint8_t col) {
     assert(row < 8 && col < 8);
     return bins[row][col];
   }

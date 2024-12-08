@@ -51,6 +51,7 @@ typedef struct {
         // note: undo is only enabled when the clock is off.
         game_state_undo,
         game_state_notstarted,
+        game_state_over,
     } state;
     game_turn turn;
     chess_clock_mode clock_mode;

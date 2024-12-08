@@ -9,7 +9,8 @@ void vLCD_RenderTime(uint32_t *times, uint32_t *data);
 void vLCD_WriteHardware(uint32_t *data);
 void vLCD_Init(void);
 void vLCD_RunTestSequence(uint8_t seconds_per_test);
-void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn, uint32_t *times_ms, uint16_t *numbers, uint32_t inc);
+void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn,
+                      uint32_t *times_ms, uint16_t *numbers, uint32_t inc);
 
 // In case I got the bit order wrong.
 #define SEVENSEG_A (1 << 0)
@@ -42,7 +43,9 @@ void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn, uint32_
     (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_F |          \
      SEVENSEG_G)
 
-#define CLOCK_A (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C | SEVENSEG_E | SEVENSEG_F | SEVENSEG_G)
+#define CLOCK_A                                                                \
+    (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C | SEVENSEG_E | SEVENSEG_F |          \
+     SEVENSEG_G)
 #define CLOCK_D (SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_E | SEVENSEG_G)
 #define CLOCK_E (SEVENSEG_A | SEVENSEG_D | SEVENSEG_E | SEVENSEG_F | SEVENSEG_G)
 #define CLOCK_F (SEVENSEG_A | SEVENSEG_E | SEVENSEG_F | SEVENSEG_G)

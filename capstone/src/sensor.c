@@ -28,7 +28,6 @@ static TaskHandle_t xSensorTaskId = NULL;
 
 SemaphoreHandle_t sensor_mutex;
 
-
 static PieceType prvValueToPiece(uint16_t value, const uint16_t *bins) {
     uint8_t i;
     for (i = 0; i < NBINS; i++) {
@@ -140,7 +139,7 @@ void vSensor_Thread(void *arg0) {
             for (uint8_t row = 0; row < 8; row++) {
                 prvSelectRow(row);
                 // Wait again for signal propagation.
-                //for (uint8_t j = 0; j < 1 + (row==4)*5; j++) {
+                // for (uint8_t j = 0; j < 1 + (row==4)*5; j++) {
                 DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
                 ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
                 //}
@@ -149,7 +148,8 @@ void vSensor_Thread(void *arg0) {
                     samples[i] = prvSingleADC();
                 }
                 uint16_t sample = MedianOfFive(samples);
-                vSetSquare(&board, row, col, prvValueToPiece(sample, GetBins(row, col)));
+                vSetSquare(&board, row, col,
+                           prvValueToPiece(sample, GetBins(row, col)));
             }
         }
         xSemaphoreGive(sensor_mutex);

@@ -25,7 +25,7 @@ void mainThread(void *arg0) {
 
     xReturned = xMain_Init();
     while (xReturned != pdPASS) {}
-    
+
     xReturned = xPortGetFreeHeapSize();
 
     /* Call driver init functions */
@@ -45,7 +45,6 @@ void mainThread(void *arg0) {
     xReturned = xTaskCreate(vSensor_Thread, "Sensor", configMINIMAL_STACK_SIZE,
                             NULL, 2, &thread_sensor);
     while (xReturned != pdPASS) {}
-
 
     MainThread_Message message;
     MAKEVISIBLE BaseType_t mem = xPortGetFreeHeapSize();

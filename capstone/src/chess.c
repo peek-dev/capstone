@@ -202,7 +202,7 @@ BaseType_t xIlluminatePieceMoves(NormalMove *moves, uint16_t moves_len,
             }
         }
     }
-    Color c = {.brightness=31,.blue=255,.green=0,.red=0};
+    Color c = {.brightness = 31, .blue = 255, .green = 0, .red = 0};
     xLED_set_color(LEDTrans_Square(row, col), &c);
     return pdTRUE;
 }

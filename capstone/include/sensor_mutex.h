@@ -3,9 +3,9 @@
 
 #include "semphr.h"
 
-#define LCD_USE_SENSOR_MUTEX 0
+#define LCD_USE_SENSOR_MUTEX  0
 #define UART_USE_SENSOR_MUTEX 0
-#define LED_USE_SENSOR_MUTEX 1
+#define LED_USE_SENSOR_MUTEX  1
 
 extern SemaphoreHandle_t sensor_mutex;
 
