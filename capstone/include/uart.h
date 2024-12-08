@@ -10,6 +10,9 @@
 #define SYNACK  (0x0000FFFFul)
 #define MSP_ACK (0xFFFFFFFFul)
 
+#define SENTINEL_CHECKMATE (0x00000031ul)
+#define SENTINEL_STALEMATE (0x00000071ul)
+
 /**
  * Initialize UART thread state, including queue handle for data to be put on 
  * the wire.

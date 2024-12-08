@@ -63,6 +63,9 @@ typedef struct {
     NormalMove hint_move;
     BoardState last_move_state;
     BoardState last_measured_state;
+    uint8_t check_row;
+    uint8_t check_col;
+    BaseType_t in_check;
 } GameState;
 
 // OPT compact row and column into one field.

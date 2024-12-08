@@ -46,7 +46,6 @@ void mainThread(void *arg0) {
                             NULL, 2, &thread_sensor);
     while (xReturned != pdPASS) {}
 
-    /* FIXME: call xTaskCreate() API to set up UART task */
 
     MainThread_Message message;
     volatile BaseType_t mem = xPortGetFreeHeapSize();

@@ -7,6 +7,7 @@
 #include "game.h"
 #include "clock.h"
 #include "led.h"
+#include "led_translation.h"
 #include "portmacro.h"
 #include "projdefs.h"
 #include "sensor.h"
@@ -87,6 +88,7 @@ void vResetState() {
     state.clock_mode = game_clock_off;
     state.state = game_state_notstarted;
     state.hint = game_hint_unknown;
+    state.in_check = pdFALSE;
     vBoardSetDefault(&state.last_move_state);
     prvMovesLen = 0;
     prvCurrentMoveIndex = 0;
@@ -290,6 +292,7 @@ static void prvSwitchTurnRoutine() {
     prvSwitchStateTurn(&state);
     // Reset the hint state.
     state.hint = game_hint_unknown;
+    state.in_check = pdFALSE;
     // Set the board state to the latest measured state.
     memcpy(&state.last_move_state, &state.last_measured_state,
            sizeof(BoardState));
@@ -347,6 +350,7 @@ static void prvSwitchTurnUndo(void) {
         // Do not switch the player turn.
         state.state = game_state_running;
         state.hint = game_hint_unknown;
+        state.in_check = pdFALSE;
         prvCurrentMoveIndex = 0;
         // Send dummy packet to uart to request moves.
         xReturned = xUART_to_wire(0);
@@ -357,6 +361,26 @@ static void prvSwitchTurnUndo(void) {
     } else {
         prvSwitchStateTurn(&state);
     }
+}
+
+static BaseType_t prvCheckSentinel(uint32_t packet) {
+    if ((packet >> 16) == 0) {
+        switch (packet) {
+            case SENTINEL_CHECKMATE:
+            // TODO checkmate
+                break;
+            case SENTINEL_STALEMATE:
+            // TODO stalemate
+                break;
+            default:
+                state.check_col = GET_M2_DEST_FILE(packet);
+                state.check_row = GET_M2_DEST_RANK(packet);
+                state.in_check = pdTRUE;
+                break;
+        }
+        return pdTRUE;
+    }
+    return pdFALSE;
 }
 
 static void prvRenderState(void) {
@@ -370,7 +394,7 @@ static void prvRenderState(void) {
         // anything.
         return;
     }
-    uint8_t row, col;
+    uint8_t row=12, col=12;
     BaseType_t xReturned = pdTRUE;
     if (state.state == game_state_undo) {
         // Render the undo move. If the dest square contents have
@@ -388,13 +412,13 @@ static void prvRenderState(void) {
         while (xReturned != pdTRUE) {}
         return;
     }
+    BaseType_t board_changed = pdTRUE;
+    Color c = {.brightness=31,.red=255,.green=255,.blue=0};
     // If the board state is unchanged, show the moveable pieces.
     if (xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
         pdTRUE) {
         xReturned &= xLED_clear_board();
         xReturned &= xIlluminateMovable(prvMoves.possible, prvMovesLen);
-        xReturned &= xLED_commit();
-        while (xReturned != pdTRUE) {}
     }
     // If it's not, check if we've only removed one piece.
     else if (xFindSingleLifted(&state.last_move_state,
@@ -404,11 +428,23 @@ static void prvRenderState(void) {
         xReturned &= xLED_clear_board();
         xReturned &=
             xIlluminatePieceMoves(prvMoves.possible, prvMovesLen, row, col);
+        
+    } else {
+        board_changed = pdFALSE;
+    }
+    if (board_changed) {
+        if (state.in_check == pdTRUE && (row != state.check_row || col != state.check_col)) {
+            xReturned &=xLED_set_color(LEDTrans_Square(state.check_row, state.check_col), &c);
+        }
         xReturned &= xLED_commit();
         while (xReturned != pdTRUE) {}
     }
+    
+    
     // Otherwise, leave it unchanged.
 }
+
+
 
 static void prvProcessMessage(MainThread_Message *message) {
     switch (message->type) {
@@ -428,6 +464,9 @@ static void prvProcessMessage(MainThread_Message *message) {
         }
         // Check: are we currently listening for moves?
         else if (prvMovesLen == 0) {
+            if (prvCheckSentinel(message->move) == pdTRUE) {
+                break;
+            }
             prvMoves.possible[prvCurrentMoveIndex] = message->move;
             prvCurrentMoveIndex++;
             if (IS_LAST_MOVE(message->move)) {

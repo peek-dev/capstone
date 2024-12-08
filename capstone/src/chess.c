@@ -14,8 +14,8 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
     // changes, these will need to too.
     for (uint8_t row = 0; row < 8; row++) {
         for (uint8_t col = 0; col < 8; col++) {
-            PieceType post = xGetSquare(new, row, col);
-            PieceType expected;
+            volatile PieceType post = xGetSquare(new, row, col);
+            volatile PieceType expected;
             // If this square should change, confirm that it does.
             if (row == GET_SRC_RANK(move) && col == GET_SRC_FILE(move)) {
                 // Squares that pieces moved from should be empty
@@ -202,6 +202,8 @@ BaseType_t xIlluminatePieceMoves(NormalMove *moves, uint16_t moves_len,
             }
         }
     }
+    Color c = {.brightness=31,.blue=255,.green=0,.red=0};
+    xLED_set_color(LEDTrans_Square(row, col), &c);
     return pdTRUE;
 }
 
