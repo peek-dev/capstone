@@ -57,6 +57,10 @@ for i in range(0,12):
 print(mins)
 print(maxes)
 print(bins)
+spacing = mins[:,:,1:]-maxes[:,:,:-1]
+if np.any(spacing < 0):
+    print("Error: overlap!")
+print(spacing)
 bins_width = (bins[:,:,1:]-bins[:,:,:-1])
 if np.any(bins_width < 100):
     print("Error! Bins too small!")
@@ -73,4 +77,4 @@ if np.any(bins_width < 100):
 bins_str = f"{bins}"
 bins_str_c = re.sub(r'(\d) ', r'\1, ', re.sub('},},},', '}}}', re.sub(r'\]', '},', re.sub(r'\[', r'{', bins_str))))
 print("C format:")
-print(f"uint16_t bins[][][] =\n{bins_str_c};")
+print(f"uint16_t bins[8][8][13] =\n{bins_str_c};")
