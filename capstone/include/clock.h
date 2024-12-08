@@ -23,8 +23,8 @@ BaseType_t xClock_set_turn(game_turn turn);
 BaseType_t xClock_set_state(clock_state state);
 BaseType_t xClock_set_increment(uint32_t increment_ms);
 BaseType_t xClock_set_times(uint32_t *times_ms);
-// sets state to static numbers.
 BaseType_t xClock_set_numbers(uint16_t *numbers);
+BaseType_t xClock_set_both_numbers(uint16_t number);
 
 #ifdef DELCLARE_PRIVATE_CLOCK_C
 enum Clock_MsgType {

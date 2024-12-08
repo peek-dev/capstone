@@ -24,13 +24,12 @@ void mainThread(void *arg0) {
     MainThread_Message message;
     BaseType_t xReturned;
 
-    xReturned = xMain_Init();
-    while (xReturned != pdPASS) {}
-
     // Make the display consistent while we initialize.
     xReturned = xClock_Init();
     while (xReturned != pdPASS) {}
     xReturned = xLED_Init();
+    while (xReturned != pdPASS) {}
+    xReturned = xMain_Init();
     while (xReturned != pdPASS) {}
 
     xReturned = xUART_Init();
@@ -91,17 +90,6 @@ void mainThread(void *arg0) {
     vTaskDelete(NULL);
 }
 
-static void vResetState() {
-    state.turn = game_turn_white;
-    state.clock_mode = game_clock_off;
-    state.state = game_state_notstarted;
-    state.hint = game_hint_unknown;
-    state.in_check = pdFALSE;
-    vBoardSetDefault(&state.last_move_state);
-    prvMovesLen = 0;
-    prvCurrentMoveIndex = 0;
-}
-
 static void vSetClockState() {
     BaseType_t xReturned = pdTRUE;
     BaseType_t prep_clock = pdTRUE;
@@ -134,6 +122,20 @@ static void vSetClockState() {
         xReturned &= xClock_set_state(clock_state_notstarted);
     }
     while (xReturned != pdPASS);
+}
+
+static void vResetState() {
+    state.turn = game_turn_white;
+    state.clock_mode = game_clock_off;
+    state.state = game_state_notstarted;
+    state.hint = game_hint_unknown;
+    state.in_check = pdFALSE;
+    prvMovesLen = 0;
+    prvCurrentMoveIndex = 0;
+    vBoardSetDefault(&state.last_move_state);
+    vSetClockState();
+    xLED_clear_board();
+    xLED_commit();
 }
 
 BaseType_t xMain_Init(void) {
@@ -263,7 +265,6 @@ static void prvHandleButtonPress(enum button_num button) {
         }
         break;
     case button_num_start_restart:
-        state.hint = game_hint_unknown;
         if (state.state == game_state_notstarted &&
             xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
                 pdTRUE) {
@@ -272,6 +273,7 @@ static void prvHandleButtonPress(enum button_num button) {
         } else {
             vResetState();
         }
+        xUART_EncodeEvent(BUTTON_RESTART, 0);
         // TODO non-standard states
         // state.state = game_state_notstarted;
         // Set the latest state to the board state.
@@ -295,13 +297,15 @@ static void prvHandleButtonPress(enum button_num button) {
             if (state.clock_mode != game_clock_off) {
                 break;
             }
-            // xClock//TODO
             prvSwitchStateTurn(&state);
+            xClock_set_state(clock_state_undo);
+            xClock_set_turn(state.turn);
             state.state = game_state_undo;
             prvMovesLen = 0;
             prvCurrentMoveIndex = 0;
             state.hint = game_hint_unknown;
         case game_state_undo:
+            xClock_set_both_numbers(prvMovesLen + 1);
             xReturned = xUART_EncodeEvent(BUTTON_UNDO, 0);
             while (xReturned != pdPASS);
             break;
@@ -403,11 +407,16 @@ static void prvSwitchTurnUndo(void) {
         while (xReturned != pdPASS);
         xReturned = xClock_set_turn(state.turn == game_turn_black);
         if (state.clock_mode != game_clock_off) {
+            // dead code, I think?
             xReturned &= xClock_set_state(clock_state_running);
+        } else {
+            xReturned &= xClock_set_state(clock_state_off);
         }
         while (xReturned != pdPASS);
     } else {
         prvSwitchStateTurn(&state);
+        xClock_set_turn(state.turn);
+        xClock_set_both_numbers(prvMovesLen);
     }
 }
 
@@ -459,8 +468,8 @@ static void prvRenderState(void) {
     BaseType_t board_changed = pdTRUE;
     Color c = {.brightness = 31, .red = 255, .green = 255, .blue = 0};
     // If the board state is unchanged, show the moveable pieces.
-    if (xBoardEqu xReturned &= xFlashSquare_DisableAll();
-        al(&state.last_move_state, &state.last_measured_state) == pdTRUE) {
+    if (xBoardEqual(&state.last_move_state, &state.last_measured_state) == pdTRUE) {
+        xReturned &= xFlashSquare_DisableAll();
         xReturned &= xLED_clear_board();
         xReturned &= xIlluminateMovable(prvMoves.possible, prvMovesLen);
     }

@@ -160,3 +160,11 @@ BaseType_t xClock_set_numbers(uint16_t *numbers) {
     memcpy(m.numbers, numbers, sizeof(uint16_t) * 2);
     return xQueueSend(clockQueue, &m, portMAX_DELAY);
 }
+
+BaseType_t xClock_set_both_numbers(uint16_t number) {
+    Clock_Message m;
+    m.type = clockmsg_set_numbers;
+    m.numbers[0] = number;
+    m.numbers[1] = number;
+    return xQueueSend(clockQueue, &m, portMAX_DELAY);
+}
