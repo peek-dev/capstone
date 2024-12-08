@@ -67,6 +67,11 @@ typedef struct {
     uint8_t check_row;
     uint8_t check_col;
     BaseType_t in_check;
+    enum {
+        game_winner_black = game_turn_white,
+        game_winner_white = game_turn_black,
+        game_winner_draw,
+    } winner;
 } GameState;
 
 // OPT compact row and column into one field.

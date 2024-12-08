@@ -2,11 +2,18 @@
 #define CAPSTONE_CHESS_H
 
 #include "config.h"
+#include "led.h"
 
 typedef uint32_t NormalMove;
 typedef uint32_t UndoMove;
 
 #include "game.h"
+
+extern const Color Color_InvalidMove;
+extern const Color Color_Loser;
+extern const Color Color_Winner;
+extern const Color Color_Draw;
+extern const Color Color_PieceAdjust;
 
 int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
                        uint16_t moves_len, BaseType_t whiteToMove);

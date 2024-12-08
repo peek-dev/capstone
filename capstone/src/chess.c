@@ -15,11 +15,23 @@ const Color Color_InvalidMove = {
     .green = 0,
     .blue = 0,
 };
-const Color Color_Checkmate = {
+const Color Color_Loser = {
     .brightness = 31,
     .red = 255,
     .green = 0,
     .blue = 0,
+};
+const Color Color_Winner = {
+    .brightness = 31,
+    .red = 0,
+    .green = 255,
+    .blue = 0,
+};
+const Color Color_Draw = {
+    .brightness = 31,
+    .red = 255,
+    .green = 255,
+    .blue = 255,
 };
 const Color Color_PieceAdjust = {
     .brightness = 31,

@@ -292,6 +292,7 @@ static void prvHandleButtonPress(enum button_num button) {
         switch (state.state) {
         case game_state_paused:
         case game_state_running:
+        case game_state_over:
             // Check that clock mode is correct
             // I think this is right?
             if (state.clock_mode != game_clock_off) {
@@ -424,10 +425,17 @@ static BaseType_t prvCheckSentinel(uint32_t packet) {
     if ((packet >> 16) == 0) {
         switch (packet) {
         case SENTINEL_CHECKMATE:
-            // TODO checkmate
+            // TODO checkmate rendering
+            state.state = game_state_over;
+            state.winner = state.turn;
+            // cut off move listening.
+            prvMovesLen = 1;
             break;
         case SENTINEL_STALEMATE:
-            // TODO stalemate
+            // TODO stalemate rendering
+            state.state = game_state_over;
+            state.winner = game_winner_draw;
+            prvMovesLen = 1;
             break;
         default:
             state.check_col = GET_M2_DEST_FILE(packet);
@@ -445,6 +453,41 @@ static void prvRenderState(void) {
         // If we don't know all the possible moves, don't render any.
         // Alternatively, if undoing: if we don't have an undo move, don't show
         // anything.
+        return;
+    }
+    // Light up the piece outlines to indicate the game being over.
+    // TODO maybe include something on the LCD?
+    if (state.state == game_state_over) {
+        Color blackColor;
+        Color whiteColor;
+        switch (state.winner) {
+        case game_winner_black:
+            blackColor = Color_Winner;
+            whiteColor = Color_Loser;
+            break;
+        case game_winner_white:
+            blackColor = Color_Loser;
+            whiteColor = Color_Winner;
+            break;
+        case game_winner_draw:
+            blackColor = Color_Draw;
+            whiteColor = Color_Draw;
+            break;
+        }
+        ZeroToTwoInts z;
+        xLED_clear_board();
+        for (PieceType p = WhitePawn; p < EmptySquare; p++) {
+            z = LEDTrans_Ptype(p);
+            for (uint8_t i = 0; i < z.len; i++) {
+                xLED_set_color(z.data[i], &whiteColor);
+            }
+        }
+        for (PieceType p = BlackKing; p <= BlackPawn; p++) {
+            z = LEDTrans_Ptype(p);
+            for (uint8_t i = 0; i < z.len; i++) {
+                xLED_set_color(z.data[i], &blackColor);
+            }
+        }
         return;
     }
     uint8_t row = 12, col = 12;
@@ -468,7 +511,8 @@ static void prvRenderState(void) {
     BaseType_t board_changed = pdTRUE;
     Color c = {.brightness = 31, .red = 255, .green = 255, .blue = 0};
     // If the board state is unchanged, show the moveable pieces.
-    if (xBoardEqual(&state.last_move_state, &state.last_measured_state) == pdTRUE) {
+    if (xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
+        pdTRUE) {
         xReturned &= xFlashSquare_DisableAll();
         xReturned &= xLED_clear_board();
         xReturned &= xIlluminateMovable(prvMoves.possible, prvMovesLen);
