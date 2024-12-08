@@ -21,6 +21,7 @@
 #include "main.h"
 
 void mainThread(void *arg0) {
+    sensor_mutex = xSemaphoreCreateMutex();
     MainThread_Message message;
     BaseType_t xReturned;
 
@@ -139,7 +140,6 @@ static void vResetState() {
 }
 
 BaseType_t xMain_Init(void) {
-    sensor_mutex = xSemaphoreCreateMutex();
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
     vResetState();
     if (mainQueue == NULL) {
@@ -358,8 +358,10 @@ static void prvSwitchTurnRoutine() {
     while (xReturned != pdPASS);
     // If we're just starting, start the clock.
     if (state.state == game_state_notstarted) {
-        xReturned = xClock_set_state(clock_state_running);
-        while (xReturned != pdPASS);
+        if (state.clock_mode != game_clock_off) {
+            xReturned = xClock_set_state(clock_state_running);
+            while (xReturned != pdPASS);
+        }
         state.state = game_state_running;
     }
 }
