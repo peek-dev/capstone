@@ -7,6 +7,7 @@ from wrapper_util import ButtonEvent
 import serial
 from datetime import datetime
 import sys  # for basic argparsing: argv[1] 
+import time
 
 
 def push_msg(msg: str):
@@ -72,14 +73,13 @@ if __name__ == '__main__':
             push_msg(f"Received heartbeat: {hex(heartbeat)}")
 
         uart.write(wr.SYNACK.to_bytes(4, 'little'))
+        uart.write(wr.SYNACK.to_bytes(4, 'little'))
 
         if debug:
             push_msg(f"Sent SYNACK: {hex(wr.SYNACK)}")
 
-        # "Flush out" Pi UART RX buffer until MSP's ACK is found
         uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
-        msp_alive = True
-        
+             
         if debug:
             push_msg(f"Received ACK ({hex(wr.MSP_ACK)}) from MSP.")
 
