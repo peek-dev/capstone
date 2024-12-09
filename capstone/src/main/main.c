@@ -21,6 +21,9 @@
 #include "main.h"
 
 static BaseType_t finished_handshake = pdFALSE;
+BaseType_t rendered_after_hint = pdFALSE;
+BaseType_t correct_after_reset = pdTRUE;
+
 static void vResetState();
 
 void mainThread(void *arg0) {
@@ -140,10 +143,13 @@ static void vResetState() {
     prvMovesLen = 0;
     prvCurrentMoveIndex = 0;
     vBoardSetDefault(&state.last_move_state);
+    correct_after_reset = pdFALSE;
     if (finished_handshake == pdTRUE) {
         vSetClockState();
     }
     xLED_clear_board();
+    xLED_save(1);
+    rendered_after_hint = pdTRUE;
     xLED_commit();
 }
 
@@ -154,6 +160,12 @@ BaseType_t xMain_Init(void) {
         return pdFALSE;
     }
     return pdTRUE;
+}
+
+BaseType_t xMain_time_up(void) {
+    MainThread_Message m;
+    m.type = main_clock_timeover;
+    return xQueueSend(mainQueue, &m, portMAX_DELAY);
 }
 
 BaseType_t xMain_sensor_update(BoardState *state) {
@@ -242,7 +254,8 @@ static void prvHandleButtonPress(enum button_num button) {
         case game_state_notstarted:
             switch (state.hint) {
             case game_hint_unknown:
-                if (prvMovesLen != 0) {
+            // TODO this is a hack, but fixes a bug. TODO find that bug.
+                if (prvMovesLen != 0 && xBoardEqual(&state.last_move_state, &state.last_measured_state)) {
                     // Request a hint from the pi.
                     xReturned = xUART_EncodeEvent(BUTTON_HINT, 0);
                     while (xReturned != pdPASS);
@@ -250,18 +263,21 @@ static void prvHandleButtonPress(enum button_num button) {
                 }
                 break;
             case game_hint_known:
-                // Display the hint, clearing other things.
-                xLED_clear_board();
-                xIlluminateMove(state.hint_move, 0);
-                xIlluminateMove(state.hint_move, 1);
-                xLED_commit();
-                state.hint = game_hint_displaying;
+                if (xBoardEqual(&state.last_move_state, &state.last_measured_state)) {
+                    // Display the hint, clearing other things.
+                    xLED_clear_board();
+                    xIlluminateMove(state.hint_move, 0);
+                    xIlluminateMove(state.hint_move, 1);
+                    xLED_commit();
+                    state.hint = game_hint_displaying;
+                }
                 break;
             case game_hint_displaying:
                 // Turn off the hint, render whatever was shown before.
                 state.hint = game_hint_known;
-                xLED_restore();
+                xLED_restore(0);
                 xLED_commit();
+                rendered_after_hint = pdFALSE;
                 break;
             default:
                 // If we're awaiting it, just keep awaiting.
@@ -332,11 +348,17 @@ static void prvSwitchTurnRoutine() {
         return;
     }
     // First, validate the most recent state.
+    BaseType_t is_partial = pdFALSE;
     int16_t index = sFindMoveIndex(
         &state.last_move_state, &state.last_measured_state, prvMoves.possible,
-        prvMovesLen, (state.turn == game_turn_white) ? pdTRUE : pdFALSE);
+        prvMovesLen, (state.turn == game_turn_white) ? pdTRUE : pdFALSE, &is_partial);
     if (index == -1) {
         vFlashDifferent(&state.last_move_state, &state.last_measured_state);
+        return;
+    }
+    if (is_partial == pdTRUE) {
+        xIlluminatePartial(prvMoves.possible[index], (state.turn == game_turn_white) ? pdTRUE : pdFALSE);
+        xLED_commit();
         return;
     }
 
@@ -438,15 +460,14 @@ static BaseType_t prvCheckSentinel(uint32_t packet) {
             // Ignore extra synack packets.
             break;
         case SENTINEL_CHECKMATE:
-            // TODO checkmate rendering
             state.state = game_state_over;
+            // Hehe this switches turn internally, see header definition.
             state.winner = state.turn;
             // cut off move listening.
             prvMovesLen = 1;
             xClock_set_turn(game_turn_over);
             break;
         case SENTINEL_STALEMATE:
-            // TODO stalemate rendering
             state.state = game_state_over;
             state.winner = game_winner_draw;
             prvMovesLen = 1;
@@ -528,9 +549,14 @@ static void prvRenderState(void) {
     // If the board state is unchanged, show the moveable pieces.
     if (xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
         pdTRUE) {
+        if (correct_after_reset == pdFALSE) {
+            correct_after_reset = pdTRUE;
+        }
         xReturned &= xFlashSquare_DisableAll();
         xReturned &= xLED_clear_board();
         xReturned &= xIlluminateMovable(prvMoves.possible, prvMovesLen);
+        xLED_save(1);
+        rendered_after_hint = pdTRUE;
     }
     // If it's not, check if we've only removed one piece.
     else if (xFindSingleLifted(&state.last_move_state,
@@ -542,11 +568,21 @@ static void prvRenderState(void) {
         xReturned &= xLED_clear_board();
         xReturned &=
             xIlluminatePieceMoves(prvMoves.possible, prvMovesLen, row, col);
+        xLED_save(1);
+        rendered_after_hint = pdTRUE;
 
     } else {
         board_changed = pdFALSE;
-        xIlluminatePotentiallyOffCenter(
-            &state.last_move_state, &state.last_measured_state, &board_changed);
+        if (state.hint != game_hint_displaying && rendered_after_hint == pdTRUE) {
+            xIlluminatePotentiallyOffCenter(
+                &state.last_move_state, &state.last_measured_state, &board_changed);
+        }
+    }
+    if (state.state == game_state_notstarted && correct_after_reset == pdFALSE) {
+        xLED_clear_board();
+        vInvalidDifferent(&state.last_move_state, &state.last_measured_state);
+        xLED_commit();
+        return;
     }
     if (board_changed) {
         if (state.in_check == pdTRUE &&
@@ -556,7 +592,7 @@ static void prvRenderState(void) {
                 &Color_Check);
         }
         if (state.hint == game_hint_displaying) {
-            xReturned &= xLED_save();
+            xReturned &= xLED_save(0);
             xReturned &= xLED_clear_board();
             xReturned &= xIlluminateMove(state.hint_move, 0);
             xReturned &= xIlluminateMove(state.hint_move, 1);
@@ -620,6 +656,9 @@ static void prvProcessMessage(MainThread_Message *message) {
         break;
     case main_button_press:
         prvHandleButtonPress(message->button);
+        break;
+    case main_clock_timeover:
+        prvCheckSentinel(SENTINEL_CHECKMATE);
         break;
     }
 }

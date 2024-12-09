@@ -172,7 +172,7 @@ void RPI_UART_INST_IRQHandler(void) {
     case DL_UART_IIDX_RX:
         if (got_sync == pdFALSE) {
             packet = (uint32_t)DL_UART_receiveDataBlocking(RPI_UART_INST);
-            if (packet == 0x1) {
+            if (packet == (SYNACK & 0xFF)) {
                 got_sync = pdTRUE;
                 shift += 8;
                 packet |= ((uint32_t)DL_UART_receiveDataBlocking(RPI_UART_INST))

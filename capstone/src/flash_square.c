@@ -2,6 +2,7 @@
 #include <queue.h>
 #include <task.h>
 #include "led.h"
+#include "projdefs.h"
 #include "flash_square.h"
 
 #define FLASH_QUEUE_SIZE     (64)
@@ -144,7 +145,7 @@ void vFlashSquare_Thread(void *arg0) {
                     xLED_set_color(m.led_num, &off);
                 } else {
                     // enabling a square?
-                    xLED_set_color(m.led_num, &m.color);
+                    //xLED_set_color(m.led_num, &m.color);
                 }
                 for (uint8_t i = 0; i < MAX_FLASHING_SQUARES; i++) {
                     if ((m.half_period != 0 && halfperiod[i] == 0) ||
@@ -154,7 +155,7 @@ void vFlashSquare_Thread(void *arg0) {
                         // The rest of the values are ignored if the period is
                         // 0.
                         remaining[i] = m.half_period;
-                        currently_on[i] = pdTRUE;
+                        currently_on[i] = pdFALSE;
                         colors[i] = m.color;
                         flash_led_nums[i] = m.led_num;
                         n_enabled += 1 - 2 * (m.half_period == 0);
