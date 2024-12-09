@@ -58,13 +58,15 @@ print(mins)
 print(maxes)
 print(bins)
 spacing = mins[:,:,1:]-maxes[:,:,:-1]
+print("\nSpacing:")
 if np.any(spacing < 0):
     print("Error: overlap!")
 print(spacing)
+print("\nBin widths:")
 bins_width = (bins[:,:,1:]-bins[:,:,:-1])
+print(bins_width)
 if np.any(bins_width < 100):
     print("Error! Bins too small!")
-    print(bins_width)
     row, col = np.meshgrid(np.arange(8), np.arange(8))
     for i in range(12):
         fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
@@ -77,4 +79,4 @@ if np.any(bins_width < 100):
 bins_str = f"{bins}"
 bins_str_c = re.sub(r'(\d) ', r'\1, ', re.sub('},},},', '}}}', re.sub(r'\]', '},', re.sub(r'\[', r'{', bins_str))))
 print("C format:")
-print(f"uint16_t bins[8][8][13] =\n{bins_str_c};")
+print(f"const uint16_t bins[8][8][13] =\n{bins_str_c};")
