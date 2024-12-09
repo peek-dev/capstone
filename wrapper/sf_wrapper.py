@@ -113,11 +113,11 @@ if __name__ == '__main__':
                 push_msg(f"Got packet: {hex(next_packet)}")
 
             # Sentinel move/dummy move ("done undoing"). No useful information encoded here, so continue.
-            if (next_packet == MSP_SYN):
+            if (next_packet == wr.MSP_SYN):
                 push_msg("Packet indicates MSP reset! Resetting state...")
                 msp_alive = False
                 continue
-            if (next_packet == MSP_REREQ):
+            if (next_packet == wr.MSP_REREQ):
                 if debug:
                     push_msg("Packet is sentinel move/dummy move (\"done undoing\").")
 
