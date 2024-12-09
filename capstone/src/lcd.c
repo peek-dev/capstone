@@ -189,7 +189,8 @@ void LCD_DELAY_LOAD_INST_IRQHandler(void) {
 
 void vLCD_Init(void) {
     uint32_t data[3] = {0};
-    prvRenderColons(data);
+    prvRenderColon(data, COL_1_2_OFFSET);
+    prvRenderColon(data, COL_2_1_OFFSET);
     vLCD_WriteHardware(data);
     NVIC_ClearPendingIRQ(LCD_DELAY_LOAD_INST_INT_IRQN);
     NVIC_EnableIRQ(LCD_DELAY_LOAD_INST_INT_IRQN);

@@ -54,7 +54,7 @@ BaseType_t xClock_Init(void) {
     return pdTRUE;
 }
 
-static BaseType_t prvClock_render_state(void) {
+BaseType_t xClock_render_state(void) {
     Clock_Message m;
     m.type = clockmsg_render_state;
     return xQueueSend(clockQueue, &m, portMAX_DELAY);
@@ -90,18 +90,18 @@ void vClock_Thread(void *arg0) {
                 // Request a rerender if we're displaying numbers.
                 if (state == clock_state_staticnumbers ||
                     state == clock_state_undo) {
-                    prvClock_render_state();
+                    xClock_render_state();
                 }
                 break;
             case clockmsg_set_turn:
                 if (state == clock_state_running && turn != message.turn &&
                     increment_ms != 0) {
                     times_ms[message.turn] += increment_ms;
-                    prvClock_render_state();
+                    xClock_render_state();
                 } else if (state == clock_state_paused ||
                            state == clock_state_undo) {
                     // Request a render.
-                    prvClock_render_state();
+                    xClock_render_state();
                 }
                 turn = message.turn;
                 break;
@@ -112,7 +112,7 @@ void vClock_Thread(void *arg0) {
                 break;
             case clockmsg_set_increment:
                 increment_ms = message.times[0];
-                prvClock_render_state();
+                xClock_render_state();
                 break;
             }
         }

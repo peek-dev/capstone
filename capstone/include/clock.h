@@ -25,6 +25,8 @@ BaseType_t xClock_set_increment(uint32_t increment_ms);
 BaseType_t xClock_set_times(uint32_t *times_ms);
 BaseType_t xClock_set_numbers(uint16_t *numbers);
 BaseType_t xClock_set_both_numbers(uint16_t number);
+// Only call this if you're REALLY sure you want to explicitly force a rerender.
+BaseType_t xClock_render_state(void);
 
 #ifdef DELCLARE_PRIVATE_CLOCK_C
 enum Clock_MsgType {

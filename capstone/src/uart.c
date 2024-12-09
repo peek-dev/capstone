@@ -166,9 +166,21 @@ static void prvUART_UnpackAndSend(uint32_t packet) {
 void RPI_UART_INST_IRQHandler(void) {
     static uint8_t shift = 0;
     static uint32_t packet = 0;
+    static BaseType_t got_sync = pdFALSE;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     switch (DL_UART_getPendingInterrupt(RPI_UART_INST)) {
     case DL_UART_IIDX_RX:
+        if (got_sync == pdFALSE) {
+            packet = (uint32_t)DL_UART_receiveDataBlocking(RPI_UART_INST);
+            if (packet == 0x1) {
+                got_sync = pdTRUE;
+                shift += 8;
+                packet |= ((uint32_t)DL_UART_receiveDataBlocking(RPI_UART_INST))
+                          << shift;
+                shift += 8;
+            }
+            break;
+        }
         // There are at least two chunks waiting for us. This will not block.
         // If there were fewer than two chunks, the interrupt wouldn't fire.
         packet |= ((uint32_t)DL_UART_receiveDataBlocking(RPI_UART_INST))

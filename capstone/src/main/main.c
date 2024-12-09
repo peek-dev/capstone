@@ -20,6 +20,9 @@
 #define DECLARE_PRIVATE_MAIN_C
 #include "main.h"
 
+static BaseType_t finished_handshake = pdFALSE;
+static void vResetState();
+
 void mainThread(void *arg0) {
     sensor_mutex = xSemaphoreCreateMutex();
     MainThread_Message message;
@@ -80,6 +83,9 @@ void mainThread(void *arg0) {
 
     xReturned = xUART_to_wire(MSP_ACK);
     while (xReturned != pdPASS);
+    finished_handshake = pdTRUE;
+    vResetState();
+    xClock_render_state();
 
     MAKEVISIBLE BaseType_t mem = xPortGetFreeHeapSize();
     while (1) {
@@ -134,7 +140,9 @@ static void vResetState() {
     prvMovesLen = 0;
     prvCurrentMoveIndex = 0;
     vBoardSetDefault(&state.last_move_state);
-    vSetClockState();
+    if (finished_handshake == pdTRUE) {
+        vSetClockState();
+    }
     xLED_clear_board();
     xLED_commit();
 }
@@ -426,6 +434,9 @@ static void prvSwitchTurnUndo(void) {
 static BaseType_t prvCheckSentinel(uint32_t packet) {
     if ((packet >> 16) == 0) {
         switch (packet) {
+        case SYNACK:
+            // Ignore extra synack packets.
+            break;
         case SENTINEL_CHECKMATE:
             // TODO checkmate rendering
             state.state = game_state_over;

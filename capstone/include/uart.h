@@ -6,8 +6,8 @@
 #include "uart_bidir_protocol.h"
 
 #define HEARTBEAT_TIME_MS (100)
-#define MSP_SYN           (0x00000000ul)
-#define SYNACK            (0x0000FFFFul)
+#define MSP_SYN           (0x00000001ul)
+#define SYNACK            (0x00000001ul)
 #define MSP_ACK           (0xFFFFFFFFul)
 
 #define SENTINEL_CHECKMATE            (0x00000031ul)
