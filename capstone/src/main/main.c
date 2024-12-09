@@ -545,6 +545,8 @@ static void prvRenderState(void) {
 
     } else {
         board_changed = pdFALSE;
+        xIlluminatePotentiallyOffCenter(
+            &state.last_move_state, &state.last_measured_state, &board_changed);
     }
     if (board_changed) {
         if (state.in_check == pdTRUE &&

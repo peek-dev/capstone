@@ -333,3 +333,25 @@ void vFlashDifferent(BoardState *old, BoardState *new) {
         }
     }
 }
+
+BaseType_t xIlluminatePotentiallyOffCenter(BoardState *old, BoardState *new,
+                                           BaseType_t *changed) {
+    // A piece is potentially off center if it has changed but not changed
+    // color.
+    PieceType p_old, p_new;
+    BaseType_t xReturned = pdTRUE;
+    *changed = pdFALSE;
+    for (uint8_t row = 0; row < 8; row++) {
+        for (uint8_t col = 0; col < 8; col++) {
+            p_old = xGetSquare(old, row, col);
+            p_new = xGetSquare(new, row, col);
+            if (p_old != EmptySquare && p_new != EmptySquare &&
+                p_old != p_new && isWhite(p_old) == isWhite(p_new)) {
+                xReturned &= xLED_set_color(LEDTrans_Square(row, col),
+                                            &Color_PieceAdjust);
+            }
+            *changed = pdTRUE;
+        }
+    }
+    return xReturned;
+}

@@ -30,4 +30,6 @@ BaseType_t xIlluminatePieceMoves(NormalMove *moves, uint16_t moves_len,
                                  uint8_t row, uint8_t col);
 BaseType_t xIlluminateUndo(UndoMove move, BaseType_t mv2ontop);
 void vFlashDifferent(BoardState *old, BoardState *new);
+BaseType_t xIlluminatePotentiallyOffCenter(BoardState *old, BoardState *new,
+                                           BaseType_t *changed);
 #endif
