@@ -96,6 +96,7 @@ if __name__ == '__main__':
             push_msg(f"Got initial best move: {best_move.uci()}")
 
         current_timestamp = datetime.now().isoformat()
+        current_timestamp = current_timestamp.replace(':', '-')
         data_handle = f"/opt/chessboard/{current_timestamp}-game.txt"
     
         # The main loop of the program, which will never exit except in unusual 
@@ -144,11 +145,14 @@ if __name__ == '__main__':
                         push_msg("Resetting board state...")
 
                     wr.init_board(board, uart, log=debug)
+                    next_result = sf.play(board, sf_limit)
+                    best_move = next_result.move
 
                     if debug:
                         push_msg(f"Reset board state. Board now: TURN: {board.turn}, MOVES: {board.move_stack}")
 
                     current_timestamp = datetime.now().isoformat()
+                    current_timestamp = current_timestamp.replace(':', '-')
                     data_handle = f"/opt/chessboard/{current_timestamp}-game.txt"
                     continue
                 case ButtonEvent.HINT:

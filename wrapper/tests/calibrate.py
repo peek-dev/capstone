@@ -94,10 +94,21 @@ if __name__ == '__main__':
     uart = serial.Serial('/dev/serial0', baudrate=115200)
 
     # "Heartbeat code" to establish connection with MSP
-    heartbeat = int((uart.read(4))[-1::-1].hex(), 16)
+    heartbeat_msg = uart.read_until(wr.MSP_SYN.to_bytes(4, 'little'))
 
-    if (heartbeat == wr.MSP_SYN):
-        heartbeat_response(uart)
+    print(f"Got heartbeat message: {heartbeat_msg}")
+
+    heartbeat = int(heartbeat_msg[-1::-1].hex(), 16)
+
+    print(f"Received heartbeat: {hex(heartbeat)}")
+
+    uart.write(wr.SYNACK.to_bytes(4, 'little'))
+    uart.write(wr.SYNACK.to_bytes(4, 'little'))
+
+    print(f"Sent SYNACK: {hex(wr.SYNACK)}")
+
+    read_sequence = uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
+    print(f"Got ACK sequence: {read_sequence}")
 
     while True:
         next_packet = int((uart.read(4))[-1::-1].hex(), 16)
