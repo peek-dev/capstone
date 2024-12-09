@@ -89,7 +89,14 @@ if __name__ == '__main__':
         if debug:
             push_msg("Initialized board.")
 
-        next_result = sf.play(board, sf_limit)
+        next_result = None
+
+        while (next_result == None):
+            try:
+                next_result = sf.play(board, sf_limit)
+            except TimeoutError:
+                pass
+
         best_move = next_result.move
 
         if debug:
@@ -145,7 +152,15 @@ if __name__ == '__main__':
                         push_msg("Resetting board state...")
 
                     wr.init_board(board, uart, log=debug)
-                    next_result = sf.play(board, sf_limit)
+
+                    next_result = None
+
+                    while (next_result == None):
+                        try:
+                            next_result = sf.play(board, sf_limit)
+                        except TimeoutError:
+                            pass 
+
                     best_move = next_result.move
 
                     if debug:
@@ -172,15 +187,25 @@ if __name__ == '__main__':
                     try:
                         # Rewinds the board state---no further action needed.
                         undone_move = board.pop()
+                        undone_move_packet = wr.encode_undo(undone_move, board)
 
                         if debug:
                             push_msg(f"Popped move: {undone_move.uci()}")
+                            if undone_move != None:
+                                push_msg(f"Sending undone move: 0x{undone_move_packet:08x}")
 
-                        next_result = sf.play(board, sf_limit)
+                        next_result = None
+
+                        while (next_result == None):
+                            try:
+                                next_result = sf.play(board, sf_limit)
+                            except TimeoutError:
+                                pass
+
                         best_move = next_result.move
                         
                         # Indicate to the MSP which specific move has been undone
-                        uart.write(wr.encode_undo(undone_move, board).to_bytes(4, 'little'))
+                        uart.write(undone_move_packet.to_bytes(4, 'little'))
                     except IndexError:
                         # IndexError innocuous; stack is empty, but not an error
                         push_msg("Move stack empty--can't undo! Sending undo exhaust sentinel {wr.UNDO_EXHAUST:08x}.")
@@ -206,7 +231,14 @@ if __name__ == '__main__':
                         for game_move in board.move_stack:
                             print(game_move.uci(), file=game_data)
 
-                    next_result = sf.play(board, sf_limit)
+                    next_result = None
+
+                    while (next_result == None):
+                        try:
+                            next_result = sf.play(board, sf_limit)
+                        except TimeoutError:
+                            pass
+
                     best_move = next_result.move
 
                     if debug:
