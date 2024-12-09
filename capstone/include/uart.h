@@ -13,6 +13,7 @@
 #define SENTINEL_CHECKMATE            (0x00000031ul)
 #define SENTINEL_STALEMATE            (0x00000071ul)
 #define SENTINEL_REQUEST_RESEND_MOVES (0x00000004ul)
+#define SENTINEL_UNDO_EXHAUSTED       (0x00000008ul)
 
 /**
  * Initialize UART thread state, including queue handle for data to be put on

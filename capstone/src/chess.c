@@ -33,6 +33,12 @@ const Color Color_Draw = {
     .green = 255,
     .blue = 255,
 };
+const Color Color_Check = {
+    .brightness = 31,
+    .red = 255,
+    .green = 255,
+    .blue = 0,
+};
 const Color Color_PieceAdjust = {
     .brightness = 31,
     .red = 255,
@@ -107,8 +113,9 @@ BaseType_t xCheckUndo(BoardState *old, BoardState *new, UndoMove move,
                 expected = xPtypeFromWire(GET_PTYPE(move), whiteToMove);
             } else if (has_2mv && row == GET_M2_SRC_RANK(move) &&
                        col == GET_M2_SRC_FILE(move)) {
-                expected = xPtypeFromWire(
-                    GET_M2_PTYPE(move), CHECK_UNDO_BW(move) ? pdFALSE : pdTRUE);
+                expected =
+                    xPtypeFromWire(GET_UNDO_PTYPE(move),
+                                   CHECK_UNDO_BW(move) ? pdFALSE : pdTRUE);
             } else if (row == GET_DEST_RANK(move) &&
                        col == GET_DEST_FILE(move)) {
                 expected = EmptySquare;
@@ -194,16 +201,16 @@ BaseType_t xIlluminateMove(NormalMove move, uint8_t do_src) {
         switch (GET_MTYPE(move)) {
         case MTYPE_NORMAL:
             color.blue = 255;
-        case MTYPE_CHECK:
             color.green = 255;
         case MTYPE_CAPTURE:
             color.red = 255;
             break;
-        case MTYPE_CASTLE_PROMOTE:
+        case MTYPE_PROMOTE:
+        case MTYPE_CASTLE:
             color.red = 150;
             color.green = 0;
             color.blue = 255;
-            if (GET_M2(move) == 0) {
+            if (GET_MTYPE(move) == MTYPE_PROMOTE) {
                 // Promotion. Highlight piece type outlines.
                 ZeroToTwoInts z = LEDTrans_Ptype(xPtypeFromWire(
                     // Kinda a hack. White pawns promote in the direction of
@@ -274,6 +281,17 @@ BaseType_t xIlluminateUndo(UndoMove move, BaseType_t mv2ontop) {
     col = GET_DEST_FILE(move);
     success &= xLED_set_color(LEDTrans_Square(row, col), &move1from_color);
 
+    // Detect promotion?
+    if (GET_PTYPE(move) == PAWN &&
+        (GET_DEST_RANK(move) == 7 || GET_DEST_RANK(move) == 0)) {
+        // Illuminate the pawn outline.
+        ZeroToTwoInts z = LEDTrans_Ptype(xPtypeFromWire(
+            PAWN, (GET_DEST_RANK(move) == 7) ? pdTRUE : pdFALSE));
+        for (uint8_t i = 0; i < z.len; i++) {
+            success &= xLED_set_color(z.data[i], &move1to_color);
+        }
+    }
+
     // If there is a second move, possibly render it.
     if (GET_M2(move)) {
         // Render the source square, but only if it doesn't conflict
@@ -290,7 +308,7 @@ BaseType_t xIlluminateUndo(UndoMove move, BaseType_t mv2ontop) {
         // multiple piece outlines.
         if (is_take == pdTRUE) {
             PieceType taken = xPtypeFromWire(
-                GET_M2_PTYPE(move), CHECK_UNDO_BW(move) ? pdFALSE : pdTRUE);
+                GET_UNDO_PTYPE(move), CHECK_UNDO_BW(move) ? pdFALSE : pdTRUE);
             ZeroToTwoInts outlines = LEDTrans_Ptype(taken);
             for (uint8_t i = 0; i < outlines.len; i++) {
                 success &= xLED_set_color(outlines.data[i], &take_color);

@@ -29,7 +29,7 @@ void vApplicationTickHook(void) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     // If the tick rate doesn't evenly divide 1000, you'll be in for a world of
     // trouble. Please make the tick rate reasonable.
-    if (state == clock_state_running) {
+    if (state == clock_state_running && turn != game_turn_over) {
         // Abuse enums being numbers to index.
         times_ms[turn] -= (1000 / configTICK_RATE_HZ);
         // If we've just finished a second, wakeup the thread to signal the LCD.

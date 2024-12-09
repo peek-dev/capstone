@@ -379,7 +379,7 @@ static void prvSwitchTurnUndo(void) {
                    (state.turn == game_turn_white) ? pdTRUE : pdFALSE) !=
         pdTRUE) {
         // Validation failed.
-        vFlashDifferent(&state.last_move_state, &state.last_measured_state);
+        // vFlashDifferent(&state.last_move_state, &state.last_measured_state);
         return;
     }
 
@@ -432,12 +432,14 @@ static BaseType_t prvCheckSentinel(uint32_t packet) {
             state.winner = state.turn;
             // cut off move listening.
             prvMovesLen = 1;
+            xClock_set_turn(game_turn_over);
             break;
         case SENTINEL_STALEMATE:
             // TODO stalemate rendering
             state.state = game_state_over;
             state.winner = game_winner_draw;
             prvMovesLen = 1;
+            xClock_set_turn(game_turn_over);
             break;
         default:
             state.check_col = GET_M2_DEST_FILE(packet);
@@ -490,6 +492,7 @@ static void prvRenderState(void) {
                 xLED_set_color(z.data[i], &blackColor);
             }
         }
+        xLED_commit();
         return;
     }
     uint8_t row = 12, col = 12;
@@ -511,7 +514,6 @@ static void prvRenderState(void) {
         return;
     }
     BaseType_t board_changed = pdTRUE;
-    Color c = {.brightness = 31, .red = 255, .green = 255, .blue = 0};
     // If the board state is unchanged, show the moveable pieces.
     if (xBoardEqual(&state.last_move_state, &state.last_measured_state) ==
         pdTRUE) {
@@ -537,7 +539,8 @@ static void prvRenderState(void) {
         if (state.in_check == pdTRUE &&
             (row != state.check_row || col != state.check_col)) {
             xReturned &= xLED_set_color(
-                LEDTrans_Square(state.check_row, state.check_col), &c);
+                LEDTrans_Square(state.check_row, state.check_col),
+                &Color_Check);
         }
         if (state.hint == game_hint_displaying) {
             xReturned &= xLED_save();
@@ -562,6 +565,16 @@ static void prvProcessMessage(MainThread_Message *message) {
     case main_uart_message:
         // If we're in an undo state, append to the undo queue.
         if (state.state == game_state_undo) {
+            if (message->move == SENTINEL_UNDO_EXHAUSTED) {
+                xClock_set_both_numbers(prvMovesLen);
+                if (prvMovesLen == 0) {
+                    state.state = game_state_notstarted;
+                    vSetClockState();
+                    prvSwitchStateTurn(&state);
+                    xUART_to_wire(SENTINEL_REQUEST_RESEND_MOVES);
+                }
+                break;
+            }
             // We can't accept any more undo moves if we're over the limit.
             if (prvMovesLen < 256) {
                 prvMoves.undo[prvMovesLen] = message->move;

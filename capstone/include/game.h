@@ -35,8 +35,10 @@ typedef struct {
 
 #include "chess.h"
 typedef enum {
-    game_turn_black = 1,
     game_turn_white = 0,
+    game_turn_black = 1,
+    // Only used for signaling the clock.
+    game_turn_over,
 } game_turn;
 typedef enum {
     game_clock_off,

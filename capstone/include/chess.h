@@ -13,6 +13,7 @@ extern const Color Color_InvalidMove;
 extern const Color Color_Loser;
 extern const Color Color_Winner;
 extern const Color Color_Draw;
+extern const Color Color_Check;
 extern const Color Color_PieceAdjust;
 
 int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,

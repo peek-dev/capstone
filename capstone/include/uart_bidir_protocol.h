@@ -60,10 +60,10 @@ typedef uint8_t PTYPE;
  */
 typedef uint8_t MTYPE;
 
-#define MTYPE_NORMAL         ((uint8_t)0)
-#define MTYPE_CHECK          ((uint8_t)1)
-#define MTYPE_CAPTURE        ((uint8_t)2)
-#define MTYPE_CASTLE_PROMOTE ((uint8_t)3)
+#define MTYPE_NORMAL  ((uint8_t)0)
+#define MTYPE_PROMOTE ((uint8_t)1)
+#define MTYPE_CAPTURE ((uint8_t)2)
+#define MTYPE_CASTLE  ((uint8_t)3)
 
 /**
  * Constants for button events
