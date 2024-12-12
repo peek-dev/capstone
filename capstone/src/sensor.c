@@ -16,11 +16,8 @@
 
 #define SENSOR_DELAY_MS 20
 #define NBINS           13
-// Based on our filter step responses, we should wait 150us for a column switch.
-// (150 us * 32 MHz) - 1
-#define COL_SWITCH_LOAD (150U * 64U / 10U - 1U)
 // Similarly, 50us for a row switch.
-#define ROW_SWITCH_LOAD (50U * 64U / 10U - 1U)
+#define SWITCH_DELAY_MS 10
 
 // For the ADC: ADC samples are asynchronous, so we need to wakeup the task from
 // an ISR.
@@ -43,24 +40,24 @@ static void prvSelectRow(uint8_t row) {
     assert(row < 8);
     // Hack: all rows were reversed.
     row = 7 - row;
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A0_PORT, MUX_GPIO_PIN_C_A0_PIN,
-                         MUX_GPIO_PIN_C_A0_PIN * !!(row & 1));
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A1_PORT, MUX_GPIO_PIN_C_A1_PIN,
-                         MUX_GPIO_PIN_C_A1_PIN * !!(row & 2));
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A2_PORT, MUX_GPIO_PIN_C_A2_PIN,
-                         MUX_GPIO_PIN_C_A2_PIN * !!(row & 4));
+    DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A0_PORT, MUX_GPIO_PIN_R_A0_PIN,
+                         MUX_GPIO_PIN_R_A0_PIN * !!(row & 1));
+    DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A1_PORT, MUX_GPIO_PIN_R_A1_PIN,
+                         MUX_GPIO_PIN_R_A1_PIN * !!(row & 2));
+    DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A2_PORT, MUX_GPIO_PIN_R_A2_PIN,
+                         MUX_GPIO_PIN_R_A2_PIN * !!(row & 4));
 }
 
 static void prvSelectColumn(uint8_t column) {
     assert(column < 8);
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A0_PORT, MUX_GPIO_PIN_R_A0_PIN,
-                         MUX_GPIO_PIN_R_A0_PIN *
+    DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A0_PORT, MUX_GPIO_PIN_C_A0_PIN,
+                         MUX_GPIO_PIN_C_A0_PIN *
                              (!!(column & 1) ^ !!(column & 4)));
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A1_PORT, MUX_GPIO_PIN_R_A1_PIN,
-                         MUX_GPIO_PIN_R_A1_PIN *
+    DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A1_PORT, MUX_GPIO_PIN_C_A1_PIN,
+                         MUX_GPIO_PIN_C_A1_PIN *
                              (!!(column & 2) ^ !!(column & 4)));
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A2_PORT, MUX_GPIO_PIN_R_A2_PIN,
-                         MUX_GPIO_PIN_R_A2_PIN * !!(column & 4));
+    DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A2_PORT, MUX_GPIO_PIN_C_A2_PIN,
+                         MUX_GPIO_PIN_C_A2_PIN * !!(column & 4));
 }
 
 static uint16_t prvSingleADC() {
@@ -92,19 +89,6 @@ void ADC_0_INST_IRQHandler(void) {
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
-void SENSOR_DELAY_TIMER_INST_IRQHandler(void) {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-    switch (DL_TimerG_getPendingInterrupt(SENSOR_DELAY_TIMER_INST)) {
-    case DL_TIMER_IIDX_ZERO:
-        vTaskNotifyGiveFromISR(xSensorTaskId, &xHigherPriorityTaskWoken);
-        break;
-    default:
-        break;
-    }
-
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
 
 BaseType_t xSensor_Init(void) {
     prvSelectColumn(0);
@@ -120,29 +104,17 @@ void vSensor_Thread(void *arg0) {
     assert(xSensorTaskId == NULL);
     xSensorTaskId = xTaskGetCurrentTaskHandle();
 
-    // TODO: noise: don't read while LEDs are going?
     while (true) {
         // This is uninitialized, but that doesn't matter. Each element will be
         // initialized.
         BoardState board;
         uint16_t samples[5];
-        xSemaphoreTake(sensor_mutex, portMAX_DELAY);
         for (uint8_t col = 0; col < 8; col++) {
             prvSelectColumn(col);
-            // Set the timer for 150us delay.
-            DL_TimerG_setLoadValue(SENSOR_DELAY_TIMER_INST, COL_SWITCH_LOAD);
-            // Wait for the timer, at most waiting 1ms.
-            DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
-            ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
-            // Reduce to the smaller time for switching between the rows.
-            DL_TimerG_setLoadValue(SENSOR_DELAY_TIMER_INST, ROW_SWITCH_LOAD);
             for (uint8_t row = 0; row < 8; row++) {
                 prvSelectRow(row);
-                // Wait again for signal propagation.
-                // for (uint8_t j = 0; j < 1 + (row==4)*5; j++) {
-                DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
-                ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
-                //}
+                // Wait for signal propagation.
+                vTaskDelay(SWITCH_DELAY_MS);
                 // Take the samples!
                 for (uint8_t i = 0; i < 5; i++) {
                     samples[i] = prvSingleADC();
@@ -152,44 +124,7 @@ void vSensor_Thread(void *arg0) {
                            prvValueToPiece(sample, GetBins(row, col)));
             }
         }
-        xSemaphoreGive(sensor_mutex);
         xMain_sensor_update(&board);
-        vTaskDelay(SENSOR_DELAY_MS / portTICK_PERIOD_MS);
-    }
-}
-
-void vSensor_Thread_Calibration(void *arg0) {
-    assert(xSensorTaskId == NULL);
-    xSensorTaskId = xTaskGetCurrentTaskHandle();
-    while (true) {
-        // This is uninitialized, but that doesn't matter. Each element will be
-        // initialized.
-        BoardState_Calibration board;
-        uint16_t samples[5];
-        xSemaphoreTake(sensor_mutex, portMAX_DELAY);
-        for (uint8_t col = 0; col < 8; col++) {
-            prvSelectColumn(col);
-            // Set the timer for 150us delay.
-            DL_TimerG_setLoadValue(SENSOR_DELAY_TIMER_INST, COL_SWITCH_LOAD);
-            // Wait for the timer, at most waiting 1ms.
-            DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
-            ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
-            // Reduce to the smaller time for switching between the rows.
-            DL_TimerG_setLoadValue(SENSOR_DELAY_TIMER_INST, ROW_SWITCH_LOAD);
-            for (uint8_t row = 0; row < 8; row++) {
-                prvSelectRow(row);
-                // Wait again for signal propagation.
-                DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
-                ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
-                // Take the sample!
-                for (uint8_t i = 0; i < 5; i++) {
-                    samples[i] = prvSingleADC();
-                }
-                board.rows[row].columns[col] = MedianOfFive(samples);
-            }
-        }
-        xSemaphoreGive(sensor_mutex);
-        xMain_sensor_calibration_update(&board);
         vTaskDelay(SENSOR_DELAY_MS / portTICK_PERIOD_MS);
     }
 }
