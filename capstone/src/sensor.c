@@ -73,6 +73,12 @@ static void prvSelectReposition(BaseType_t on) {
                          MUX_GPIO_PIN_REPOS_PIN * (on == pdTRUE));
 }
 
+static void prvSelectStdDev(BaseType_t on) {
+    DL_GPIO_writePinsVal(MUX_GPIO_PIN_TOGGLE_DEV_PORT,
+                         MUX_GPIO_PIN_TOGGLE_DEV_PIN,
+                         MUX_GPIO_PIN_TOGGLE_DEV_PIN * (on == pdTRUE));
+}
+
 static uint16_t prvSingleADC() {
     DL_ADC12_startConversion(ADC_0_INST);
     // Block the thread until ADC sampling is complete.
@@ -132,11 +138,13 @@ void vDoTripleSensor(uint16_t *sensor_values) {
 void vSensor_Thread(void *arg0) {
     assert(xSensorTaskId == NULL);
     xSensorTaskId = xTaskGetCurrentTaskHandle();
+    MAKEVISIBLE BaseType_t toggle_stddev_state = pdFALSE;
     for (uint8_t stddev_i = 0; stddev_i < N_STDDEV_BINS; stddev_i++) {
+        prvSelectStdDev(toggle_stddev_state);
         prvSelectColumn(0);
         prvSelectRow(0);
         prvSelectReposition(pdFALSE);
-        prvSelectMode(0);
+        //        prvSelectMode(0);
         for (uint16_t count = 0; count < N_TRIALS; count++) {
             uint16_t repositions = 0;
             // This is uninitialized, but that doesn't matter. Each element will
@@ -197,6 +205,8 @@ void vSensor_Thread(void *arg0) {
             xMain_sensor_update(&board_request, repositions);
             vTaskDelay(SENSOR_DELAY_MS / portTICK_PERIOD_MS);
         }
+        toggle_stddev_state =
+            (toggle_stddev_state == pdTRUE) ? pdFALSE : pdTRUE;
     }
     xMain_change_mode(main_thread_finished, 0);
     vTaskDelete(NULL);

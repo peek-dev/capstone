@@ -132,6 +132,10 @@ extern "C" {
 /* Defines for LED1: GPIOA.0 with pinCMx 1 on package pin 33 */
 #define LED_GPIO_LED1_PIN                                        (DL_GPIO_PIN_0)
 #define LED_GPIO_LED1_IOMUX                                       (IOMUX_PINCM1)
+/* Defines for PIN_TOGGLE_DEV: GPIOB.3 with pinCMx 16 on package pin 51 */
+#define MUX_GPIO_PIN_TOGGLE_DEV_PORT                                     (GPIOB)
+#define MUX_GPIO_PIN_TOGGLE_DEV_PIN                              (DL_GPIO_PIN_3)
+#define MUX_GPIO_PIN_TOGGLE_DEV_IOMUX                            (IOMUX_PINCM16)
 
 /* clang-format on */
 

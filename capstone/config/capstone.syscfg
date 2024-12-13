@@ -50,7 +50,7 @@ ADC121.adcPin2Config.$name        = "test";
 
 
 GPIO1.$name                          = "MUX_GPIO";
-GPIO1.associatedPins.create(9);
+GPIO1.associatedPins.create(10);
 GPIO1.associatedPins[0].$name        = "PIN_R_A0";
 GPIO1.associatedPins[0].pin.$assign  = "boosterpack.40";
 GPIO1.associatedPins[1].$name        = "PIN_R_A1";
@@ -72,11 +72,13 @@ GPIO1.associatedPins[7].initialValue = "SET";
 GPIO1.associatedPins[7].pin.$assign  = "boosterpack.32";
 GPIO1.associatedPins[8].$name        = "PIN_REPOS";
 GPIO1.associatedPins[8].pin.$assign  = "boosterpack.11";
+GPIO1.associatedPins[9].$name        = "PIN_TOGGLE_DEV";
+GPIO1.associatedPins[9].pin.$assign  = "boosterpack.10";
 
-GPIO2.$name                          = "LED_GPIO";
-GPIO2.associatedPins[0].$name        = "LED1";
-GPIO2.associatedPins[0].initialValue = "SET";
-GPIO2.associatedPins[0].pin.$assign  = "j19_expansion.9";
+GPIO2.$name                               = "LED_GPIO";
+GPIO2.associatedPins[0].$name             = "LED1";
+GPIO2.associatedPins[0].initialValue      = "SET";
+GPIO2.associatedPins[0].launchPadShortcut = "LED1En";
 
 
 /**
@@ -84,7 +86,8 @@ GPIO2.associatedPins[0].pin.$assign  = "j19_expansion.9";
  * version of the tool will not impact the pinmux you originally saw.  These lines can be completely deleted in order to
  * re-solve from scratch.
  */
-Board.peripheral.$suggestSolution          = "DEBUGSS";
-Board.peripheral.swclkPin.$suggestSolution = "j25_expansion.16";
-Board.peripheral.swdioPin.$suggestSolution = "j25_expansion.14";
-SYSCTL.peripheral.$suggestSolution         = "SYSCTL";
+Board.peripheral.$suggestSolution            = "DEBUGSS";
+Board.peripheral.swclkPin.$suggestSolution   = "j25_expansion.16";
+Board.peripheral.swdioPin.$suggestSolution   = "j25_expansion.14";
+GPIO2.associatedPins[0].pin.$suggestSolution = "j19_expansion.9";
+SYSCTL.peripheral.$suggestSolution           = "SYSCTL";
