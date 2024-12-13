@@ -3,7 +3,7 @@
 
 #include "game.h"
 
-#define N_STDDEV_BINS 21
+#define N_STDDEV_BINS 41
 
 typedef enum {
     main_thread_single,

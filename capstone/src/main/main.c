@@ -23,6 +23,8 @@ typedef struct {
     };
 } MainThread_Message;
 
+extern BoardState correct;
+
 static GameState state;
 
 // IDK, maybe change this later. Profiling?
@@ -90,24 +92,15 @@ BaseType_t xMain_change_mode(Main_ThreadMode mode, uint16_t stddev_i) {
     return xQueueSend(mainQueue, &m, portMAX_DELAY);
 }
 
-static void prvControlLED(BaseType_t on) {
-    DL_GPIO_writePinsVal(LED_GPIO_PORT, LED_GPIO_LED1_PIN,
-                         LED_GPIO_LED1_PIN * !(on == pdTRUE));
-}
-
 static void prvCheckState() {
     for (uint8_t row = 0; row < 8; row++) {
         for (uint8_t col = 0; col < 8; col++) {
             if (xGetSquare(&state.last_measured_state, row, col) !=
                 xGetSquare(&state.true_state, row, col)) {
                 error_count[stddev_index][mode]++;
-                prvControlLED(pdTRUE);
-            } else {
-                prvControlLED(pdFALSE);
             }
         }
     }
-    prvControlLED(pdFALSE);
 }
 
 static void prvProcessMessage(MainThread_Message *message) {

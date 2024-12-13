@@ -19,13 +19,15 @@
 #define NBINS           13
 // Similarly, 50us for a row switch.
 #define SWITCH_DELAY_MS 10
-#define N_TRIALS        4
+#define N_TRIALS        100
 
 // For the ADC: ADC samples are asynchronous, so we need to wakeup the task from
 // an ISR.
 static TaskHandle_t xSensorTaskId = NULL;
 
 SemaphoreHandle_t sensor_mutex;
+
+BoardState correct;
 
 static PieceType prvValueToPiece(uint16_t value, const uint16_t *bins) {
     uint8_t i;
@@ -109,6 +111,7 @@ void ADC_0_INST_IRQHandler(void) {
 }
 
 BaseType_t xSensor_Init(void) {
+    vBoardSetDefault(&correct);
     prvSelectColumn(0);
     prvSelectRow(0);
     NVIC_ClearPendingIRQ(ADC_0_INST_INT_IRQN);
@@ -123,6 +126,11 @@ uint16_t usSampleFiveMedian() {
         samples[i] = prvSingleADC();
     }
     return MedianOfFive(samples);
+}
+
+static void prvControlLED(BaseType_t on) {
+    DL_GPIO_writePinsVal(LED_GPIO_PORT, LED_GPIO_LED1_PIN,
+                         LED_GPIO_LED1_PIN * !(on == pdTRUE));
 }
 
 void vDoTripleSensor(uint16_t *sensor_values) {
@@ -140,6 +148,7 @@ void vSensor_Thread(void *arg0) {
     xSensorTaskId = xTaskGetCurrentTaskHandle();
     MAKEVISIBLE BaseType_t toggle_stddev_state = pdFALSE;
     for (uint8_t stddev_i = 0; stddev_i < N_STDDEV_BINS; stddev_i++) {
+        prvControlLED(toggle_stddev_state);
         prvSelectStdDev(toggle_stddev_state);
         prvSelectColumn(0);
         prvSelectRow(0);
