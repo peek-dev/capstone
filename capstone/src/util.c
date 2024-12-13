@@ -1,5 +1,6 @@
 #include "util.h"
 #include "game.h"
+#include <stdlib.h>
 
 // Barely modified from https://stackoverflow.com/a/2117018
 uint16_t MedianOfFive(uint16_t *arr) {
@@ -57,4 +58,28 @@ uint16_t MedianOfFive(uint16_t *arr) {
            : a < e ? b < e ? b : e
            : d < a ? d
                    : a;
+}
+
+uint32_t sum(uint16_t *arr, uint8_t len) {
+    uint32_t accumulator = 0;
+    for (uint8_t i = 0; i < len; i++) {
+        accumulator += arr[i];
+    }
+    return accumulator;
+}
+
+uint16_t average(uint16_t *arr, uint8_t len) { return sum(arr, len) / len; }
+
+uint16_t outlier(uint16_t *arr, uint8_t len) {
+    uint16_t avg = average(arr, len);
+    int16_t max_diff = 0;
+    uint16_t max_ind = 0;
+    for (uint8_t i = 0; i < len; i++) {
+        int16_t diff = abs(((int16_t)avg) - ((int16_t)arr[i]));
+        if (diff > max_diff) {
+            max_diff = diff;
+            max_ind = i;
+        }
+    }
+    return arr[max_ind];
 }

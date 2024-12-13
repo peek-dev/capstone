@@ -3,18 +3,23 @@
 #include <string.h>
 #include <queue.h>
 
-
 #include "main.h"
+#include "game.h"
+#include "portmacro.h"
+#include "projdefs.h"
 #include "sensor.h"
 
-enum MainThread_MsgType {
-    main_sensor_update
-};
+enum MainThread_MsgType { main_sensor_update, main_update_mode };
 
 typedef struct {
     enum MainThread_MsgType type;
     union {
         BoardState state;
+        Main_ThreadMode mode;
+    };
+    union {
+        uint16_t num_requests;
+        uint16_t bin_num;
     };
 } MainThread_Message;
 
@@ -25,6 +30,10 @@ static GameState state;
 static QueueHandle_t mainQueue;
 
 static TaskHandle_t thread_sensor;
+static uint32_t error_count[N_STDDEV_BINS][main_thread_finished] = {0};
+static uint32_t num_requests[N_STDDEV_BINS] = {0};
+static Main_ThreadMode mode = 0;
+static uint16_t stddev_index = 0;
 
 BaseType_t xMain_Init(void);
 static void prvProcessMessage(MainThread_Message *message);
@@ -38,12 +47,16 @@ void mainThread(void *arg0) {
     while (xReturned != pdPASS) {}
     xReturned = xSensor_Init();
     while (xReturned != pdPASS) {}
-    xReturned = xTaskCreate(vSensor_Thread, "Sensor", configMINIMAL_STACK_SIZE,
-                            NULL, 2, &thread_sensor);
+    xReturned =
+        xTaskCreate(vSensor_Thread, "Sensor", 3 * configMINIMAL_STACK_SIZE,
+                    NULL, 2, &thread_sensor);
     while (xReturned != pdPASS) {}
 
     MAKEVISIBLE BaseType_t mem = xPortGetFreeHeapSize();
     while (1) {
+        if (mode == main_thread_finished) {
+            while (1) {}
+        }
         if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {
             prvProcessMessage(&message);
         }
@@ -52,8 +65,8 @@ void mainThread(void *arg0) {
     vTaskDelete(NULL);
 }
 
-
 BaseType_t xMain_Init(void) {
+    vBoardSetDefault(&state.true_state);
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
     if (mainQueue == NULL) {
         return pdFALSE;
@@ -61,11 +74,40 @@ BaseType_t xMain_Init(void) {
     return pdTRUE;
 }
 
-BaseType_t xMain_sensor_update(BoardState *state) {
+BaseType_t xMain_sensor_update(BoardState *state, uint16_t nreq) {
     MainThread_Message m;
     m.type = main_sensor_update;
     memcpy(&m.state, state, sizeof(BoardState));
+    m.num_requests = nreq;
     return xQueueSend(mainQueue, &m, portMAX_DELAY);
+}
+
+BaseType_t xMain_change_mode(Main_ThreadMode mode, uint16_t stddev_i) {
+    MainThread_Message m;
+    m.type = main_update_mode;
+    m.mode = mode;
+    m.bin_num = stddev_i;
+    return xQueueSend(mainQueue, &m, portMAX_DELAY);
+}
+
+static void prvControlLED(BaseType_t on) {
+    DL_GPIO_writePinsVal(LED_GPIO_PORT, LED_GPIO_LED1_PIN,
+                         LED_GPIO_LED1_PIN * !(on == pdTRUE));
+}
+
+static void prvCheckState() {
+    for (uint8_t row = 0; row < 8; row++) {
+        for (uint8_t col = 0; col < 8; col++) {
+            if (xGetSquare(&state.last_measured_state, row, col) !=
+                xGetSquare(&state.true_state, row, col)) {
+                error_count[stddev_index][mode]++;
+                prvControlLED(pdTRUE);
+            } else {
+                prvControlLED(pdFALSE);
+            }
+        }
+    }
+    prvControlLED(pdFALSE);
 }
 
 static void prvProcessMessage(MainThread_Message *message) {
@@ -73,7 +115,14 @@ static void prvProcessMessage(MainThread_Message *message) {
     case main_sensor_update:
         memcpy(&state.last_measured_state, &(message->state),
                sizeof(BoardState));
+        prvCheckState();
+        if (mode == main_thread_requests) {
+            num_requests[stddev_index] += message->num_requests;
+        }
         break;
+    case main_update_mode:
+        mode = message->mode;
+        stddev_index = message->bin_num;
     default:
         break;
     }

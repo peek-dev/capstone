@@ -114,6 +114,24 @@ extern "C" {
 #define MUX_GPIO_PIN_C_A2_PORT                                           (GPIOB)
 #define MUX_GPIO_PIN_C_A2_PIN                                   (DL_GPIO_PIN_13)
 #define MUX_GPIO_PIN_C_A2_IOMUX                                  (IOMUX_PINCM30)
+/* Defines for PIN_MODE0: GPIOB.7 with pinCMx 24 on package pin 59 */
+#define MUX_GPIO_PIN_MODE0_PORT                                          (GPIOB)
+#define MUX_GPIO_PIN_MODE0_PIN                                   (DL_GPIO_PIN_7)
+#define MUX_GPIO_PIN_MODE0_IOMUX                                 (IOMUX_PINCM24)
+/* Defines for PIN_MODE1: GPIOA.12 with pinCMx 34 on package pin 5 */
+#define MUX_GPIO_PIN_MODE1_PORT                                          (GPIOA)
+#define MUX_GPIO_PIN_MODE1_PIN                                  (DL_GPIO_PIN_12)
+#define MUX_GPIO_PIN_MODE1_IOMUX                                 (IOMUX_PINCM34)
+/* Defines for PIN_REPOS: GPIOB.16 with pinCMx 33 on package pin 4 */
+#define MUX_GPIO_PIN_REPOS_PORT                                          (GPIOB)
+#define MUX_GPIO_PIN_REPOS_PIN                                  (DL_GPIO_PIN_16)
+#define MUX_GPIO_PIN_REPOS_IOMUX                                 (IOMUX_PINCM33)
+/* Port definition for Pin Group LED_GPIO */
+#define LED_GPIO_PORT                                                    (GPIOA)
+
+/* Defines for LED1: GPIOA.0 with pinCMx 1 on package pin 33 */
+#define LED_GPIO_LED1_PIN                                        (DL_GPIO_PIN_0)
+#define LED_GPIO_LED1_IOMUX                                       (IOMUX_PINCM1)
 
 /* clang-format on */
 

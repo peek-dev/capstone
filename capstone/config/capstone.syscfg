@@ -18,6 +18,7 @@ const ADC121        = ADC12.addInstance();
 const Board         = scripting.addModule("/ti/driverlib/Board");
 const GPIO          = scripting.addModule("/ti/driverlib/GPIO", {}, false);
 const GPIO1         = GPIO.addInstance();
+const GPIO2         = GPIO.addInstance();
 const SYSCTL        = scripting.addModule("/ti/driverlib/SYSCTL");
 const ProjectConfig = scripting.addModule("/ti/project_config/ProjectConfig");
 
@@ -48,20 +49,34 @@ ADC121.peripheral.adcPin2.$assign = "boosterpack.2";
 ADC121.adcPin2Config.$name        = "test";
 
 
-GPIO1.$name                         = "MUX_GPIO";
-GPIO1.associatedPins.create(6);
-GPIO1.associatedPins[0].$name       = "PIN_R_A0";
-GPIO1.associatedPins[0].pin.$assign = "boosterpack.40";
-GPIO1.associatedPins[1].$name       = "PIN_R_A1";
-GPIO1.associatedPins[1].pin.$assign = "boosterpack.39";
-GPIO1.associatedPins[2].$name       = "PIN_R_A2";
-GPIO1.associatedPins[2].pin.$assign = "boosterpack.38";
-GPIO1.associatedPins[3].$name       = "PIN_C_A0";
-GPIO1.associatedPins[3].pin.$assign = "boosterpack.37";
-GPIO1.associatedPins[4].$name       = "PIN_C_A1";
-GPIO1.associatedPins[4].pin.$assign = "boosterpack.36";
-GPIO1.associatedPins[5].$name       = "PIN_C_A2";
-GPIO1.associatedPins[5].pin.$assign = "boosterpack.35";
+GPIO1.$name                          = "MUX_GPIO";
+GPIO1.associatedPins.create(9);
+GPIO1.associatedPins[0].$name        = "PIN_R_A0";
+GPIO1.associatedPins[0].pin.$assign  = "boosterpack.40";
+GPIO1.associatedPins[1].$name        = "PIN_R_A1";
+GPIO1.associatedPins[1].pin.$assign  = "boosterpack.39";
+GPIO1.associatedPins[2].$name        = "PIN_R_A2";
+GPIO1.associatedPins[2].pin.$assign  = "boosterpack.38";
+GPIO1.associatedPins[3].$name        = "PIN_C_A0";
+GPIO1.associatedPins[3].initialValue = "SET";
+GPIO1.associatedPins[3].pin.$assign  = "boosterpack.37";
+GPIO1.associatedPins[4].$name        = "PIN_C_A1";
+GPIO1.associatedPins[4].pin.$assign  = "boosterpack.36";
+GPIO1.associatedPins[5].$name        = "PIN_C_A2";
+GPIO1.associatedPins[5].pin.$assign  = "boosterpack.35";
+GPIO1.associatedPins[6].$name        = "PIN_MODE0";
+GPIO1.associatedPins[6].initialValue = "SET";
+GPIO1.associatedPins[6].pin.$assign  = "boosterpack.14";
+GPIO1.associatedPins[7].$name        = "PIN_MODE1";
+GPIO1.associatedPins[7].initialValue = "SET";
+GPIO1.associatedPins[7].pin.$assign  = "boosterpack.32";
+GPIO1.associatedPins[8].$name        = "PIN_REPOS";
+GPIO1.associatedPins[8].pin.$assign  = "boosterpack.11";
+
+GPIO2.$name                          = "LED_GPIO";
+GPIO2.associatedPins[0].$name        = "LED1";
+GPIO2.associatedPins[0].initialValue = "SET";
+GPIO2.associatedPins[0].pin.$assign  = "j19_expansion.9";
 
 
 /**

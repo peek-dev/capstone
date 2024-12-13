@@ -26,6 +26,7 @@ typedef struct {
 } BoardState;
 
 typedef struct {
+    BoardState true_state;
     BoardState last_measured_state;
 } GameState;
 
