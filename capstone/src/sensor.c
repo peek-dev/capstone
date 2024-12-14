@@ -19,7 +19,7 @@
 #define NBINS           13
 // Similarly, 50us for a row switch.
 #define SWITCH_DELAY_MS 10
-#define N_TRIALS        100
+#define N_TRIALS        1
 
 // For the ADC: ADC samples are asynchronous, so we need to wakeup the task from
 // an ISR.
@@ -27,7 +27,7 @@ static TaskHandle_t xSensorTaskId = NULL;
 
 SemaphoreHandle_t sensor_mutex;
 
-BoardState correct;
+static BoardState correct;
 
 static PieceType prvValueToPiece(uint16_t value, const uint16_t *bins) {
     uint8_t i;
@@ -148,7 +148,6 @@ void vSensor_Thread(void *arg0) {
     xSensorTaskId = xTaskGetCurrentTaskHandle();
     MAKEVISIBLE BaseType_t toggle_stddev_state = pdFALSE;
     for (uint8_t stddev_i = 0; stddev_i < N_STDDEV_BINS; stddev_i++) {
-        prvControlLED(toggle_stddev_state);
         prvSelectStdDev(toggle_stddev_state);
         prvSelectColumn(0);
         prvSelectRow(0);
@@ -161,6 +160,7 @@ void vSensor_Thread(void *arg0) {
             BoardState board, board_avg, board_weighted, board_request;
             uint16_t sensor_values[3];
             uint16_t sample;
+            PieceType p;
             for (uint8_t col = 0; col < 8; col++) {
                 prvSelectColumn(col);
                 for (uint8_t row = 0; row < 8; row++) {
@@ -170,13 +170,19 @@ void vSensor_Thread(void *arg0) {
                     prvSelectMode(0);
                     vTaskDelay(SWITCH_DELAY_MS);
                     sample = usSampleFiveMedian();
-                    vSetSquare(&board, row, col, prvValueToPiece(sample, bins));
+                    p = prvValueToPiece(sample, bins);
+                    vSetSquare(&board, row, col, p);
+                    if (xGetSquare(&correct, row, col) == p) {
+                        prvControlLED(pdFALSE);
+                    } else {
+                        prvControlLED(pdTRUE);
+                    }
 
                     // There are three triple sensor modes.
-                    vDoTripleSensor(sensor_values);
+                    // vDoTripleSensor(sensor_values);
                     uint16_t sum_vals = sum(sensor_values, 3);
                     // The averaging one is the easiest.
-                    PieceType p = prvValueToPiece(sum_vals, offset_bins_triple);
+                    p = prvValueToPiece(sum_vals, offset_bins_triple);
                     vSetSquare(&board_avg, row, col, p);
 
                     // Next comes weighted average.
@@ -191,14 +197,14 @@ void vSensor_Thread(void *arg0) {
                         prvValueToPiece(sensor_values[1], offset_bins) != p ||
                         prvValueToPiece(sensor_values[2], offset_bins) != p) {
                         // Request a reposition and rerun.
-                        prvSelectReposition(pdTRUE);
-                        vDoTripleSensor(sensor_values);
+                        // prvSelectReposition(pdTRUE);
+                        // vDoTripleSensor(sensor_values);
                         uint16_t sum_repos = sum(sensor_values, 3);
                         vSetSquare(
                             &board_request, row, col,
                             prvValueToPiece(sum_repos, offset_bins_triple));
                         repositions++;
-                        prvSelectReposition(pdFALSE);
+                        // prvSelectReposition(pdFALSE);
                     } else {
                         vSetSquare(&board_request, row, col, p);
                     }

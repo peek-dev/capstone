@@ -23,8 +23,6 @@ typedef struct {
     };
 } MainThread_Message;
 
-extern BoardState correct;
-
 static GameState state;
 
 // IDK, maybe change this later. Profiling?
