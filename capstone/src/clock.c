@@ -12,7 +12,6 @@
 #include "clock.h"
 #include "lcd.h"
 
-// TODO maybe lower to 3?
 #define QUEUE_SIZE 6
 
 // [white, black]

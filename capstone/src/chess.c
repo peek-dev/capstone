@@ -56,8 +56,7 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
             MAKEVISIBLE PieceType expected;
             // If this square should change, confirm that it does.
             if (row == GET_SRC_RANK(move) && col == GET_SRC_FILE(move)) {
-                // Squares that pieces moved from should be empty
-                // TODO validate this with complex rules e.g. castling, promo.
+                // Squares that pieces moved from should be empty 
                 expected = EmptySquare;
             } else if (row == GET_DEST_RANK(move) &&
                        col == GET_DEST_FILE(move)) {
@@ -152,8 +151,6 @@ int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
 
 // This function is intended to find whether exactly one piece has been lifted
 // (and not returned) from the board. row and column are outputs.
-// TODO maybe make this hybrid with findvalidmove, and include return states for
-// needing a second-move completion?
 BaseType_t xFindSingleLifted(BoardState *old, BoardState *new,
                              uint8_t *found_row, uint8_t *found_col) {
     BaseType_t found = pdFALSE;
@@ -243,7 +240,6 @@ BaseType_t xIlluminateMovable(NormalMove *moves, uint16_t moves_len) {
     return pdPASS;
 }
 
-// TODO optimize interleave this with findsinglelifted?
 BaseType_t xIlluminatePieceMoves(NormalMove *moves, uint16_t moves_len,
                                  uint8_t row, uint8_t col) {
     for (uint16_t i = 0; i < moves_len; i++) {

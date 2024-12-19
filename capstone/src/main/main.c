@@ -282,12 +282,7 @@ static void prvHandleButtonPress(enum button_num button) {
             vResetState();
         }
         xUART_EncodeEvent(BUTTON_RESTART, 0);
-        // TODO non-standard states
-        // state.state = game_state_notstarted;
-        // Set the latest state to the board state.
-        /*memcpy(&state.last_move_state, &state.last_measured_state,
-               sizeof(BoardState));*/
-        // TODO send the state to the uart somehow.
+
         break;
     case button_num_clock_mode:
         if (state.state == game_state_notstarted) {
@@ -438,7 +433,7 @@ static BaseType_t prvCheckSentinel(uint32_t packet) {
             // Ignore extra synack packets.
             break;
         case SENTINEL_CHECKMATE:
-            // TODO checkmate rendering
+            // Checkmate rendering
             state.state = game_state_over;
             state.winner = state.turn;
             // cut off move listening.
@@ -446,7 +441,7 @@ static BaseType_t prvCheckSentinel(uint32_t packet) {
             xClock_set_turn(game_turn_over);
             break;
         case SENTINEL_STALEMATE:
-            // TODO stalemate rendering
+            // Stalemate rendering
             state.state = game_state_over;
             state.winner = game_winner_draw;
             prvMovesLen = 1;
@@ -471,7 +466,6 @@ static void prvRenderState(void) {
         return;
     }
     // Light up the piece outlines to indicate the game being over.
-    // TODO maybe include something on the LCD?
     if (state.state == game_state_over) {
         Color blackColor;
         Color whiteColor;

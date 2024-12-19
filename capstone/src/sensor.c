@@ -35,7 +35,7 @@ static PieceType prvValueToPiece(uint16_t value, const uint16_t *bins) {
             break;
         }
     }
-    // TODO confirm that this matches the correct PieceType enum order.
+
     return (PieceType)(i - 1);
 }
 
@@ -120,7 +120,7 @@ void vSensor_Thread(void *arg0) {
     assert(xSensorTaskId == NULL);
     xSensorTaskId = xTaskGetCurrentTaskHandle();
 
-    // TODO: noise: don't read while LEDs are going?
+
     while (true) {
         // This is uninitialized, but that doesn't matter. Each element will be
         // initialized.

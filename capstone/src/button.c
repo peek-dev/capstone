@@ -22,7 +22,7 @@ static const enum button_num ButtonsB[] = {button_num_undo, button_num_pause};
 void GROUP1_IRQHandler(void) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     uint32_t allPinsA = 0, allPinsB = 0;
-    // TODO ensure optimizer precomputes this
+
     for (uint8_t i = 0; i < LenA; i++) {
         allPinsA |= PinsA[i];
     }
@@ -30,8 +30,8 @@ void GROUP1_IRQHandler(void) {
         allPinsB |= PinsB[i];
     }
     uint32_t gpioA = DL_GPIO_getEnabledInterruptStatus(GPIOA, allPinsA);
-    uint32_t gpioB = DL_GPIO_getEnabledInterruptStatus(GPIOB, allPinsB);
-// TODO ensure unrolled.
+    uint32_t gpioB = DL_GPIO_getEnabledInterruptStatus(GPIOB, allPinsB); 
+
 #pragma clang loop unroll(enable)
     for (uint8_t i = 0; i < LenA; i++) {
         if ((gpioA & PinsA[i]) == PinsA[i]) {
