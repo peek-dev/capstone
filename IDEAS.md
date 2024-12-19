@@ -7,4 +7,5 @@ Delay:
  - optimize searching to jump directly to likely-false squares
 
 Power:
- - turn off rpi bluetooth and wifi, maybe hdmi if we feel unbelievably confident?
+ - turn off rpi bluetooth and wifi, maybe hdmi if we feel unbelievably
+   confident?
