@@ -25,7 +25,6 @@ if __name__ == '__main__':
     except IndexError:
         debug = True
 
-
     if debug:
         push_msg(f"STARTED at: {datetime.now().isoformat()}")
 
