@@ -3,4 +3,4 @@ Debug/
 Release/
 *.swp
 __pycache__
-calibration_data_temp.txt
+testing/*.txt

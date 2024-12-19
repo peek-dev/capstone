@@ -17,9 +17,9 @@ extern const Color Color_Check;
 extern const Color Color_PieceAdjust;
 
 int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
-                       uint16_t moves_len, BaseType_t whiteToMove);
+                       uint16_t moves_len, BaseType_t whiteToMove, BaseType_t *is_partial);
 BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
-                           BaseType_t whiteToMove);
+                           BaseType_t whiteToMove, BaseType_t *is_partial);
 BaseType_t xCheckUndo(BoardState *old, BoardState *new, UndoMove move,
                       BaseType_t whiteToMove);
 BaseType_t xFindSingleLifted(BoardState *old, BoardState *new,
@@ -30,4 +30,8 @@ BaseType_t xIlluminatePieceMoves(NormalMove *moves, uint16_t moves_len,
                                  uint8_t row, uint8_t col);
 BaseType_t xIlluminateUndo(UndoMove move, BaseType_t mv2ontop);
 void vFlashDifferent(BoardState *old, BoardState *new);
+BaseType_t xIlluminatePotentiallyOffCenter(BoardState *old, BoardState *new,
+                                           BaseType_t *changed);
+void vInvalidDifferent(BoardState *old, BoardState *new);
+BaseType_t xIlluminatePartial(NormalMove move, BaseType_t whiteMove);
 #endif

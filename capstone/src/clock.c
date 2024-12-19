@@ -2,6 +2,7 @@
 
 #include <string.h>
 #include "game.h"
+#include "main.h"
 #include "portmacro.h"
 #include "queue.h"
 #include "assert.h"
@@ -35,6 +36,11 @@ void vApplicationTickHook(void) {
         if (times_ms[turn] % 1000 == 0) {
             Clock_Message msg = {.type = clockmsg_render_state};
             xQueueSendFromISR(clockQueue, &msg, &xHigherPriorityTaskWoken);
+            if (times_ms[turn] == 0) {
+                // end clock.
+                turn = game_turn_over;
+                xMain_time_up();
+            }
         }
     }
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);

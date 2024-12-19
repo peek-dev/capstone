@@ -11,6 +11,7 @@ BaseType_t xMain_button_press_FromISR(enum button_num button,
 BaseType_t xMain_uart_message(uint32_t move);
 BaseType_t xMain_uart_message_FromISR(uint32_t move,
                                       BaseType_t *pxHigherPriorityTaskWoken);
+BaseType_t xMain_time_up(void);
 
 #ifdef DECLARE_PRIVATE_MAIN_C
 // This is just for main.c, as a convenience. These are not part of the API.
@@ -18,7 +19,8 @@ BaseType_t xMain_uart_message_FromISR(uint32_t move,
 enum MainThread_MsgType {
     main_sensor_update,
     main_button_press,
-    main_uart_message
+    main_uart_message,
+    main_clock_timeover
 };
 
 typedef struct {

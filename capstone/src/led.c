@@ -1,6 +1,7 @@
 #include "config.h"
 #include <string.h>
 #include <queue.h>
+#include "assert.h"
 
 #include "projdefs.h"
 #include "ti/driverlib/dl_spi.h"
@@ -17,7 +18,7 @@
 // as mem-intensive.
 static QueueHandle_t ledQueue;
 static Color state[NUM_LEDS];
-static Color saved_state[NUM_LEDS];
+static Color saved_state[NUM_LEDS][2];
 
 enum LED_MsgType {
     led_clear_board,
@@ -29,7 +30,10 @@ enum LED_MsgType {
 
 typedef struct {
     enum LED_MsgType type;
-    uint8_t led_num;
+    union {
+        uint8_t led_num;
+        uint8_t save_num;
+    };
     Color color;
 } LED_Message;
 
@@ -78,15 +82,17 @@ BaseType_t xLED_commit() {
     return xQueueSend(ledQueue, &m, portMAX_DELAY);
 }
 
-BaseType_t xLED_save() {
+BaseType_t xLED_save(uint8_t save_num) {
     LED_Message m;
     m.type = led_save;
+    m.save_num = save_num;
     return xQueueSend(ledQueue, &m, portMAX_DELAY);
 }
 
-BaseType_t xLED_restore() {
+BaseType_t xLED_restore(uint8_t save_num) {
     LED_Message m;
     m.type = led_restore;
+    m.save_num = save_num;
     return xQueueSend(ledQueue, &m, portMAX_DELAY);
 }
 
@@ -154,10 +160,14 @@ void vLED_Thread(void *arg0) {
                 prvLED_commit();
                 break;
             case led_save:
-                memcpy(&saved_state, &state, sizeof(state));
+                if (message.save_num < 2) {
+                    memcpy(&(saved_state[message.save_num]), &state, sizeof(state));
+                }
                 break;
             case led_restore:
-                memcpy(&state, &saved_state, sizeof(state));
+                if (message.save_num < 2) {
+                    memcpy(&state, &(saved_state[message.save_num]), sizeof(state));
+                }
                 break;
             }
         }
