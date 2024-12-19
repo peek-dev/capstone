@@ -2,7 +2,6 @@
 #include "ti_msp_dl_config.h"
 #include "main.h"
 
-/* FIXME: redefine symbol as needed */
 void GPIOA_Handler(void) {
     switch (BUTTON_GPIO_GPIOA_INT_IIDX) {
         case BUTTON_GPIO_PIN_HINT_IIDX:
@@ -23,7 +22,6 @@ void GPIOA_Handler(void) {
     }
 }
 
-/* FIXME: redefine symbol as needed */
 void GPIOB_Handler(void) {
     switch (BUTTON_GPIO_GPIOB_INT_IIDX) {
         case BUTTON_GPIO_PIN_UNDO_IIDX:
