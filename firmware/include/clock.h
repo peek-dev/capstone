@@ -1,3 +1,22 @@
+/**
+ * Copyright (C) 2024 John E. Berberian, Jr.
+ *
+ * clock.h: an interface definition to support the chess clock firmware in
+ * this project (i.e., that operates the C.H.E.S.S.B.O.A.R.D. LCD clocks).
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>
+ */
 #ifndef CAPSTONE_CLOCK_H
 #define CAPSTONE_CLOCK_H
 
@@ -12,7 +31,6 @@ typedef enum {
     clock_state_running,
     clock_state_paused,
     clock_state_off,
-    // TODO make undo rendering work
     clock_state_undo,
     clock_state_notstarted,
     clock_state_staticnumbers
@@ -28,10 +46,9 @@ BaseType_t xClock_set_both_numbers(uint16_t number);
 // Only call this if you're REALLY sure you want to explicitly force a rerender.
 BaseType_t xClock_render_state(void);
 
-#ifdef DELCLARE_PRIVATE_CLOCK_C
+#ifdef DECLARE_PRIVATE_CLOCK_C
 enum Clock_MsgType {
     clockmsg_set_time,
-    // TODO increment
     clockmsg_set_increment,
     clockmsg_render_state,
     clockmsg_set_state,

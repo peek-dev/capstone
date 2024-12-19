@@ -1,5 +1,26 @@
-#ifndef __MSPM0_RPI5_UART_BIDIR_PROTOCOL_H__
-#define __MSPM0_RPI5_UART_BIDIR_PROTOCOL_H__
+/**
+ * Copyright (C) 2024 Paul D. Karhnak
+ *
+ * uart_bidir_protocol.h: the implementation file for the custom 32-bit UART
+ * protocol coinvented by P. D. Karhnak and John E. Berberian, Jr., to convey
+ * chess game information between the MSPM0G3507 and the Raspberry Pi for this
+ * project.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>
+ */
+#ifndef __MSPM0_RPI_UART_BIDIR_PROTOCOL_H__
+#define __MSPM0_RPI_UART_BIDIR_PROTOCOL_H__
 
 #include "config.h"
 
@@ -214,20 +235,5 @@ uint32_t xencode_undo_for_rpi(BUTTON_EVENT undo_event);
 void vdecode_move_for_msp(uint32_t word, rpi_move *move);
 
 void vdecode_undo_for_msp(uint32_t word, rpi_undo *undo);
-
-void vsend_packet_common(void *arg, uint32_t word,
-                         void (*send_func)(void *, uint32_t));
-
-uint32_t xrecv_packet_common(void *arg, uint32_t (*recv_func)(void *));
-
-/**
- * Encoding and decoding interface for RPi5
- */
-
-uint32_t xencode_move_for_msp(rpi_move *move);
-
-uint32_t xencode_undo_for_msp(rpi_undo *undo);
-
-void vdecode_packet_for_rpi(uint32_t word, msp_packet *packet);
 
 #endif

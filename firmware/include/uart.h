@@ -1,3 +1,23 @@
+/**
+ * Copyright (C) 2024 John E. Berberian, Jr., and Paul D. Karhnak
+ *
+ * uart.h: The core interface definition for MSPM0G3507 communication with the 
+ * Raspberry Pi over UART, including interface constants and UART data movement
+ * (FIFO enqueue/dequeue) functions.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>
+ */
 #ifndef CAPSTONE_UART_H
 #define CAPSTONE_UART_H
 
