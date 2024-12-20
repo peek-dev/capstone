@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2024 John E. Berberian, Jr.
- * 
- * TODO: add about one sentence to describe what this source file does
+ *
+ * lcd.c: driver for our seven-segment display SPI hardware (AY0438).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

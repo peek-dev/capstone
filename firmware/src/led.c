@@ -1,8 +1,8 @@
 /**
  * Copyright (C) 2024 John E. Berberian, Jr.
  *
- * TODO: add about one sentence to describe what this source file does
- * 
+ * led.c: driver and owning thread for SK9822 SPI LEDs.
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or

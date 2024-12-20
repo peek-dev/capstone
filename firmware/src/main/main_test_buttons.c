@@ -1,8 +1,9 @@
 /**
  * Copyright (C) 2024 John E. Berberian, Jr.
  *
- * TODO: add one-sentence description of what this does
- * 
+ * main_test_buttons.c: alternative event loop to verify (with breakpoints)
+ * that the button drivers are receiving the correct events.
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or

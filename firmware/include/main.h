@@ -1,8 +1,9 @@
 /**
  * Copyright (C) 2024 John E. Berberian, Jr.
  *
- * TODO: describe in about one sentence what this header does.
- * 
+ * main.h: definition of the interface for the main thread, as well as
+ * some private structures and variables that made main.c clunky to work with.
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or

@@ -1,8 +1,8 @@
 /**
  * Copyright (C) 2024 John E. Berberian, Jr.
  *
- * TODO: Describe in about one sentence what this header does.
- * 
+ * lcd.h: functions and macros related to the clock box LCD screen.
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or

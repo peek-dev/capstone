@@ -18,8 +18,12 @@
  * You should have received a copy of the GNU General Public License along with
  * this program.  If not, see <https://www.gnu.org/licenses/>
  */
-#include "button.h" #include "config.h" #include "portmacro.h" #include
-"projdefs.h" #include "ti/driverlib/dl_gpio.h" #include "ti_msp_dl_config.h"
+#include "button.h"
+#include "config.h"
+#include "portmacro.h"
+#include "projdefs.h"
+#include "ti/driverlib/dl_gpio.h"
+#include "ti_msp_dl_config.h"
 #include "main.h"
 
 static const uint32_t LenA = 5;
