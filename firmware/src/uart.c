@@ -1,5 +1,9 @@
 /**
- * Copyright (C) <year>  <name of author>
+ * Copyright (C) 2024 John E. Berberian, Jr., and Paul D. Karhnak
+ *
+ * uart.c: the core UART logic implementation for the MSPM0G3507 to 
+ * communicate with the Raspberry Pi computer system and support the 
+ * C.H.E.S.S.B.O.A.R.D.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,8 +31,6 @@
 #include "sensor_mutex.h"
 
 #define UART_QUEUE_SIZE 12
-
-// RPI_UART_INST
 
 // The "private" queue handle for data to be placed on UART TX.
 static QueueHandle_t queue_to_wire;

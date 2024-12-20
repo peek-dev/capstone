@@ -1,5 +1,10 @@
 /**
- * Copyright (C) <year>  <name of author>
+ * Copyright (C) 2024 Paul D. Karhnak
+ *
+ * uart_bidir_protocol.c: the implementation source file for the custom UART 
+ * protocol coinvented by Paul D. Karhnak and John E. Berberian, Jr., to 
+ * support the C.H.E.S.S.B.O.A.R.D. communication between its MSPM0G3507 and 
+ * Raspberry Pi computer systems.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,33 +59,3 @@ uint32_t xencode_hint_for_rpi(CHESS_FILE src_file, CHESS_RANK src_rank) {
     return encoded_word;
 }
 
-void vdecode_move_for_msp(uint32_t word, rpi_move *move) {
-    move->src_file = GET_SRC_FILE(word);
-    move->src_rank = GET_SRC_RANK(word);
-    move->dest_file = GET_DEST_FILE(word);
-    move->dest_rank = GET_DEST_RANK(word);
-    move->ptype = GET_PTYPE(word);
-    move->m2 = GET_M2(word);
-    move->m2_src_file = GET_M2_SRC_FILE(word);
-    move->m2_src_rank = GET_M2_SRC_RANK(word);
-    move->m2_dest_file = GET_M2_DEST_FILE(word);
-    move->m2_dest_rank = GET_M2_DEST_RANK(word);
-    move->mtype = GET_MTYPE(word);
-    move->m2_ptype = (word & 0x2) >> 1;
-    move->last = word & 0x1;
-}
-
-void vdecode_undo_for_msp(uint32_t word, rpi_undo *undo) {
-    undo->src_file = GET_SRC_FILE(word);
-    undo->src_rank = GET_SRC_RANK(word);
-    undo->dest_file = GET_DEST_FILE(word);
-    undo->dest_rank = GET_DEST_RANK(word);
-    undo->ptype = GET_PTYPE(word);
-    undo->m2 = GET_M2(word);
-    undo->m2_src_file = GET_M2_SRC_FILE(word);
-    undo->m2_src_rank = GET_M2_SRC_RANK(word);
-    undo->m2_dest_file = GET_M2_DEST_FILE(word);
-    undo->m2_dest_rank = GET_M2_DEST_RANK(word);
-    undo->bw_flag = CHECK_UNDO_BW(word);
-    undo->undone_ptype = GET_UNDO_PTYPE(word);
-}

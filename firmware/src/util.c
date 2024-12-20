@@ -1,5 +1,8 @@
 /**
- * Copyright (C) <year>  <name of author>
+ * Copyright (C) 2024 John E. Berberian, Jr.
+ *
+ * util.c: a helper function to take the median of five values in support of 
+ * averaging out sensor readings in the C.H.E.S.S.B.O.A.R.D. logic.
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

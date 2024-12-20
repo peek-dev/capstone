@@ -1,3 +1,24 @@
+/**
+ * Copyright (C) 2024 John E. Berberian, Jr., and Paul D. Karhnak
+ *
+ * main.c: the core event loop for the MSPM0G3507 to initialize 
+ * C.H.E.S.S.B.O.A.R.D. firmware state and begin communicating with the 
+ * Raspberry Pi to "wake up" the full scope of the C.H.E.S.S.B.O.A.R.D. 
+ * computer systems' capabilities.
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>
+ */
 #include "config.h"
 #include <task.h>
 #include <string.h>
