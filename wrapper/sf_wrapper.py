@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
 #
-# Copyright (C) <year>  <name of author>
+# Copyright (C) 2024 Paul D. Karhnak
+#
+# sf_wrapper.py: the main event loop that the Raspberry Pi runs to process 
+# and compute chess logic for the C.H.E.S.S.B.O.A.R.D. and communicate with 
+# the MSPM0G3507.
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

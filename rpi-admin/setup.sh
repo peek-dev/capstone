@@ -1,5 +1,8 @@
 #
-# Copyright (C) <year>  <name of author>
+# Copyright (C) 2024 Paul D. Karhnak
+#
+# setup.sh: a short configuration script to tune the Raspberry Pi to fit the 
+# needs of the C.H.E.S.S.B.O.A.R.D. and its firmware.
 # 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

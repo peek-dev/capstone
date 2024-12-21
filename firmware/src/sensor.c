@@ -1,7 +1,8 @@
 /**
  * Copyright (C) 2024 John E. Berberian, Jr.
  *
- * sensor.c: driver and owning thread for the hall-effect sensor subsystem (muxes, filters, and all).
+ * sensor.c: driver and owning thread for the hall-effect sensor subsystem 
+ *           (muxes, filters, and all).
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
