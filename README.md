@@ -34,9 +34,10 @@ The firmware was originally deployed on a Texas Instruments LP-MSPM0G3507. The
 firmware is generally appropriate for an ARM Cortex-M0+ based microcontroller
 assuming that the MCU has:
 * At least one hardware ADC module
-* At least two hardware SPI modules
-* At least one hardware UART module
-* Support for at least _X_ GPIO pins
+* At least two hardware SPI modules (used in "unidirectional" main-to-secondary
+  communication)
+* At least one hardware UART module (with TX/RX)
+* Support for at least 15 GPIO pins
 
 The development environment used for the firmware was the [Texas Instruments
 Code Composer Studio Theia IDE, version
