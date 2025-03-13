@@ -174,6 +174,7 @@ static void vResetState() {
     xLED_commit();
 }
 
+SemaphoreHandle_t sensor_mutex;
 BaseType_t xMain_Init(void) {
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
     vResetState();

@@ -73,6 +73,7 @@ void mainThread(void *arg0) {
     vTaskDelete(NULL);
 }
 
+SemaphoreHandle_t sensor_mutex;
 BaseType_t xMain_Init(void) {
     sensor_mutex = xSemaphoreCreateMutex();
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));

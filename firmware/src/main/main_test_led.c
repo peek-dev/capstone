@@ -24,6 +24,7 @@
 #include "button.h"
 #include "led_translation.h"
 
+SemaphoreHandle_t sensor_mutex;
 void mainThread(void *arg0) {
     TaskHandle_t thread_led;
     BaseType_t xReturned;

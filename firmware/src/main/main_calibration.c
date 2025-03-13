@@ -122,6 +122,7 @@ void mainThread(void *arg0) {
     vTaskDelete(NULL);
 }
 
+SemaphoreHandle_t sensor_mutex;
 BaseType_t xMain_Init(void) {
     sensor_mutex = xSemaphoreCreateMutex();
     max = 0;

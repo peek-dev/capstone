@@ -45,8 +45,6 @@
 // an ISR.
 static TaskHandle_t xSensorTaskId = NULL;
 
-SemaphoreHandle_t sensor_mutex;
-
 static PieceType prvValueToPiece(uint16_t value, const uint16_t *bins) {
     uint8_t i;
     for (i = 0; i < NBINS; i++) {
