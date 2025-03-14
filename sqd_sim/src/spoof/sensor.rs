@@ -10,7 +10,7 @@ pub struct BoardState {
 
 pub type EmuBoardState = [[PieceType; 8]; 8];
 
-pub fn starting_board() -> EmuBoardState {
+pub const fn starting_board() -> EmuBoardState {
     [
         [
             PieceType::WhiteRook,

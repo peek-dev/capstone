@@ -17,6 +17,7 @@ pub struct Color {
     green: u8,
     red: u8,
 }
+const MAX_BRIGHTNESS: u8 = 31;
 
 impl Default for Color {
     fn default() -> Self {
@@ -29,11 +30,39 @@ impl Default for Color {
     }
 }
 
+impl Color {
+    pub fn red_norm(&self) -> u8 {
+        assert!(self.brightness <= MAX_BRIGHTNESS);
+        (self.brightness * self.red) / MAX_BRIGHTNESS
+    }
+    pub fn green_norm(&self) -> u8 {
+        assert!(self.brightness <= MAX_BRIGHTNESS);
+        (self.brightness * self.green) / MAX_BRIGHTNESS
+    }
+    pub fn blue_norm(&self) -> u8 {
+        assert!(self.brightness <= MAX_BRIGHTNESS);
+        (self.brightness * self.blue) / MAX_BRIGHTNESS
+    }
+    pub fn is_on(&self) -> bool {
+        self.brightness > 0 && (self.red > 0 || self.green > 0 || self.blue > 0)
+    }
+}
+
 #[derive(Clone, Copy, Default)]
 pub(crate) struct LEDState {
     pub board: [[Color; 8]; 8],
-    pub white: [Color; 6],
-    pub black: [Color; 6],
+    pub white: [Color; PieceType::EmptySquare as usize],
+    pub black: [Color; PieceType::EmptySquare as usize],
+}
+
+impl LEDState {
+    pub fn get_pt(&self, pt: PieceType) -> Color {
+        if pt < PieceType::EmptySquare {
+            self.white[pt as usize]
+        } else {
+            self.black[PieceType::BlackPawn as usize - pt as usize]
+        }
+    }
 }
 
 const N_LED_SAVES: usize = 2;
@@ -102,6 +131,7 @@ pub extern "C" fn xLED_clear_board() -> BaseType_t {
 }
 #[no_mangle]
 pub unsafe extern "C" fn xLED_set_color(num: u8, pColor: *const Color) -> BaseType_t {
+    assert!((*pColor).brightness <= MAX_BRIGHTNESS);
     send_emu_led(LEDEvent::SetColor(num, *pColor));
     1
 }
