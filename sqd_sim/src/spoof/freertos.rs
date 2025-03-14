@@ -66,6 +66,7 @@ type TickType_t = u32;
 ///
 /// The blatant type-unsafety disgusts me, but I suppose it's what
 /// is necessary when trying to spoof C functions.
+#[no_mangle]
 pub extern "C" fn xQueueGenericCreate(
     _uxQueueLength: UBaseType_t,
     _uxItemSize: UBaseType_t,
@@ -79,6 +80,7 @@ pub extern "C" fn xQueueGenericCreate(
 /// This is the only one that really matters. This needs
 /// to take an event from the internal queue and turn it into
 /// an event for the C program to process.
+#[no_mangle]
 pub extern "C" fn xQueueReceive(
     _xQueue: QueueHandle_t,
     pvBuffer: *mut MainThread_Message,
@@ -103,6 +105,7 @@ pub extern "C" fn xQueueReceive(
 }
 
 /// Dummy function, needed for linking. Should never be called.
+#[no_mangle]
 pub extern "C" fn xQueueGenericSend(
     _xQueue: QueueHandle_t,
     _pvItemToQueue: usize,
@@ -111,7 +114,9 @@ pub extern "C" fn xQueueGenericSend(
 ) -> BaseType_t {
     panic!("xQueueGenericSend should never be called! Examine stack trace.");
 }
+
 /// Dummy function, needed for linking. Should never be called.
+#[no_mangle]
 pub extern "C" fn xQueueGenericSendFromISR(
     _xQueue: QueueHandle_t,
     _pvItemToQueue: usize,
@@ -123,6 +128,7 @@ pub extern "C" fn xQueueGenericSendFromISR(
 
 /// Dummy function, does not create the tasks.
 /// The tasks are all being emulated already by the system.
+#[no_mangle]
 pub extern "C" fn xTaskCreate(
     _pxTaskCode: usize,
     _pcName: usize,
@@ -136,6 +142,15 @@ pub extern "C" fn xTaskCreate(
 
 /// To intercept the creation of the `sensor_mutex`.
 /// Returns a dummy pointer, which should NEVER be dereferenced.
+#[no_mangle]
 pub extern "C" fn xQueueCreateMutex(_ucQueueType: u8) -> QueueHandle_t {
     1
+}
+
+/// I had forgotten how obsessively I would check the free memory remaining.
+/// Anyway, here's something to catch those calls. Good thing I never did
+/// anything with the result.
+#[no_mangle]
+pub extern "C" fn xPortGetFreeHeapSize() -> usize {
+    0
 }

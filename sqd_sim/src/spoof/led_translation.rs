@@ -8,11 +8,13 @@ pub struct ZeroToTwoInts {
 }
 
 /// Define an LED translation that is somewhat easier to decode on the other end.
+#[no_mangle]
 pub extern "C" fn LEDTrans_Square(row: u8, col: u8) -> u8 {
     assert!(row < 8 && col < 8);
     row * 8 + col
 }
 
+#[no_mangle]
 pub extern "C" fn LEDTrans_Ptype(p: PieceType) -> ZeroToTwoInts {
     assert!((p as u8) <= (PieceType::BlackPawn as u8));
     ZeroToTwoInts {

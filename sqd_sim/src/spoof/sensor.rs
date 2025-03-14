@@ -10,6 +10,37 @@ pub struct BoardState {
 
 pub type EmuBoardState = [[PieceType; 8]; 8];
 
+pub fn starting_board() -> EmuBoardState {
+    [
+        [
+            PieceType::WhiteRook,
+            PieceType::WhiteKnight,
+            PieceType::WhiteBishop,
+            PieceType::WhiteQueen,
+            PieceType::WhiteKing,
+            PieceType::WhiteBishop,
+            PieceType::WhiteKnight,
+            PieceType::WhiteRook,
+        ],
+        [PieceType::WhitePawn; 8],
+        [PieceType::EmptySquare; 8],
+        [PieceType::EmptySquare; 8],
+        [PieceType::EmptySquare; 8],
+        [PieceType::EmptySquare; 8],
+        [PieceType::BlackPawn; 8],
+        [
+            PieceType::BlackRook,
+            PieceType::BlackKnight,
+            PieceType::BlackBishop,
+            PieceType::BlackQueen,
+            PieceType::BlackKing,
+            PieceType::BlackBishop,
+            PieceType::BlackKnight,
+            PieceType::BlackRook,
+        ],
+    ]
+}
+
 impl Default for BoardState {
     fn default() -> Self {
         Self { rows: [0; 8] }
@@ -29,8 +60,10 @@ impl From<EmuBoardState> for BoardState {
     }
 }
 
+#[no_mangle]
 pub extern "C" fn xSensor_Init() -> BaseType_t {
     1
 }
+#[no_mangle]
 pub extern "C" fn vSensor_Thread(_arg0: *mut c_void) {}
 // We will not support emulation of the calibration sensor mode at the moment.

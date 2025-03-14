@@ -1,0 +1,4 @@
+[build]
+target = "i686-unknown-linux-musl"
+[env]
+MSPM0_SDK_PATH="/home/jeb/ti/mspm0_sdk_2_02_00_05"

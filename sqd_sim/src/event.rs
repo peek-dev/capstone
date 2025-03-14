@@ -28,29 +28,24 @@ pub enum PieceType {
     BlackPawn,
 }
 
+impl PieceType {
+    pub fn color_change(&self) -> Self {
+        unsafe { std::mem::transmute(PieceType::BlackPawn as u8 - *self as u8) }
+    }
+}
+
 pub enum UserEvent {
     SetSquare(Square, PieceType),
-    ButtonPress(Button),
+    ButtonPress(ButtonNum),
     TimeUp,
 }
 
 pub struct Square {
-    row: u8,
-    col: u8,
+    pub row: usize,
+    pub col: usize,
 }
 
-#[repr(u8)]
-pub enum Button {
-    Restart = 1,
-    Hint = 2,
-    Undo = 3,
-    Pause,
-    BlackMove,
-    WhiteMove,
-    ClockMode,
-}
-
-/// Events that the main thread would send to the emulator logic.
+/// Events that should be sent to the emulator logic.
 pub enum EmuEvent {
     LED(LEDEvent),
     User(UserEvent),

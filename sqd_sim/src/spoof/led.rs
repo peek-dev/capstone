@@ -37,6 +37,8 @@ pub(crate) struct LEDState {
 }
 
 const N_LED_SAVES: usize = 2;
+// These should only be used by the main thread. Mutex is there to make the compiler
+// happy, not to suggest that this should be accessed from outside threads.
 lazy_static! {
     static ref LED_STATE: Mutex<LEDState> = Default::default();
     static ref SAVED_STATE: Mutex<[LEDState; N_LED_SAVES]> = Default::default();
@@ -51,7 +53,7 @@ pub(crate) enum LEDEvent {
 }
 
 /// This function is only intended to be called by the core emulator thread.
-pub(crate) fn inner_LED_DoEvent(event: LEDEvent) {
+pub(crate) fn emu_LED_do_event(event: LEDEvent) {
     match event {
         LEDEvent::ClearBoard => {
             *(LED_STATE.lock()) = LEDState::default();
@@ -93,28 +95,35 @@ fn send_emu_led(event: LEDEvent) {
 
 // The following functions intercept the C code's messages to the LED driver.
 
+#[no_mangle]
 pub extern "C" fn xLED_clear_board() -> BaseType_t {
     send_emu_led(LEDEvent::ClearBoard);
     1
 }
+#[no_mangle]
 pub unsafe extern "C" fn xLED_set_color(num: u8, pColor: *const Color) -> BaseType_t {
     send_emu_led(LEDEvent::SetColor(num, *pColor));
     1
 }
+#[no_mangle]
 pub extern "C" fn xLED_commit() -> BaseType_t {
     send_emu_led(LEDEvent::Commit);
     1
 }
+#[no_mangle]
 pub extern "C" fn xLED_save(save_num: u8) -> BaseType_t {
     send_emu_led(LEDEvent::Save(save_num));
     1
 }
+#[no_mangle]
 pub extern "C" fn xLED_restore(save_num: u8) -> BaseType_t {
     send_emu_led(LEDEvent::Restore(save_num));
     1
 }
 
+#[no_mangle]
 pub extern "C" fn xLED_Init() -> BaseType_t {
     1
 }
+#[no_mangle]
 pub extern "C" fn vLED_Thread(_arg0: *mut c_void) {}

@@ -9,3 +9,6 @@ pub enum ButtonNum {
     WhiteMove,
     ClockMode,
 }
+
+#[no_mangle]
+pub extern "C" fn vButton_Init() {}
