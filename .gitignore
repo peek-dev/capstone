@@ -5,4 +5,5 @@ Release/
 __pycache__
 testing/*.txt
 wrapper/chessenv
+wrapper/games
 *.log

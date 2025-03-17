@@ -131,7 +131,11 @@ if __name__ == '__main__':
 
         current_timestamp = datetime.now().isoformat()
         current_timestamp = current_timestamp.replace(':', '-')
-        data_handle = f"/opt/chessboard/{current_timestamp}-game.txt"
+        if IN_SIM:
+            data_handle_dir = os.environ.get('SF_WRAPPER_PY_GAMEDIR', '')
+        else:
+            data_handle_dir = "/opt/chessboard/"
+        data_handle = f"{data_handle_dir}{current_timestamp}-game.txt"
     
         # The main loop of the program, which will never exit except in unusual 
         # circumstances.
@@ -199,7 +203,7 @@ if __name__ == '__main__':
 
                     current_timestamp = datetime.now().isoformat()
                     current_timestamp = current_timestamp.replace(':', '-')
-                    data_handle = f"/opt/chessboard/{current_timestamp}-game.txt"
+                    data_handle = f"{data_handle_dir}{current_timestamp}-game.txt"
                     continue
                 case ButtonEvent.HINT:
                     if debug:
@@ -266,6 +270,8 @@ if __name__ == '__main__':
 
                     while (next_result == None):
                         try:
+                            if debug:
+                                push_msg("Trying to play move.")
                             next_result = sf.play(board, sf_limit)
                         except TimeoutError:
                             pass
