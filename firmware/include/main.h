@@ -40,7 +40,8 @@ enum MainThread_MsgType {
     main_sensor_update,
     main_button_press,
     main_uart_message,
-    main_clock_timeover
+    main_clock_timeover,
+    main_quit // Only for the simulator, to make shutdown smooth.
 };
 
 typedef struct {

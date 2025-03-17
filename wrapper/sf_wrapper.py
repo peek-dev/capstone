@@ -23,19 +23,20 @@
 
 import chess
 import chess.engine
-import wrapper_util as wr # include helpers and UART protocol constants
-from wrapper_util import ButtonEvent
 import serial
+
 from datetime import datetime
 import sys  # for basic argparsing: argv[1] 
 import time
+import signal
 
-
-def push_msg(msg: str):
-    print("[DEBUG]:", msg)
-
+import stdio_serial
+import wrapper_util as wr # include helpers and UART protocol constants
+from wrapper_util import ButtonEvent
+from sqd_sim import *
 
 if __name__ == '__main__':
+    prevent_ctrlc_in_sim()
     debug = None
 
     try:
@@ -72,7 +73,13 @@ if __name__ == '__main__':
     if debug:
         push_msg("Configured stockfish (memory, threads, time limit)")
 
-    uart = serial.Serial('/dev/serial0', baudrate=MSP_BAUDRATE)
+    # If we are running in the simulator, don't use a real serial port.
+    # Instead, use the stdio to communicate. The simulator will redirect
+    # the channels appropriately.
+    if IN_SIM:
+        uart = stdio_serial.PseudoSerial()
+    else:
+        uart = serial.Serial('/dev/serial0', baudrate=MSP_BAUDRATE)
 
     msp_alive = True
 
@@ -87,7 +94,7 @@ if __name__ == '__main__':
         if debug:
             push_msg(f"Got heartbeat message: {heartbeat_msg}")
 
-        heartbeat = int(heartbeat_msg[-1::-1].hex(), 16)
+        heartbeat = int(heartbeat_msg[-1:-5:-1].hex(), 16)
 
         if debug:
             push_msg(f"Received heartbeat: {hex(heartbeat)}")
@@ -99,7 +106,7 @@ if __name__ == '__main__':
             push_msg(f"Sent SYNACK: {hex(wr.SYNACK)}")
 
         uart.read_until(wr.MSP_ACK.to_bytes(4, 'little'))
-             
+
         if debug:
             push_msg(f"Received ACK ({hex(wr.MSP_ACK)}) from MSP.")
 
@@ -150,6 +157,10 @@ if __name__ == '__main__':
 
                 wr.send_legal(board, uart, log=debug)
                 continue
+            if IN_SIM and (next_packet == wr.SIM_EXIT):
+                if debug:
+                    push_msg("Sim requests program exit, closing out.")
+                exit(0)
 
             next_move = chess.Move.null()
 

@@ -20,6 +20,7 @@
 import chess
 import serial
 from enum import Enum
+from sqd_sim import *
 
 # Various constants based on packet scheme. See
 # `/uart-protocol/uart_bidir_protocol.h` and `.c` for more information.
@@ -55,6 +56,7 @@ CHECK       = 0x00000011
 CHECKMATE   = 0x00000031
 STALEMATE   = 0x00000071
 
+SIM_EXIT    = 0x000000FF
 
 class ButtonEvent(Enum):
     NORMAL = 0
@@ -264,7 +266,7 @@ def send_legal(board: chess.Board, shandle: serial.Serial, log: bool=True):
                 packet |= 1 # Set the packet's LSB to mark it as the last packet in series
             
             if log:
-                print(f"[DEBUG]: (wr.send_legal): sending packet 0x{packet:08X}")
+                push_msg(f"(wr.send_legal): sending packet 0x{packet:08X}")
 
             shandle.write(packet.to_bytes(4, 'little'))
 

@@ -1,16 +1,19 @@
-use std::sync::mpsc::{channel, Receiver, Sender};
+use std::{
+    fmt::Display,
+    sync::mpsc::{channel, Receiver, Sender},
+};
 
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
 
 use crate::{
     spoof::button::ButtonNum,
-    spoof::led::{LEDEvent, LEDState},
+    spoof::led::{LEDState, LedEvent},
     spoof::sensor::EmuBoardState,
 };
 
 /// This is a u8 because of -fshort-enums.
-#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 #[repr(u8)]
 pub enum PieceType {
     WhitePawn,
@@ -30,7 +33,21 @@ pub enum PieceType {
 
 impl PieceType {
     pub fn color_change(&self) -> Self {
-        unsafe { std::mem::transmute(PieceType::BlackPawn as u8 - *self as u8) }
+        (PieceType::BlackPawn as u8 - *self as u8)
+            .try_into()
+            .unwrap()
+    }
+}
+
+impl TryFrom<u8> for PieceType {
+    type Error = ();
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        if value > PieceType::BlackPawn as u8 {
+            Err(())
+        } else {
+            unsafe { std::mem::transmute(value) }
+        }
     }
 }
 
@@ -38,6 +55,7 @@ pub enum UserEvent {
     SetSquare(Square, PieceType),
     ButtonPress(ButtonNum),
     TimeUp,
+    Quit,
 }
 
 pub struct Square {
@@ -45,22 +63,44 @@ pub struct Square {
     pub col: usize,
 }
 
+impl Display for Square {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}{}",
+            (b'A' + self.col as u8) as char,
+            (b'1' + self.row as u8) as char
+        )
+    }
+}
+
 /// Events that should be sent to the emulator logic.
 pub enum EmuEvent {
-    LED(LEDEvent),
+    Led(LedEvent),
+    ResendSensor,
     User(UserEvent),
+    UartFromPi(u32),
+    UartToPi(u32),
 }
 
 pub enum UIEvent {
     LEDChange(LEDState),
+    Quit,
 }
 
 /// Sent to the main thread from the emulator.
+#[derive(Debug)]
 pub enum MainEvent {
     SensorUpdate(EmuBoardState),
     ButtonPress(ButtonNum),
-    UARTMessage(u32),
+    UartMessage(u32),
     ClockTimeover,
+    Quit,
+}
+
+pub enum UartEvent {
+    Packet(u32),
+    Quit,
 }
 
 /// For sending messages to the emulator.
@@ -81,14 +121,13 @@ pub static MAIN_CHANNELS: Lazy<(Sender<MainEvent>, Mutex<Receiver<MainEvent>>)> 
     (send, Mutex::new(recv))
 });
 
+/// For sending messages to the UART process.
+pub static UART_CHANNELS: Lazy<(Sender<UartEvent>, Mutex<Receiver<UartEvent>>)> = Lazy::new(|| {
+    let (send, recv) = channel();
+    (send, Mutex::new(recv))
+});
+
+// Convenience functions for me.
 pub fn send_emu(event: EmuEvent) {
     EMU_CHANNELS.0.send(event).expect("Emu channel closed?");
-}
-
-pub fn send_ui(event: UIEvent) {
-    UI_CHANNELS.0.send(event).expect("UI channel closed?");
-}
-
-pub fn send_main(event: MainEvent) {
-    MAIN_CHANNELS.0.send(event).expect("Main channel closed?");
 }

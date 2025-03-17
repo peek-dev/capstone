@@ -114,6 +114,9 @@ void mainThread(void *arg0) {
     MAKEVISIBLE BaseType_t mem = xPortGetFreeHeapSize();
     while (1) {
         if (xQueueReceive(mainQueue, &message, portMAX_DELAY) == pdTRUE) {
+            if (message.type == main_quit) {
+                break;
+            }
             prvProcessMessage(&message);
         }
     }

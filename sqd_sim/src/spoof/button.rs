@@ -1,5 +1,5 @@
 #[repr(u8)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub enum ButtonNum {
     StartRestart = 1,
     Hint = 2,

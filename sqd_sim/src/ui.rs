@@ -1,9 +1,9 @@
 use std::fmt::{Display, Write};
 
-use colored::{ColoredString, Colorize};
+use colored::Colorize;
 
 use crate::{
-    event::{PieceType, UI_CHANNELS},
+    event::{PieceType, UIEvent, UI_CHANNELS},
     spoof::{
         led::{Color, LEDState},
         sensor::{starting_board, EmuBoardState},
@@ -36,7 +36,7 @@ impl Display for PieceType {
 fn color_string(s: String, c: Color, back_black: Option<bool>) -> String {
     let colored = s.bright_black();
     if c.is_on() {
-        colored.truecolor(c.red_norm(), c.green_norm(), c.blue_norm())
+        colored.on_truecolor(c.red_norm(), c.green_norm(), c.blue_norm())
     } else if let Some(black) = back_black {
         if black {
             colored.on_black()
@@ -72,7 +72,7 @@ fn render_board(board: &EmuBoardState, leds: &LEDState) -> String {
             builder.push(' ');
         }
         // We also put the row number.
-        let chari = char::from_digit(i as u32 + 1, 10).expect("Wrong board size?!?");
+        let chari = (b'1' + i as u8) as char;
         builder.push(chari);
         builder.push('│');
 
@@ -111,13 +111,17 @@ fn render_board(board: &EmuBoardState, leds: &LEDState) -> String {
 pub fn ui_thread() {
     let recv = UI_CHANNELS.1.lock();
     let mut leds = LEDState::default();
-    let mut board = starting_board();
+    let board = starting_board();
     loop {
         print!("{}", render_board(&board, &leds));
         let event = recv.recv().expect("UI channel closed?");
         match event {
-            crate::event::UIEvent::LEDChange(ledstate) => {
+            UIEvent::LEDChange(ledstate) => {
                 leds = ledstate;
+            }
+            UIEvent::Quit => {
+                println!("UI exiting");
+                break;
             }
         }
     }

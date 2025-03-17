@@ -1,4 +1,8 @@
 [build]
 target = "i686-unknown-linux-musl"
 [env]
-MSPM0_SDK_PATH="/home/jeb/ti/mspm0_sdk_2_02_00_05"
+MSPM0_SDK_PATH = "/home/jeb/ti/mspm0_sdk_2_02_00_05"
+SF_WRAPPER_PY = { value = "../wrapper/sf_wrapper.py", relative = true }
+SF_WRAPPER_PYTHON3 = { value = "../wrapper/chessenv/bin/python3", relative = true }
+SF_WRAPPER_PY_LOGFILE = "sf_wrapper.log"
+SQD_SIM_LOGFILE = "sqd_sim.log"

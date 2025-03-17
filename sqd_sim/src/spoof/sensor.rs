@@ -1,9 +1,12 @@
 use std::ffi::c_void;
 
-use crate::{event::PieceType, BaseType_t};
+use crate::{
+    event::{send_emu, EmuEvent, PieceType, UserEvent},
+    BaseType_t,
+};
 
 #[repr(C)]
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct BoardState {
     rows: [u32; 8],
 }
@@ -41,19 +44,13 @@ pub const fn starting_board() -> EmuBoardState {
     ]
 }
 
-impl Default for BoardState {
-    fn default() -> Self {
-        Self { rows: [0; 8] }
-    }
-}
-
 impl From<EmuBoardState> for BoardState {
     fn from(value: EmuBoardState) -> Self {
         let mut bs = Self::default();
-        for i in 0..value.len() {
-            for j in 0..value[i].len() {
-                assert!((value[i][j] as u32) <= 0xF);
-                bs.rows[i] |= (value[i][j] as u32) << (4 * j);
+        for (i, row) in value.iter().enumerate() {
+            for (j, piece) in row.iter().enumerate() {
+                assert!((*piece as u32) <= 0xF);
+                bs.rows[i] |= (*piece as u32) << (4 * j);
             }
         }
         bs
@@ -62,6 +59,7 @@ impl From<EmuBoardState> for BoardState {
 
 #[no_mangle]
 pub extern "C" fn xSensor_Init() -> BaseType_t {
+    send_emu(EmuEvent::ResendSensor);
     1
 }
 #[no_mangle]

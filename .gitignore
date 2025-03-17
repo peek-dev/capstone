@@ -4,3 +4,5 @@ Release/
 *.swp
 __pycache__
 testing/*.txt
+wrapper/chessenv
+*.log

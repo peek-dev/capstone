@@ -1,4 +1,6 @@
-use crate::event::PieceType;
+use std::fmt::Write;
+
+use crate::event::{PieceType, Square};
 
 /// To match the type defined in `led_translation.h`
 #[repr(C)]
@@ -20,5 +22,22 @@ pub extern "C" fn LEDTrans_Ptype(p: PieceType) -> ZeroToTwoInts {
     ZeroToTwoInts {
         len: if p == PieceType::EmptySquare { 0 } else { 1 },
         data: [64 + (p as u8), 0],
+    }
+}
+
+pub fn lednum_to_string(n: u8) -> String {
+    if n < 64 {
+        Square {
+            row: (n / 8) as usize,
+            col: (n % 8) as usize,
+        }
+        .to_string()
+    } else {
+        let mut s = String::new();
+        let pt: PieceType = (n - 64)
+            .try_into()
+            .expect("Invalid piece type into translation?");
+        write!(&mut s, "{:?}", pt).unwrap();
+        s
     }
 }

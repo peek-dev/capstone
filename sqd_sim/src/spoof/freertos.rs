@@ -15,6 +15,7 @@ pub enum MainThread_MsgType {
     ButtonPress,
     UARTMessage,
     ClockTimeover,
+    Quit,
 }
 
 #[repr(C)]
@@ -45,12 +46,15 @@ impl From<MainEvent> for MainThread_Message {
                 msg.msgtype = MainThread_MsgType::ButtonPress;
                 msg.contents.button = button_num;
             }
-            MainEvent::UARTMessage(chessmove) => {
+            MainEvent::UartMessage(chessmove) => {
                 msg.msgtype = MainThread_MsgType::UARTMessage;
                 msg.contents.chessmove = chessmove;
             }
             MainEvent::ClockTimeover => {
                 msg.msgtype = MainThread_MsgType::ClockTimeover;
+            }
+            MainEvent::Quit => {
+                msg.msgtype = MainThread_MsgType::Quit;
             }
         };
         msg
@@ -80,8 +84,12 @@ pub extern "C" fn xQueueGenericCreate(
 /// This is the only one that really matters. This needs
 /// to take an event from the internal queue and turn it into
 /// an event for the C program to process.
+///
+/// # Safety
+/// `pvBuffer` must be a valid, non-null pointer to some
+/// memory that we can write the message to.
 #[no_mangle]
-pub extern "C" fn xQueueReceive(
+pub unsafe extern "C" fn xQueueReceive(
     _xQueue: QueueHandle_t,
     pvBuffer: *mut MainThread_Message,
     xTicksToWait: TickType_t,
@@ -98,9 +106,7 @@ pub extern "C" fn xQueueReceive(
             }
         }
     };
-    unsafe {
-        *pvBuffer = payload.into();
-    }
+    *pvBuffer = payload.into();
     1
 }
 
@@ -112,7 +118,7 @@ pub extern "C" fn xQueueGenericSend(
     _xTicksToWait: TickType_t,
     _xCopyPosition: BaseType_t,
 ) -> BaseType_t {
-    panic!("xQueueGenericSend should never be called! Examine stack trace.");
+    panic!("xQueueGenericSend should never be called! Examine stack trace");
 }
 
 /// Dummy function, needed for linking. Should never be called.
@@ -123,7 +129,7 @@ pub extern "C" fn xQueueGenericSendFromISR(
     _pxHigherPriorityTaskWoken: usize,
     _xCopyPosition: BaseType_t,
 ) -> BaseType_t {
-    panic!("xQueueGenericSendFromISR should never be called! Examine stack trace.");
+    panic!("xQueueGenericSendFromISR should never be called! Examine stack trace");
 }
 
 /// Dummy function, does not create the tasks.
@@ -138,6 +144,11 @@ pub extern "C" fn xTaskCreate(
     _pxCreatedTask: usize,
 ) -> BaseType_t {
     1
+}
+
+#[no_mangle]
+pub extern "C" fn vTaskDelete(_xTaskHandle: usize) {
+    println!("Main exiting");
 }
 
 /// To intercept the creation of the `sensor_mutex`.
