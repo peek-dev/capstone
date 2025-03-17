@@ -53,6 +53,7 @@ pub fn emulator_thread() {
                 UserEvent::SetSquare(square, piece_type) => {
                     board[square.row][square.col] = piece_type;
                     send_main(MainEvent::SensorUpdate(board));
+                    send_ui(UIEvent::BoardChange(board));
                 }
                 UserEvent::ButtonPress(button_num) => {
                     send_main(MainEvent::ButtonPress(button_num));
@@ -105,7 +106,7 @@ fn process_led_event(event: LedEvent) {
             }
         }
         LedEvent::Commit => {
-            send_ui(UIEvent::LEDChange(*LED_STATE.lock()));
+            send_ui(UIEvent::LEDChange(Box::new(*LED_STATE.lock())));
         }
         LedEvent::Save(save_num) => {
             assert!(save_num < N_LED_SAVES as u8);

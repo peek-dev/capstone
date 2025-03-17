@@ -1,9 +1,14 @@
-use std::fmt::{Display, Write};
+use std::{
+    fmt::{Display, Write},
+    io::stdin,
+    thread::spawn,
+};
 
 use colored::Colorize;
 
 use crate::{
-    event::{PieceType, UIEvent, UI_CHANNELS},
+    event::{send_emu, EmuEvent, PieceType, Square, UIEvent, UserEvent, UI_CHANNELS},
+    parser::{parse_line, Commands, Interactive},
     spoof::{
         led::{Color, LEDState},
         sensor::{starting_board, EmuBoardState},
@@ -108,21 +113,81 @@ fn render_board(board: &EmuBoardState, leds: &LEDState) -> String {
     builder
 }
 
-pub fn ui_thread() {
+/// Handles user input and output.
+pub fn ui_thread(prelude: Vec<Interactive>) {
+    // secretly two threads. shhh
+    spawn(|| input_thread(prelude));
     let recv = UI_CHANNELS.1.lock();
     let mut leds = LEDState::default();
-    let board = starting_board();
+    let mut board = starting_board();
     loop {
         print!("{}", render_board(&board, &leds));
         let event = recv.recv().expect("UI channel closed?");
         match event {
             UIEvent::LEDChange(ledstate) => {
-                leds = ledstate;
+                leds = *ledstate;
             }
             UIEvent::Quit => {
                 println!("UI exiting");
                 break;
             }
+            UIEvent::BoardChange(b) => board = b,
+        }
+    }
+}
+
+fn emu_set_square(square: Square, piece: PieceType) {
+    send_emu(EmuEvent::User(UserEvent::SetSquare(square, piece)));
+}
+
+fn input_thread(prelude: Vec<Interactive>) {
+    let mut hand: PieceType = PieceType::EmptySquare;
+    let mut board = starting_board();
+
+    // Returns a boolean value indicating whether to continue.
+    let mut process_line = |line: Interactive| {
+        match line.command {
+            Commands::Button { button } => send_emu(EmuEvent::User(UserEvent::ButtonPress(button))),
+            Commands::Move { src, dest } => {
+                board[dest.row][dest.col] = board[src.row][src.col];
+                board[src.row][src.col] = PieceType::EmptySquare;
+                emu_set_square(src, PieceType::EmptySquare);
+                emu_set_square(dest, board[dest.row][dest.col]);
+            }
+            Commands::Lift { target } => {
+                hand = board[target.row][target.col];
+                emu_set_square(target, PieceType::EmptySquare);
+            }
+            Commands::Drop { target } => {
+                emu_set_square(target, hand);
+                hand = PieceType::EmptySquare;
+            }
+            Commands::Place { target, ptype } => emu_set_square(target, ptype),
+            Commands::Time => send_emu(EmuEvent::User(UserEvent::TimeUp)),
+            Commands::Quit => {
+                send_emu(EmuEvent::User(UserEvent::Quit));
+                return false;
+            }
+        }
+        true
+    };
+
+    for line in prelude {
+        if !process_line(line) {
+            // We've been given the command to quit. Return.
+            return;
+        }
+    }
+
+    // If we haven't quit by now, loop over stdin lines.
+    for line in stdin().lines() {
+        match parse_line(&line.expect("Unable to read stdin?")) {
+            Ok(parsed) => {
+                if !process_line(parsed) {
+                    return;
+                }
+            }
+            Err(e) => println!("Parsing error: {}", e),
         }
     }
 }

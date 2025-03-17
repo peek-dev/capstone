@@ -1,7 +1,7 @@
 use std::ffi::c_void;
 
 use crate::{
-    event::{send_emu, EmuEvent, PieceType, UserEvent},
+    event::{send_emu, EmuEvent, PieceType},
     BaseType_t,
 };
 

@@ -4,8 +4,7 @@ use std::{
     io::{ErrorKind, Read, Write},
     path::PathBuf,
     process::{ChildStdout, Command, Stdio},
-    thread::{sleep, spawn},
-    time::Duration,
+    thread::spawn,
 };
 
 use crate::{
@@ -68,7 +67,7 @@ pub fn uart_thread(sf_wrapper: PathBuf) {
                 pipe.write_all(&packet).expect("sf_wrapper crashed?");
             }
             UartEvent::Quit => {
-                if let Err(_) = pipe.write_all(&SIM_EXIT.to_le_bytes()) {
+                if pipe.write_all(&SIM_EXIT.to_le_bytes()).is_err() {
                     pi_process.kill().expect("Unable to kill sf_wraper");
                 }
                 println!("Uart main exiting");
@@ -96,7 +95,7 @@ fn uart_listener(mut pipe: ChildStdout) {
                     println!("Uart child exiting");
                     break;
                 }
-                _ => Err(n).unwrap(),
+                _ => panic!("{:?}", n),
             },
         }
     }

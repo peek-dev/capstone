@@ -46,7 +46,7 @@ impl TryFrom<u8> for PieceType {
         if value > PieceType::BlackPawn as u8 {
             Err(())
         } else {
-            unsafe { std::mem::transmute(value) }
+            Ok(unsafe { std::mem::transmute::<u8, PieceType>(value) })
         }
     }
 }
@@ -58,6 +58,7 @@ pub enum UserEvent {
     Quit,
 }
 
+#[derive(Clone, Copy)]
 pub struct Square {
     pub row: usize,
     pub col: usize,
@@ -84,7 +85,8 @@ pub enum EmuEvent {
 }
 
 pub enum UIEvent {
-    LEDChange(LEDState),
+    LEDChange(Box<LEDState>),
+    BoardChange(EmuBoardState),
     Quit,
 }
 
