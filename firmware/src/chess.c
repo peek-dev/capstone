@@ -84,7 +84,7 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
             MAKEVISIBLE PieceType expected;
             // If this square should change, confirm that it does.
             if (row == GET_SRC_RANK(move) && col == GET_SRC_FILE(move)) {
-                // Squares that pieces moved from should be empty 
+                // Squares that pieces moved from should be empty
                 expected = EmptySquare;
             } else if (row == GET_DEST_RANK(move) &&
                        col == GET_DEST_FILE(move)) {
@@ -112,8 +112,9 @@ BaseType_t xCheckValidMove(BoardState *old, BoardState *new, NormalMove move,
             // Confirm our expectations.
             if (post != expected) {
                 if (GET_M2(move) == 1 && ((row == GET_M2_DEST_RANK(move) &&
-                       col == GET_M2_DEST_FILE(move)) || (row == GET_M2_SRC_RANK(move) &&
-                       col == GET_M2_SRC_FILE(move)))) {
+                                           col == GET_M2_DEST_FILE(move)) ||
+                                          (row == GET_M2_SRC_RANK(move) &&
+                                           col == GET_M2_SRC_FILE(move)))) {
                     *is_partial = pdTRUE;
                 } else {
                     return pdFALSE;
@@ -171,11 +172,13 @@ BaseType_t xCheckUndo(BoardState *old, BoardState *new, UndoMove move,
 }
 
 int16_t sFindMoveIndex(BoardState *old, BoardState *new, NormalMove *moves,
-                       uint16_t moves_len, BaseType_t whiteToMove, BaseType_t *is_partial) {
+                       uint16_t moves_len, BaseType_t whiteToMove,
+                       BaseType_t *is_partial) {
     // Search every available move.
     for (uint16_t i = 0; i < moves_len; i++) {
         // If one matches, return the index.
-        if (xCheckValidMove(old, new, moves[i], whiteToMove, is_partial) == pdTRUE) {
+        if (xCheckValidMove(old, new, moves[i], whiteToMove, is_partial) ==
+            pdTRUE) {
             // Partial move completion is never valid except as a partial move.
             return i;
         }
@@ -234,6 +237,7 @@ BaseType_t xIlluminateMove(NormalMove move, uint8_t do_src) {
         case MTYPE_NORMAL:
             color.blue = 255;
             color.green = 255;
+        // fall through
         case MTYPE_CAPTURE:
             color.red = 255;
             break;
@@ -383,7 +387,6 @@ BaseType_t xIlluminatePotentiallyOffCenter(BoardState *old, BoardState *new,
                 xReturned &= xLED_set_color(LEDTrans_Square(row, col),
                                             &Color_PieceAdjust);
                 *changed = pdTRUE;
-
             }
         }
     }
@@ -391,17 +394,25 @@ BaseType_t xIlluminatePotentiallyOffCenter(BoardState *old, BoardState *new,
 }
 
 BaseType_t xIlluminatePartial(NormalMove move, BaseType_t whiteMove) {
+    BaseType_t xReturned = pdTRUE;
     // Check if this is en passant.
     if (GET_MTYPE(move) == MTYPE_CASTLE) {
-        xLED_set_color(LEDTrans_Square(GET_M2_SRC_RANK(move), GET_M2_SRC_FILE(move)), &move2from_color);
-        xLED_set_color(LEDTrans_Square(GET_M2_DEST_RANK(move), GET_M2_DEST_FILE(move)), &move2to_color);
+        xReturned &= xLED_set_color(
+            LEDTrans_Square(GET_M2_SRC_RANK(move), GET_M2_SRC_FILE(move)),
+            &move2from_color);
+        xReturned &= xLED_set_color(
+            LEDTrans_Square(GET_M2_DEST_RANK(move), GET_M2_DEST_FILE(move)),
+            &move2to_color);
     } else if (GET_MTYPE(move) == MTYPE_CAPTURE && GET_M2(move) == 1) {
-        xLED_set_color(LEDTrans_Square(GET_M2_SRC_RANK(move), GET_M2_SRC_FILE(move)), &Color_Take);
+        xReturned &= xLED_set_color(
+            LEDTrans_Square(GET_M2_SRC_RANK(move), GET_M2_SRC_FILE(move)),
+            &Color_Take);
         // Switch the color of the outline.
-        ZeroToTwoInts z = LEDTrans_Ptype(xPtypeFromWire(PAWN, (whiteMove == pdTRUE) ? pdFALSE : pdTRUE));
+        ZeroToTwoInts z = LEDTrans_Ptype(
+            xPtypeFromWire(PAWN, (whiteMove == pdTRUE) ? pdFALSE : pdTRUE));
         for (uint8_t i = 0; i < z.len; i++) {
-            xLED_set_color(z.data[i], &Color_Take);
+            xReturned &= xLED_set_color(z.data[i], &Color_Take);
         }
     }
+    return xReturned;
 }
-

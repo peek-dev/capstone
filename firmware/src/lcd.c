@@ -86,7 +86,7 @@ void prvRenderTime_oneside(uint32_t t, uint32_t *data, game_turn side) {
 static void prvRenderTime(uint32_t *times, uint32_t *data) {
     // Start with white's time.
     prvRenderTime_oneside(times[0] / 1000, data, game_turn_white);
-    // Black's time next. 
+    // Black's time next.
     prvRenderTime_oneside(times[1] / 1000, data, game_turn_black);
 }
 

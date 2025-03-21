@@ -1,11 +1,11 @@
 /**
  * Copyright (C) 2024 Paul D. Karhnak
  *
- * uart_bidir_protocol.c: the implementation source file for the custom UART 
- * protocol coinvented by Paul D. Karhnak and John E. Berberian, Jr., to 
- * support the C.H.E.S.S.B.O.A.R.D. communication between its MSPM0G3507 and 
+ * uart_bidir_protocol.c: the implementation source file for the custom UART
+ * protocol coinvented by Paul D. Karhnak and John E. Berberian, Jr., to
+ * support the C.H.E.S.S.B.O.A.R.D. communication between its MSPM0G3507 and
  * Raspberry Pi computer systems.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -58,4 +58,3 @@ uint32_t xencode_hint_for_rpi(CHESS_FILE src_file, CHESS_RANK src_rank) {
     encoded_word |= BUTTON_HINT;
     return encoded_word;
 }
-

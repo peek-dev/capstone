@@ -179,12 +179,14 @@ void vLED_Thread(void *arg0) {
                 break;
             case led_save:
                 if (message.save_num < 2) {
-                    memcpy(&(saved_state[message.save_num]), &state, sizeof(state));
+                    memcpy(&(saved_state[message.save_num]), &state,
+                           sizeof(state));
                 }
                 break;
             case led_restore:
                 if (message.save_num < 2) {
-                    memcpy(&state, &(saved_state[message.save_num]), sizeof(state));
+                    memcpy(&state, &(saved_state[message.save_num]),
+                           sizeof(state));
                 }
                 break;
             }

@@ -1,7 +1,8 @@
 /**
  * Copyright (C) 2024 John E. Berberian, Jr.
  *
- * flash_square.c: timing thread for flashing specific squares with different periods.
+ * flash_square.c: timing thread for flashing specific squares with different
+ * periods.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -163,7 +164,7 @@ void vFlashSquare_Thread(void *arg0) {
                     xLED_set_color(m.led_num, &off);
                 } else {
                     // enabling a square?
-                    //xLED_set_color(m.led_num, &m.color);
+                    // xLED_set_color(m.led_num, &m.color);
                 }
                 for (uint8_t i = 0; i < MAX_FLASHING_SQUARES; i++) {
                     if ((m.half_period != 0 && halfperiod[i] == 0) ||

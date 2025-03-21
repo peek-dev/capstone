@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2024 John E. Berberian, Jr.
  *
- * sensor.c: driver and owning thread for the hall-effect sensor subsystem 
+ * sensor.c: driver and owning thread for the hall-effect sensor subsystem
  *           (muxes, filters, and all).
  *
  * This program is free software: you can redistribute it and/or modify
@@ -136,7 +136,6 @@ BaseType_t xSensor_Init(void) {
 void vSensor_Thread(void *arg0) {
     assert(xSensorTaskId == NULL);
     xSensorTaskId = xTaskGetCurrentTaskHandle();
-
 
     while (true) {
         // This is uninitialized, but that doesn't matter. Each element will be

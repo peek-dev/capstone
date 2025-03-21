@@ -1,10 +1,10 @@
 /**
  * Copyright (C) 2024 John E. Berberian, Jr., and Paul D. Karhnak
  *
- * uart.c: the core UART logic implementation for the MSPM0G3507 to 
- * communicate with the Raspberry Pi computer system and support the 
+ * uart.c: the core UART logic implementation for the MSPM0G3507 to
+ * communicate with the Raspberry Pi computer system and support the
  * C.H.E.S.S.B.O.A.R.D.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or

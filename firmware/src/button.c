@@ -1,10 +1,10 @@
-/** 
+/**
  * Copyright (C) 2024 John E. Berberian, Jr.
  *
  * button.c: logic to handle pushbutton presses on the C.H.E.S.S.B.O.A.R.D.
- * and translate them into game events (play, hint, undo, clock toggle, 
+ * and translate them into game events (play, hint, undo, clock toggle,
  * restart) for the firmware.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
  * Software Foundation, either version 3 of the License, or (at your option)
@@ -50,7 +50,7 @@ void GROUP1_IRQHandler(void) {
         allPinsB |= PinsB[i];
     }
     uint32_t gpioA = DL_GPIO_getEnabledInterruptStatus(GPIOA, allPinsA);
-    uint32_t gpioB = DL_GPIO_getEnabledInterruptStatus(GPIOB, allPinsB); 
+    uint32_t gpioB = DL_GPIO_getEnabledInterruptStatus(GPIOB, allPinsB);
 
 #pragma clang loop unroll(enable)
     for (uint8_t i = 0; i < LenA; i++) {

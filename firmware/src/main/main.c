@@ -1,11 +1,11 @@
 /**
  * Copyright (C) 2024 John E. Berberian, Jr., and Paul D. Karhnak
  *
- * main.c: the core event loop for the MSPM0G3507 to initialize 
- * C.H.E.S.S.B.O.A.R.D. firmware state and begin communicating with the 
- * Raspberry Pi to "wake up" the full scope of the C.H.E.S.S.B.O.A.R.D. 
+ * main.c: the core event loop for the MSPM0G3507 to initialize
+ * C.H.E.S.S.B.O.A.R.D. firmware state and begin communicating with the
+ * Raspberry Pi to "wake up" the full scope of the C.H.E.S.S.B.O.A.R.D.
  * computer systems' capabilities.
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -48,6 +48,7 @@ BaseType_t correct_after_reset = pdTRUE;
 static void vResetState();
 
 void mainThread(void *arg0) {
+    (void)arg0;
     sensor_mutex = xSemaphoreCreateMutex();
     MainThread_Message message;
     BaseType_t xReturned;
@@ -279,7 +280,9 @@ static void prvHandleButtonPress(enum button_num button) {
         case game_state_notstarted:
             switch (state.hint) {
             case game_hint_unknown:
-                if (prvMovesLen != 0 && xBoardEqual(&state.last_move_state, &state.last_measured_state)) {
+                if (prvMovesLen != 0 &&
+                    xBoardEqual(&state.last_move_state,
+                                &state.last_measured_state)) {
                     // Request a hint from the pi.
                     xReturned = xUART_EncodeEvent(BUTTON_HINT, 0);
                     while (xReturned != pdPASS);
@@ -287,7 +290,8 @@ static void prvHandleButtonPress(enum button_num button) {
                 }
                 break;
             case game_hint_known:
-                if (xBoardEqual(&state.last_move_state, &state.last_measured_state)) {
+                if (xBoardEqual(&state.last_move_state,
+                                &state.last_measured_state)) {
                     // Display the hint, clearing other things.
                     xLED_clear_board();
                     xIlluminateMove(state.hint_move, 0);
@@ -348,6 +352,7 @@ static void prvHandleButtonPress(enum button_num button) {
             prvMovesLen = 0;
             prvCurrentMoveIndex = 0;
             state.hint = game_hint_unknown;
+        // fall through
         case game_state_undo:
             xClock_set_both_numbers(prvMovesLen + 1);
             xReturned = xUART_EncodeEvent(BUTTON_UNDO, 0);
@@ -370,13 +375,15 @@ static void prvSwitchTurnRoutine() {
     BaseType_t is_partial = pdFALSE;
     int16_t index = sFindMoveIndex(
         &state.last_move_state, &state.last_measured_state, prvMoves.possible,
-        prvMovesLen, (state.turn == game_turn_white) ? pdTRUE : pdFALSE, &is_partial);
+        prvMovesLen, (state.turn == game_turn_white) ? pdTRUE : pdFALSE,
+        &is_partial);
     if (index == -1) {
         vFlashDifferent(&state.last_move_state, &state.last_measured_state);
         return;
     }
     if (is_partial == pdTRUE) {
-        xIlluminatePartial(prvMoves.possible[index], (state.turn == game_turn_white) ? pdTRUE : pdFALSE);
+        xIlluminatePartial(prvMoves.possible[index],
+                           (state.turn == game_turn_white) ? pdTRUE : pdFALSE);
         xLED_commit();
         return;
     }
@@ -592,12 +599,15 @@ static void prvRenderState(void) {
 
     } else {
         board_changed = pdFALSE;
-        if (state.hint != game_hint_displaying && rendered_after_hint == pdTRUE) {
-            xIlluminatePotentiallyOffCenter(
-                &state.last_move_state, &state.last_measured_state, &board_changed);
+        if (state.hint != game_hint_displaying &&
+            rendered_after_hint == pdTRUE) {
+            xIlluminatePotentiallyOffCenter(&state.last_move_state,
+                                            &state.last_measured_state,
+                                            &board_changed);
         }
     }
-    if (state.state == game_state_notstarted && correct_after_reset == pdFALSE) {
+    if (state.state == game_state_notstarted &&
+        correct_after_reset == pdFALSE) {
         xLED_clear_board();
         vInvalidDifferent(&state.last_move_state, &state.last_measured_state);
         xLED_commit();
@@ -679,8 +689,12 @@ static void prvProcessMessage(MainThread_Message *message) {
     case main_clock_timeover:
         prvCheckSentinel(SENTINEL_CHECKMATE);
         break;
+    case main_quit:
+        // should never happen - this should never make it to this point.
+        return;
     }
 }
 BaseType_t xMain_sensor_calibration_update(BoardState_Calibration *state) {
+    (void)state;
     return pdTRUE;
 }
