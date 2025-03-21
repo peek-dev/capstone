@@ -1,12 +1,14 @@
 use std::{
     fmt::{Display, Write},
     io::stdin,
-    thread::spawn,
+    thread::{sleep, spawn},
+    time::Duration,
 };
 
 use colored::Colorize;
 
 use crate::{
+    emu::wait_for_uart,
     event::{send_emu, EmuEvent, PieceType, Square, UIEvent, UserEvent, UI_CHANNELS},
     parser::{parse_line, Commands, Interactive},
     spoof::{
@@ -146,27 +148,38 @@ fn input_thread(prelude: Vec<Interactive>) {
 
     // Returns a boolean value indicating whether to continue.
     let mut process_line = |line: Interactive| {
+        let sync_square = |sq: Square, b: &EmuBoardState| emu_set_square(sq, b[sq.row][sq.col]);
         match line.command {
             Commands::Button { button } => send_emu(EmuEvent::User(UserEvent::ButtonPress(button))),
             Commands::Move { src, dest } => {
                 board[dest.row][dest.col] = board[src.row][src.col];
                 board[src.row][src.col] = PieceType::EmptySquare;
-                emu_set_square(src, PieceType::EmptySquare);
-                emu_set_square(dest, board[dest.row][dest.col]);
+                sync_square(src, &board);
+                sync_square(dest, &board);
             }
             Commands::Lift { target } => {
                 hand = board[target.row][target.col];
-                emu_set_square(target, PieceType::EmptySquare);
+                board[target.row][target.col] = PieceType::EmptySquare;
+                sync_square(target, &board);
             }
             Commands::Drop { target } => {
-                emu_set_square(target, hand);
+                board[target.row][target.col] = hand;
                 hand = PieceType::EmptySquare;
+                sync_square(target, &board);
             }
-            Commands::Place { target, ptype } => emu_set_square(target, ptype),
+            Commands::Place { target, ptype } => {
+                board[target.row][target.col] = ptype;
+                sync_square(target, &board);
+            }
             Commands::Time => send_emu(EmuEvent::User(UserEvent::TimeUp)),
             Commands::Quit => {
                 send_emu(EmuEvent::User(UserEvent::Quit));
                 return false;
+            }
+            Commands::Delay { time_ms } => sleep(Duration::from_millis(time_ms)),
+            Commands::WaitForUart { time_ms } => {
+                wait_for_uart();
+                sleep(Duration::from_millis(time_ms.unwrap_or_default()));
             }
         }
         true

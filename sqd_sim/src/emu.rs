@@ -2,12 +2,12 @@ use std::{env, fmt::Display, fs::OpenOptions, io::Write, path::PathBuf};
 
 use chrono::Local;
 use lazy_static::lazy_static;
-use parking_lot::Mutex;
+use parking_lot::{Condvar, Mutex};
 
 use crate::{
     event::{
-        EmuEvent, MainEvent, PieceType, UIEvent, UartEvent, UserEvent, EMU_CHANNELS, MAIN_CHANNELS,
-        UART_CHANNELS, UI_CHANNELS,
+        send_emu, EmuEvent, MainEvent, PieceType, UIEvent, UartEvent, UserEvent, EMU_CHANNELS,
+        MAIN_CHANNELS, UART_CHANNELS, UI_CHANNELS,
     },
     spoof::{
         led::{LEDState, LedEvent, N_LED_SAVES},
@@ -15,6 +15,14 @@ use crate::{
         sensor::starting_board,
     },
 };
+
+static UART_PAIR: (Mutex<bool>, Condvar) = (Mutex::new(false), Condvar::new());
+
+pub fn wait_for_uart() {
+    let mut got_message = UART_PAIR.0.lock();
+    *got_message = false;
+    UART_PAIR.1.wait(&mut got_message);
+}
 
 fn send_ui(event: UIEvent) {
     UI_CHANNELS.0.send(event).expect("UI channel closed?");
@@ -42,21 +50,21 @@ pub fn emulator_thread() {
         .create(true)
         .open(logpath)
         .expect("Emu: Failed to open logfile");
+    let mut awaiting_uart_response = false;
     loop {
         let event = recv.recv().expect("Emu channel closed?");
-        writeln!(logfile, "{} Event: {}", Local::now().to_rfc2822(), event)
-            .expect("Emu: unable to write to logfile");
         match event {
             EmuEvent::Led(ledevent) => process_led_event(ledevent),
             EmuEvent::ResendSensor => send_main(MainEvent::SensorUpdate(board)),
             EmuEvent::User(user_event) => match user_event {
                 UserEvent::SetSquare(square, piece_type) => {
                     board[square.row][square.col] = piece_type;
-                    send_main(MainEvent::SensorUpdate(board));
                     send_ui(UIEvent::BoardChange(board));
+                    send_main(MainEvent::SensorUpdate(board));
                 }
                 UserEvent::ButtonPress(button_num) => {
                     send_main(MainEvent::ButtonPress(button_num));
+                    send_emu(EmuEvent::ResendSensor);
                 }
                 UserEvent::TimeUp => {
                     send_main(MainEvent::ClockTimeover);
@@ -69,9 +77,23 @@ pub fn emulator_thread() {
                     break;
                 }
             },
-            EmuEvent::UartFromPi(word) => send_main(MainEvent::UartMessage(word)),
-            EmuEvent::UartToPi(word) => send_uart(UartEvent::Packet(word)),
+            EmuEvent::UartFromPi(word) => {
+                send_main(MainEvent::UartMessage(word));
+                if awaiting_uart_response {
+                    awaiting_uart_response = false;
+                    send_emu(EmuEvent::ResendSensor);
+                }
+                let mut got_message = UART_PAIR.0.lock();
+                *got_message = true;
+                UART_PAIR.1.notify_one();
+            }
+            EmuEvent::UartToPi(word) => {
+                send_uart(UartEvent::Packet(word));
+                awaiting_uart_response = true;
+            }
         }
+        writeln!(logfile, "{} Event: {}", Local::now().to_rfc2822(), event)
+            .expect("Emu: unable to write to logfile");
     }
 }
 

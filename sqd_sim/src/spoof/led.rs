@@ -66,7 +66,7 @@ impl LEDState {
 
 pub const N_LED_SAVES: usize = 2;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) enum LedEvent {
     ClearBoard,
     SetColor(u8, Color),

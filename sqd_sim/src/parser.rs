@@ -49,8 +49,16 @@ pub enum Commands {
     },
     /// Send the board a signal that the current player's time has run out.
     Time,
+    /// Delay input this long before interpreting the next command.
+    #[command(visible_alias("sleep"))]
+    Delay { time_ms: u64 },
     /// Quit the emulator.
+    #[command(visible_alias("exit"))]
     Quit,
+    WaitForUart {
+        /// The amount of time to wait afterwards.
+        time_ms: Option<u64>,
+    },
 }
 
 fn parse_square(arg: &str) -> Result<Square, String> {

@@ -1,4 +1,6 @@
-use std::{env, path::Path};
+use std::{env, ffi::OsString, path::Path, str::FromStr};
+
+use cc::Build;
 
 // Example custom build script.
 fn main() {
@@ -16,17 +18,30 @@ fn main() {
         .include("cconfig")
         .include(ti_sdk.join("source/third_party/CMSIS/Core/Include"))
         .include(ti_sdk.join("kernel/freertos/Source/include"))
-        .include(ti_sdk.join("source"))
+        .isystem(ti_sdk.join("source"))
         .include(ti_sdk.join("kernel/freertos/Source/portable/GCC/ARM_CM0"))
-        .include(
-            crate_dir
-                .join("../freertos_builds_LP_MSPM0G3507_release_ticlang")
-                .canonicalize()
-                .expect("Project layout changed?"),
-        )
+        .include(crate_dir.join("../freertos_builds_LP_MSPM0G3507_release_ticlang"))
         .static_flag(true)
         .file("csrc/main/main.c")
         .file("csrc/chess.c")
         .file("csrc/game.c")
         .compile("test");
+}
+
+trait IncludeSystem {
+    fn isystem<P>(&mut self, dir: P) -> &mut Self
+    where
+        P: AsRef<Path>;
+}
+
+impl IncludeSystem for Build {
+    /// This is so that we can ignore warnings from these headers.
+    fn isystem<P>(&mut self, dir: P) -> &mut Self
+    where
+        P: AsRef<Path>,
+    {
+        let mut flag = OsString::from_str("-isystem").unwrap();
+        flag.push(dir.as_ref().canonicalize().unwrap());
+        self.flag(flag)
+    }
 }

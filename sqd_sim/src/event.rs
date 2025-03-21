@@ -51,6 +51,7 @@ impl TryFrom<u8> for PieceType {
     }
 }
 
+#[derive(Clone, Copy)]
 pub enum UserEvent {
     SetSquare(Square, PieceType),
     ButtonPress(ButtonNum),
@@ -75,6 +76,7 @@ impl Display for Square {
     }
 }
 
+#[derive(Clone, Copy)]
 /// Events that should be sent to the emulator logic.
 pub enum EmuEvent {
     Led(LedEvent),
