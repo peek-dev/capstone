@@ -164,6 +164,7 @@ if __name__ == '__main__':
             if IN_SIM and (next_packet == wr.SIM_EXIT):
                 if debug:
                     push_msg("Sim requests program exit, closing out.")
+                sf.quit()
                 exit(0)
 
             next_move = chess.Move.null()
