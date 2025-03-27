@@ -118,6 +118,7 @@ PTYPE xPtypeToWire(PieceType in) {
     case WhiteQueen:
         return PTYPE_QUEEN;
     case EmptySquare:
+    case PositioningError:
         return PTYPE_NULL_ALT;
     }
 }

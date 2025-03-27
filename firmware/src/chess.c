@@ -382,8 +382,14 @@ BaseType_t xIlluminatePotentiallyOffCenter(BoardState *old, BoardState *new,
         for (uint8_t col = 0; col < 8; col++) {
             p_old = xGetSquare(old, row, col);
             p_new = xGetSquare(new, row, col);
-            if (p_old != EmptySquare && p_new != EmptySquare &&
-                p_old != p_new && isWhite(p_old) == isWhite(p_new)) {
+            if (
+#if CAPSTONE_REVISION == 2
+                p_new == PositioningError
+#else
+                p_old != EmptySquare && p_new != EmptySquare &&
+                p_old != p_new && isWhite(p_old) == isWhite(p_new)
+#endif
+            ) {
                 xReturned &= xLED_set_color(LEDTrans_Square(row, col),
                                             &Color_PieceAdjust);
                 *changed = pdTRUE;

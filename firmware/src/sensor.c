@@ -153,8 +153,7 @@ void vSensor_Thread(void *arg0) {
                     samples[i] = prvSingleADC();
                 }
                 uint16_t sample = MedianOfFive(samples);
-                vSetSquare(&board, row, col,
-                           xValueToPiece(sample, row, col));
+                vSetSquare(&board, row, col, xValueToPiece(sample, row, col));
             }
         }
         xSemaphoreGive(sensor_mutex);

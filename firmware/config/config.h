@@ -31,6 +31,6 @@
 #include "portmacro.h"
 
 #define IS_MSP
-#define CAPSTONE_REVISION 1
+#define CAPSTONE_REVISION 2
 
 #endif

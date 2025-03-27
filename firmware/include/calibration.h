@@ -24,6 +24,5 @@
 #include "config.h"
 #include "game.h"
 
-const uint16_t *GetBins(uint8_t row, uint8_t col);
 PieceType xValueToPiece(uint16_t value, uint8_t row, uint8_t col);
 #endif

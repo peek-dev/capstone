@@ -21,13 +21,29 @@
 #include "assert.h"
 #include "game.h"
 
-#define NBINS           13
 
 #if CAPSTONE_REVISION == 2
+#define NBINS           15
+const uint16_t bins[NBINS] = {0, 146, 438, 731, 1023, 1316, 1608, 1901, 2193, 2486, 2778, 3071, 3363, 3656, 3948};
+const PieceType types[NBINS] = {PositioningError, WhitePawn, WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKnight, BlackPawn, BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, PositioningError, EmptySquare};
+
+PieceType xValueToPiece(uint16_t value, uint8_t row, uint8_t col) {
+    (void)row;
+    (void)col;
+    uint8_t i;
+    for (i = 1; i < NBINS; i++) {
+        if (bins[i] > value) {
+            break;
+        }
+    }
+
+    return types[i - 1];
+}
 
 #else
+#define NBINS           13
 // Lower bounds for hall effect sensor reading bins.
-const uint16_t bins[8][8][13] =
+const uint16_t bins[8][8][NBINS] =
 {{{   0,  636, 1284, 1517, 1693, 1845, 1981, 2124, 2262, 2398, 2586, 2858, 3540},
   {   0,  659, 1318, 1534, 1702, 1849, 1982, 2119, 2254, 2376, 2576, 2824, 3522},
   {   0,  703, 1344, 1540, 1706, 1852, 1982, 2119, 2250, 2377, 2565, 2821, 3514},
@@ -100,7 +116,7 @@ const uint16_t bins[8][8][13] =
   {   0,  472, 1093, 1412, 1615, 1792, 1956, 2113, 2277, 2433, 2646, 3005, 3699},
   {   0,  523, 1148, 1451, 1634, 1804, 1957, 2114, 2270, 2416, 2633, 2949, 3641}}};
 
-const uint16_t *GetBins(uint8_t row, uint8_t col) {
+static const uint16_t *GetBins(uint8_t row, uint8_t col) {
     assert(row < 8 && col < 8);
     return bins[row][col];
 }

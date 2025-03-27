@@ -28,6 +28,7 @@ ZeroToTwoInts LEDTrans_Ptype(PieceType p) {
     z.data[0] = 0;
     z.data[1] = 7;
     switch (p) {
+    case PositioningError:
     case EmptySquare:
         z.len -= 1;
     case WhiteQueen:

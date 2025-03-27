@@ -37,6 +37,7 @@ typedef enum {
     BlackKnight,
     BlackRook,
     BlackPawn,
+    PositioningError,
 } PieceType; // 4bits
 
 // Each uint32_t is a packed group of eight PieceTypes (4b each)
