@@ -21,8 +21,8 @@
 #include <task.h>
 #include <queue.h>
 #include "sensor_mutex.h"
-#define DELCLARE_PRIVATE_CLOCK_C
 #include "clock.h"
+#include "clock_private.h"
 #include "lcd.h"
 
 extern TaskHandle_t xClockTaskId;

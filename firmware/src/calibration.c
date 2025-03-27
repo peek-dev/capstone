@@ -19,7 +19,13 @@
 #include "config.h"
 #include "calibration.h"
 #include "assert.h"
+#include "game.h"
 
+#define NBINS           13
+
+#if CAPSTONE_REVISION == 2
+
+#else
 // Lower bounds for hall effect sensor reading bins.
 const uint16_t bins[8][8][13] =
 {{{   0,  636, 1284, 1517, 1693, 1845, 1981, 2124, 2262, 2398, 2586, 2858, 3540},
@@ -97,4 +103,17 @@ const uint16_t bins[8][8][13] =
 const uint16_t *GetBins(uint8_t row, uint8_t col) {
     assert(row < 8 && col < 8);
     return bins[row][col];
-  }
+}
+
+PieceType xValueToPiece(uint16_t value, uint8_t row, uint8_t col) {
+    const uint16_t *square_bins = GetBins(row, col);
+    uint8_t i;
+    for (i = 0; i < NBINS; i++) {
+        if (square_bins[i] > value) {
+            break;
+        }
+    }
+
+    return (PieceType)(i - 1);
+}
+#endif

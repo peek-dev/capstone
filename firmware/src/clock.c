@@ -27,8 +27,8 @@
 #include "ti/driverlib/dl_gpio.h"
 #include "ti/driverlib/dl_spi.h"
 
-#define DELCLARE_PRIVATE_CLOCK_C
 #include "clock.h"
+#include "clock_private.h"
 #include "lcd.h"
 
 #define QUEUE_SIZE 6

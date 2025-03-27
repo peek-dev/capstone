@@ -32,9 +32,9 @@
 #include "ti_msp_dl_config.h"
 #include "semphr.h"
 #include "util.h"
+#include "sensor_mutex.h"
 
 #define SENSOR_DELAY_MS 20
-#define NBINS           13
 // Based on our filter step responses, we should wait 150us for a column switch.
 // (150 us * 32 MHz) - 1
 #define COL_SWITCH_LOAD (150U * 64U / 10U - 1U)
@@ -44,17 +44,6 @@
 // For the ADC: ADC samples are asynchronous, so we need to wakeup the task from
 // an ISR.
 static TaskHandle_t xSensorTaskId = NULL;
-
-static PieceType prvValueToPiece(uint16_t value, const uint16_t *bins) {
-    uint8_t i;
-    for (i = 0; i < NBINS; i++) {
-        if (bins[i] > value) {
-            break;
-        }
-    }
-
-    return (PieceType)(i - 1);
-}
 
 static void prvSelectRow(uint8_t row) {
     assert(row < 8);
@@ -165,7 +154,7 @@ void vSensor_Thread(void *arg0) {
                 }
                 uint16_t sample = MedianOfFive(samples);
                 vSetSquare(&board, row, col,
-                           prvValueToPiece(sample, GetBins(row, col)));
+                           xValueToPiece(sample, row, col));
             }
         }
         xSemaphoreGive(sensor_mutex);
