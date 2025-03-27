@@ -1,0 +1,55 @@
+wait-for-uart 10
+move c2 c4
+button white
+wait-for-uart 10
+move f7 f5
+button black
+wait-for-uart 10
+move c4 c5
+button white
+wait-for-uart 10
+move f5 f4
+button black
+wait-for-uart 10
+move c5 c6
+button white
+wait-for-uart 10
+move f4 f3
+button black
+wait-for-uart 10
+move c6 b7
+button white
+wait-for-uart 10
+move f3 g2
+button black
+wait-for-uart 10
+lift b7
+place c8 Q
+button white
+wait-for-uart 10
+lift g2
+place h1 q
+button black
+wait-for-uart 10
+move c8 d7
+button white
+wait-for-uart 10
+button hint
+wait-for-uart
+move d8 d7
+button black
+wait-for-uart 10
+move a2 a4
+button white
+wait-for-uart 10
+move b8 a6
+button black
+wait-for-uart 10
+move a4 a5  
+button white
+wait-for-uart 10
+move e8 c8
+button black
+move a8 d8
+button black
+wait-for-uart 10
