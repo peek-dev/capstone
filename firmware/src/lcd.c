@@ -182,10 +182,10 @@ void vLCD_WriteHardware(uint32_t *data) {
     while (DL_SPI_isBusy(CLOCK_SPI_INST)) {
         taskYIELD();
     }
-    DL_GPIO_setPins(MISC_GPIO_PORT, MISC_GPIO_CLOCK_LOAD_PIN);
+    DL_GPIO_setPins(MISC_GPIO_CLOCK_LOAD_PORT, MISC_GPIO_CLOCK_LOAD_PIN);
     DL_TimerG_startCounter(LCD_DELAY_LOAD_INST);
     ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
-    DL_GPIO_clearPins(MISC_GPIO_PORT, MISC_GPIO_CLOCK_LOAD_PIN);
+    DL_GPIO_clearPins(MISC_GPIO_CLOCK_LOAD_PORT, MISC_GPIO_CLOCK_LOAD_PIN);
 #if LCD_USE_SENSOR_MUTEX
     xSemaphoreGive(sensor_mutex);
 #endif

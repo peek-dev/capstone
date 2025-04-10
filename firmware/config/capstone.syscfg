@@ -118,13 +118,15 @@ GPIO2.associatedPins[6].interruptPriority = "3";
 GPIO2.associatedPins[6].polarity          = "RISE";
 GPIO2.associatedPins[6].pin.$assign       = "boosterpack.30";
 
-GPIO3.$name                          = "MISC_GPIO";
-GPIO3.associatedPins.create(2);
-GPIO3.associatedPins[0].$name        = "CLOCK_LOAD";
-GPIO3.associatedPins[0].pin.$assign  = "boosterpack.12";
-GPIO3.associatedPins[1].$name        = "BUTTON_ENABLE";
-GPIO3.associatedPins[1].initialValue = "SET";
-GPIO3.associatedPins[1].pin.$assign  = "boosterpack.7";
+GPIO3.$name                               = "MISC_GPIO";
+GPIO3.associatedPins.create(3);
+GPIO3.associatedPins[0].$name             = "CLOCK_LOAD";
+GPIO3.associatedPins[0].pin.$assign       = "boosterpack.12";
+GPIO3.associatedPins[1].$name             = "BUTTON_ENABLE";
+GPIO3.associatedPins[1].initialValue      = "SET";
+GPIO3.associatedPins[1].pin.$assign       = "boosterpack.7";
+GPIO3.associatedPins[2].$name             = "POWER_LED";
+GPIO3.associatedPins[2].launchPadShortcut = "LED1En";
 
 SPI1.enableDMAEvent1                    = false;
 SPI1.enableDMAEvent2                    = false;
@@ -209,8 +211,9 @@ UART1.rxPinConfig.$name                = "ti_driverlib_gpio_GPIOPinGeneric3";
  * version of the tool will not impact the pinmux you originally saw.  These lines can be completely deleted in order to
  * re-solve from scratch.
  */
-Board.peripheral.$suggestSolution          = "DEBUGSS";
-Board.peripheral.swclkPin.$suggestSolution = "j25_expansion.16";
-Board.peripheral.swdioPin.$suggestSolution = "j25_expansion.14";
-SYSCTL.peripheral.$suggestSolution         = "SYSCTL";
-UART1.peripheral.$suggestSolution          = "UART1";
+Board.peripheral.$suggestSolution            = "DEBUGSS";
+Board.peripheral.swclkPin.$suggestSolution   = "j25_expansion.16";
+Board.peripheral.swdioPin.$suggestSolution   = "j25_expansion.14";
+GPIO3.associatedPins[2].pin.$suggestSolution = "j19_expansion.9";
+SYSCTL.peripheral.$suggestSolution           = "SYSCTL";
+UART1.peripheral.$suggestSolution            = "UART1";
