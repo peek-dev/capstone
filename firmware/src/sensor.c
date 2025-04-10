@@ -58,11 +58,9 @@ void prvSelectRow(uint8_t row) {
 void prvSelectColumn(uint8_t column) {
     assert(column < 8);
     DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A0_PORT, MUX_GPIO_PIN_R_A0_PIN,
-                         MUX_GPIO_PIN_R_A0_PIN *
-                             (!!(column & 1) ^ !!(column & 4)));
+                         MUX_GPIO_PIN_R_A0_PIN * !!(column & 1));
     DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A1_PORT, MUX_GPIO_PIN_R_A1_PIN,
-                         MUX_GPIO_PIN_R_A1_PIN *
-                             (!!(column & 2) ^ !!(column & 4)));
+                         MUX_GPIO_PIN_R_A1_PIN * !!(column & 2));
     DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A2_PORT, MUX_GPIO_PIN_R_A2_PIN,
                          MUX_GPIO_PIN_R_A2_PIN * !!(column & 4));
 }
