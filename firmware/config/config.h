@@ -21,8 +21,8 @@
 #define CAPSTONE_CONFIG_H
 
 // For the moment, allow assertions despite the code size and memory overhead.
-#define NDEBUG
-#define MAKEVISIBLE
+#undef NDEBUG
+#define MAKEVISIBLE volatile
 #include <inttypes.h>
 #include "ti_msp_dl_config.h"
 #include "FreeRTOS.h"
