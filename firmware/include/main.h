@@ -23,6 +23,7 @@
 
 #include "game.h"
 #include "button.h"
+#include "semphr.h"
 
 BaseType_t xMain_sensor_update(BoardState *state);
 BaseType_t xMain_sensor_calibration_update(BoardState_Calibration *state);

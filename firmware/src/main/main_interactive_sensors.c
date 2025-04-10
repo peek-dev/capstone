@@ -43,9 +43,7 @@ void mainThread(void *arg0) {
     /* FIXME: declare task handle for UART task */
     TaskHandle_t thread_led, thread_sensor;
     BaseType_t xReturned;
-
-    xReturned = xMain_Init();
-    while (xReturned != pdPASS) {}
+    sensor_mutex = xSemaphoreCreateMutex();
 
     xReturned = xPortGetFreeHeapSize();
 
@@ -53,6 +51,8 @@ void mainThread(void *arg0) {
     xReturned = xClock_Init();
     while (xReturned != pdPASS) {}
     xReturned = xLED_Init();
+    while (xReturned != pdPASS) {}
+    xReturned = xMain_Init();
     while (xReturned != pdPASS) {}
     xReturned = xSensor_Init();
     while (xReturned != pdPASS) {}
@@ -79,7 +79,6 @@ void mainThread(void *arg0) {
 }
 
 BaseType_t xMain_Init(void) {
-    sensor_mutex = xSemaphoreCreateMutex();
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
     if (mainQueue == NULL) {
         return pdFALSE;

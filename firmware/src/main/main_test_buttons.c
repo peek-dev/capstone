@@ -128,6 +128,8 @@ static void prvProcessMessage(MainThread_Message *message) {
     case main_button_press:
         prvHandleButtonPress(message->button);
         break;
+    default:
+        break;
     }
 }
 

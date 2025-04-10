@@ -191,3 +191,5 @@ BaseType_t xClock_set_both_numbers(uint16_t number) {
     m.numbers[1] = number;
     return xQueueSend(clockQueue, &m, portMAX_DELAY);
 }
+
+__attribute__((weak)) BaseType_t xMain_time_up(void) {return pdTRUE;}
