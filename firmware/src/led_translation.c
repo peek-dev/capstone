@@ -22,61 +22,25 @@
 #include "game.h"
 #include "assert.h"
 
+static const ZeroToTwoInts PTYPE_TRANS[] = {
+    {.len = 1, .data = {16, 0}},
+    {.len = 2, .data = {0, 7}},
+    {.len = 2, .data = {1, 6}},
+    {.len = 2, .data = {2, 5}},
+    {.len = 1, .data = {4, 0}},
+    {.len = 1, .data = {3, 0}},
+    {.len = 0, .data = {0, 0}},
+    {.len = 1, .data = {78, 0}},
+    {.len = 1, .data = {77, 0}},
+    {.len = 2, .data = {76, 79}},
+    {.len = 2, .data = {75, 80}},
+    {.len = 2, .data = {74, 81}},
+    {.len = 1, .data = {57, 0}},
+    {.len = 0, .data = {0, 0}},
+};
+
 ZeroToTwoInts LEDTrans_Ptype(PieceType p) {
-    ZeroToTwoInts z;
-    z.len = 2;
-    z.data[0] = 0;
-    z.data[1] = 7;
-    switch (p) {
-        case PositioningError:
-        case EmptySquare:
-            z.len -= 1;
-        case BlackKing:
-            z.data[0] += 1;
-        case BlackQueen:
-            z.data[0] += 1;
-            z.len -= 1;
-        case BlackBishop:
-            // Shift one in.
-            z.data[0] += 1;
-            z.data[1] -= 1;
-        case BlackKnight:
-            // Shift one in.
-            z.data[0] += 1;
-            z.data[1] -= 1;
-        case BlackRook:
-            // Shift up two rows and then one.
-            z.data[0] += 2 * 8 + 1;
-            // The other one is still down at WhiteBishop.
-            // Two to move to rook, nine rows, two pawns.
-            z.data[1] += 2 + 9 * 8 + 2;
-            z.len += 1;
-        case BlackPawn:
-            // Shift up by five rows, and then one (one after)
-            z.data[0] += 5 * 8 + 1;
-        case WhitePawn:
-            // Skip the rest of the piece row (3), skip one row, and shift one.
-            z.data[0] += 3 + 1 * 8 + 1;
-        case WhiteQueen:
-            // Shift one up.
-            z.data[0] += 1;
-        case WhiteKing:
-            // Shift one up, and decrease the length.
-            z.data[0] += 1;
-            z.len -= 1;
-        case WhiteBishop:
-            // Shift one in.
-            z.data[0] += 1;
-            z.data[1] -= 1;
-        case WhiteKnight:
-            // Shift one in.
-            z.data[0] += 1;
-            z.data[1] -= 1;
-        case WhiteRook:
-            // Initial state. Change nothing.
-            break;
-    }
-    return z;
+    return PTYPE_TRANS[p];
 }
 
 uint8_t LEDTrans_Square(uint8_t row, uint8_t col) {
