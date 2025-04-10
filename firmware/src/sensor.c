@@ -43,12 +43,10 @@
 
 // For the ADC: ADC samples are asynchronous, so we need to wakeup the task from
 // an ISR.
-static TaskHandle_t xSensorTaskId = NULL;
+TaskHandle_t xSensorTaskId = NULL;
 
-static void prvSelectRow(uint8_t row) {
+void prvSelectRow(uint8_t row) {
     assert(row < 8);
-    // Hack: all rows were reversed.
-    row = 7 - row;
     DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A0_PORT, MUX_GPIO_PIN_C_A0_PIN,
                          MUX_GPIO_PIN_C_A0_PIN * !!(row & 1));
     DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A1_PORT, MUX_GPIO_PIN_C_A1_PIN,
@@ -57,7 +55,7 @@ static void prvSelectRow(uint8_t row) {
                          MUX_GPIO_PIN_C_A2_PIN * !!(row & 4));
 }
 
-static void prvSelectColumn(uint8_t column) {
+void prvSelectColumn(uint8_t column) {
     assert(column < 8);
     DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A0_PORT, MUX_GPIO_PIN_R_A0_PIN,
                          MUX_GPIO_PIN_R_A0_PIN *
@@ -69,7 +67,7 @@ static void prvSelectColumn(uint8_t column) {
                          MUX_GPIO_PIN_R_A2_PIN * !!(column & 4));
 }
 
-static uint16_t prvSingleADC() {
+uint16_t prvSingleADC(void) {
     DL_ADC12_startConversion(ADC_0_INST);
     // Block the thread until ADC sampling is complete.
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
