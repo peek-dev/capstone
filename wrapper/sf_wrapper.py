@@ -62,9 +62,7 @@ if __name__ == '__main__':
         push_msg("Opened stockfish subprocess.")
 
     # Device-specific customizations.
-    # Code originally developed for Raspberry Pi 4B with 4 cores and 8GB RAM
-    # (hence 'Hash' --> memory allocation --> 4096 MiB = 4 GiB).
-    sf.configure({'Hash': 4096})
+    sf.configure({'Hash': 1024})
     sf.configure({'Threads': 4})
 
     # 250ms per-turn computation time limit
