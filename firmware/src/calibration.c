@@ -24,7 +24,7 @@
 #define NBINS           15
 
 const uint16_t bins[NBINS] = {0, 146, 438, 731, 1023, 1316, 1608, 1901, 2193, 2486, 2778, 3071, 3363, 3656, 3948};
-const PieceType types[NBINS] = {PositioningError, WhitePawn, WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKnight, BlackPawn, BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, PositioningError, EmptySquare};
+const PieceType types[NBINS] = {PositioningError, WhitePawn, WhiteRook, WhiteKnight, WhiteBishop, WhiteQueen, WhiteKing, BlackPawn, BlackRook, BlackKnight, BlackBishop, BlackQueen, BlackKing, PositioningError, EmptySquare};
 
 PieceType xValueToPiece(uint16_t value, uint8_t row, uint8_t col) {
     (void)row;
