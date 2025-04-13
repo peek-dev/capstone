@@ -49,6 +49,8 @@
 SemaphoreHandle_t sensor_mutex;
 void vPeriodicPing_Thread(void *arg0);
 
+const Color dimwhite = {.brightness = 31, .red = 255, .green = 255, .blue = 255};
+
 void mainThread(void *arg0) {
     /* FIXME: declare task handle for UART task */
     TaskHandle_t thread_led, thread_pings;
@@ -91,6 +93,10 @@ void mainThread(void *arg0) {
 extern TaskHandle_t xSensorTaskId;
 BaseType_t xMain_Init(void) {
     xSensorTaskId = xTaskGetCurrentTaskHandle();
+    vSetSquare(&state.last_measured_state, 0, 0, EmptySquare);
+    xLED_clear_board();
+    xLED_set_color(LEDTrans_Square(0, 0), &dimwhite);
+    xLED_commit();
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
     if (mainQueue == NULL) {
         return pdFALSE;
@@ -149,6 +155,13 @@ static void prvHandleButtonPress(enum button_num button) {
         DL_TimerG_startCounter(SENSOR_DELAY_TIMER_INST);
         ulTaskNotifyTake(pdTRUE, pdMS_TO_TICKS(1));
     }
+    if (prvMovesLen != previousMovesLen) {
+        // Reset the value of that square and resend illumination.
+        vSetSquare(&state.last_measured_state, prvMovesLen / 8, prvMovesLen % 8, EmptySquare);
+        xLED_clear_board();
+        xLED_set_color(LEDTrans_Square(prvMovesLen / 8, prvMovesLen % 8), &dimwhite);
+        xLED_commit();
+    }
 }
 
 uint16_t prvSingleADC(void);
@@ -157,20 +170,26 @@ static void prvRenderState(void) {
     uint16_t samples[5];
     uint8_t row = prvMovesLen / 8;
     uint8_t col = prvMovesLen % 8;
+    xSemaphoreTake(sensor_mutex, portMAX_DELAY);
+    vTaskDelay(1);
     for (uint8_t i = 0; i < 5; i++) {
         samples[i] = prvSingleADC();
     }
+    xSemaphoreGive(sensor_mutex);
     uint16_t sample = MedianOfFive(samples);
     PieceType piece = xValueToPiece(sample, row, col);
-    Color color = {.brightness = 31, .red = 255, .green = 255, .blue = 255};
     // Illuminate the square and the piece type on that square.
-    xLED_clear_board();
-    xLED_set_color(LEDTrans_Square(row, col), &color);
-    ZeroToTwoInts pieceOutlines = LEDTrans_Ptype(piece);
-    for (uint8_t i = 0; i < pieceOutlines.len; i++) {
-        xLED_set_color(pieceOutlines.data[i], &color);
+    // But only if it changed. Don't bother re-signaling if it's the same.
+    if (piece != xGetSquare(&state.last_measured_state, row, col)) {
+        vSetSquare(&state.last_measured_state, row, col, piece);
+        xLED_clear_board();
+        xLED_set_color(LEDTrans_Square(row, col), &dimwhite);
+        ZeroToTwoInts pieceOutlines = LEDTrans_Ptype(piece);
+        for (uint8_t i = 0; i < pieceOutlines.len; i++) {
+            xLED_set_color(pieceOutlines.data[i], &dimwhite);
+        }
+        xLED_commit();
     }
-    xLED_commit();
 }
 
 static void prvProcessMessage(MainThread_Message *message) {
