@@ -177,7 +177,7 @@ extern "C" {
 #define MUX_GPIO_PIN_C_A2_IOMUX                                  (IOMUX_PINCM30)
 /* Defines for PIN_HINT: GPIOA.27 with pinCMx 60 on package pin 31 */
 #define BUTTON_GPIO_PIN_HINT_PORT                                        (GPIOA)
-// pins affected by this interrupt request:["PIN_HINT","PIN_START_RESTART","PIN_CLOCK_MODE","PIN_BLACK_MOVE","PIN_WHITE_MOVE"]
+// pins affected by this interrupt request:["PIN_HINT","PIN_START_RESTART","PIN_CLOCK_MODE","PIN_WHITE_MOVE","PIN_BLACK_MOVE"]
 #define BUTTON_GPIO_GPIOA_INT_IRQN                              (GPIOA_INT_IRQn)
 #define BUTTON_GPIO_GPIOA_INT_IIDX              (DL_INTERRUPT_GROUP1_IIDX_GPIOA)
 #define BUTTON_GPIO_PIN_HINT_IIDX                           (DL_GPIO_IIDX_DIO27)
@@ -206,16 +206,16 @@ extern "C" {
 #define BUTTON_GPIO_PIN_CLOCK_MODE_IIDX                     (DL_GPIO_IIDX_DIO16)
 #define BUTTON_GPIO_PIN_CLOCK_MODE_PIN                          (DL_GPIO_PIN_16)
 #define BUTTON_GPIO_PIN_CLOCK_MODE_IOMUX                         (IOMUX_PINCM38)
-/* Defines for PIN_BLACK_MOVE: GPIOA.24 with pinCMx 54 on package pin 25 */
-#define BUTTON_GPIO_PIN_BLACK_MOVE_PORT                                  (GPIOA)
-#define BUTTON_GPIO_PIN_BLACK_MOVE_IIDX                     (DL_GPIO_IIDX_DIO24)
-#define BUTTON_GPIO_PIN_BLACK_MOVE_PIN                          (DL_GPIO_PIN_24)
-#define BUTTON_GPIO_PIN_BLACK_MOVE_IOMUX                         (IOMUX_PINCM54)
-/* Defines for PIN_WHITE_MOVE: GPIOA.15 with pinCMx 37 on package pin 8 */
+/* Defines for PIN_WHITE_MOVE: GPIOA.24 with pinCMx 54 on package pin 25 */
 #define BUTTON_GPIO_PIN_WHITE_MOVE_PORT                                  (GPIOA)
-#define BUTTON_GPIO_PIN_WHITE_MOVE_IIDX                     (DL_GPIO_IIDX_DIO15)
-#define BUTTON_GPIO_PIN_WHITE_MOVE_PIN                          (DL_GPIO_PIN_15)
-#define BUTTON_GPIO_PIN_WHITE_MOVE_IOMUX                         (IOMUX_PINCM37)
+#define BUTTON_GPIO_PIN_WHITE_MOVE_IIDX                     (DL_GPIO_IIDX_DIO24)
+#define BUTTON_GPIO_PIN_WHITE_MOVE_PIN                          (DL_GPIO_PIN_24)
+#define BUTTON_GPIO_PIN_WHITE_MOVE_IOMUX                         (IOMUX_PINCM54)
+/* Defines for PIN_BLACK_MOVE: GPIOA.15 with pinCMx 37 on package pin 8 */
+#define BUTTON_GPIO_PIN_BLACK_MOVE_PORT                                  (GPIOA)
+#define BUTTON_GPIO_PIN_BLACK_MOVE_IIDX                     (DL_GPIO_IIDX_DIO15)
+#define BUTTON_GPIO_PIN_BLACK_MOVE_PIN                          (DL_GPIO_PIN_15)
+#define BUTTON_GPIO_PIN_BLACK_MOVE_IOMUX                         (IOMUX_PINCM37)
 /* Defines for CLOCK_LOAD: GPIOB.0 with pinCMx 12 on package pin 47 */
 #define MISC_GPIO_CLOCK_LOAD_PORT                                        (GPIOB)
 #define MISC_GPIO_CLOCK_LOAD_PIN                                 (DL_GPIO_PIN_0)
