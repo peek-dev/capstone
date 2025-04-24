@@ -289,7 +289,7 @@ if __name__ == '__main__':
                             push_msg("ENDGAME: board indicates CHECKMATE!")
 
                         uart.write(wr.CHECKMATE.to_bytes(4, 'little'))
-                    elif (board.is_stalemate() or board.has_insufficient_material(board.turn) or board.is_seventyfive_moves() or board.is_fivefold_repetition()):
+                    elif (board.is_stalemate() or board.is_insufficient_material() or board.is_seventyfive_moves() or board.is_fivefold_repetition()):
                         if debug:
                             push_msg("ENDGAME: board indicates STALEMATE!")
 
