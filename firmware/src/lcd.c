@@ -28,6 +28,8 @@
 extern TaskHandle_t xClockTaskId;
 extern QueueHandle_t clockQueue;
 
+#define TURN_OFFSET(turn) ((turn == game_turn_black) ? 0 : 3)
+
 // [left, right], each element [ones, tens]
 static const uint8_t DIGITS[6][2] = {
     {DIGIT_1_2_OFFSET, DIGIT_1_1_OFFSET}, {DIGIT_1_4_OFFSET, DIGIT_1_3_OFFSET},
@@ -63,8 +65,7 @@ static void prvSetSegmentForAll(uint32_t *data, uint8_t segment_id) {
 }
 
 void prvRenderTime_oneside(uint32_t t, uint32_t *data, game_turn side) {
-
-    uint8_t offset = (side == game_turn_black) ? 3 : 0;
+    uint8_t offset = TURN_OFFSET(side);
     prvRenderDigitPair(t % 60, data, DIGITS[2 + offset][0],
                        DIGITS[2 + offset][1]);
     // seconds -> minutes
@@ -93,7 +94,7 @@ static void prvRenderTime(uint32_t *times, uint32_t *data) {
 static void prvRenderPause(uint32_t *data, game_turn turn, uint32_t *times) {
     prvRenderTime_oneside(times[turn] / 1000, data, turn);
     // This is the reverse of the usual offset.
-    uint8_t offset = (turn != game_turn_black) ? 3 : 0;
+    uint8_t offset = TURN_OFFSET(turn);
     prvSetDigit(data, CLOCK_P, DIGITS[0 + offset][0]);
     prvSetDigit(data, CLOCK_A, DIGITS[1 + offset][1]);
     prvSetDigit(data, CLOCK_U, DIGITS[1 + offset][0]);
@@ -102,7 +103,7 @@ static void prvRenderPause(uint32_t *data, game_turn turn, uint32_t *times) {
 }
 
 void prvRenderNumbers_oneside(uint16_t n, uint32_t *data, game_turn side) {
-    uint8_t offset = (side == game_turn_black) ? 3 : 0;
+    uint8_t offset = TURN_OFFSET(side);
     for (uint8_t i = 0; i < 6 && (n != 0 || i == 0); i++) {
         prvSetDigit(data, NUMBERS[n % 10], DIGITS[offset + 2 - (i / 2)][i % 2]);
         n /= 10;
@@ -111,7 +112,7 @@ void prvRenderNumbers_oneside(uint16_t n, uint32_t *data, game_turn side) {
 
 static void prvRenderUndo(uint32_t *data, game_turn turn, uint16_t *numbers) {
     prvRenderNumbers_oneside(numbers[1 - turn], data, 1 - turn);
-    uint8_t offset = (turn == game_turn_black) ? 3 : 0;
+    uint8_t offset = TURN_OFFSET(turn);
     prvSetDigit(data, CLOCK_U, DIGITS[1 + offset][1]);
     prvSetDigit(data, CLOCK_N, DIGITS[1 + offset][0]);
     prvSetDigit(data, CLOCK_D, DIGITS[2 + offset][1]);
