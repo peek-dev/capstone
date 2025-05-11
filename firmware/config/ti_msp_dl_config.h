@@ -175,37 +175,37 @@ extern "C" {
 #define MUX_GPIO_PIN_C_A2_PORT                                           (GPIOB)
 #define MUX_GPIO_PIN_C_A2_PIN                                   (DL_GPIO_PIN_13)
 #define MUX_GPIO_PIN_C_A2_IOMUX                                  (IOMUX_PINCM30)
-/* Defines for PIN_HINT: GPIOA.27 with pinCMx 60 on package pin 31 */
-#define BUTTON_GPIO_PIN_HINT_PORT                                        (GPIOA)
-// pins affected by this interrupt request:["PIN_HINT","PIN_START_RESTART","PIN_CLOCK_MODE","PIN_WHITE_MOVE","PIN_BLACK_MOVE"]
-#define BUTTON_GPIO_GPIOA_INT_IRQN                              (GPIOA_INT_IRQn)
-#define BUTTON_GPIO_GPIOA_INT_IIDX              (DL_INTERRUPT_GROUP1_IIDX_GPIOA)
-#define BUTTON_GPIO_PIN_HINT_IIDX                           (DL_GPIO_IIDX_DIO27)
-#define BUTTON_GPIO_PIN_HINT_PIN                                (DL_GPIO_PIN_27)
-#define BUTTON_GPIO_PIN_HINT_IOMUX                               (IOMUX_PINCM60)
-/* Defines for PIN_UNDO: GPIOB.2 with pinCMx 15 on package pin 50 */
-#define BUTTON_GPIO_PIN_UNDO_PORT                                        (GPIOB)
-// pins affected by this interrupt request:["PIN_UNDO","PIN_PAUSE"]
+/* Defines for PIN_HINT: GPIOB.3 with pinCMx 16 on package pin 51 */
+#define BUTTON_GPIO_PIN_HINT_PORT                                        (GPIOB)
+// pins affected by this interrupt request:["PIN_HINT","PIN_UNDO"]
 #define BUTTON_GPIO_GPIOB_INT_IRQN                              (GPIOB_INT_IRQn)
 #define BUTTON_GPIO_GPIOB_INT_IIDX              (DL_INTERRUPT_GROUP1_IIDX_GPIOB)
+#define BUTTON_GPIO_PIN_HINT_IIDX                            (DL_GPIO_IIDX_DIO3)
+#define BUTTON_GPIO_PIN_HINT_PIN                                 (DL_GPIO_PIN_3)
+#define BUTTON_GPIO_PIN_HINT_IOMUX                               (IOMUX_PINCM16)
+/* Defines for PIN_UNDO: GPIOB.2 with pinCMx 15 on package pin 50 */
+#define BUTTON_GPIO_PIN_UNDO_PORT                                        (GPIOB)
 #define BUTTON_GPIO_PIN_UNDO_IIDX                            (DL_GPIO_IIDX_DIO2)
 #define BUTTON_GPIO_PIN_UNDO_PIN                                 (DL_GPIO_PIN_2)
 #define BUTTON_GPIO_PIN_UNDO_IOMUX                               (IOMUX_PINCM15)
-/* Defines for PIN_START_RESTART: GPIOA.17 with pinCMx 39 on package pin 10 */
+/* Defines for PIN_START_RESTART: GPIOA.16 with pinCMx 38 on package pin 9 */
 #define BUTTON_GPIO_PIN_START_RESTART_PORT                               (GPIOA)
-#define BUTTON_GPIO_PIN_START_RESTART_IIDX                  (DL_GPIO_IIDX_DIO17)
-#define BUTTON_GPIO_PIN_START_RESTART_PIN                       (DL_GPIO_PIN_17)
-#define BUTTON_GPIO_PIN_START_RESTART_IOMUX                      (IOMUX_PINCM39)
-/* Defines for PIN_PAUSE: GPIOB.3 with pinCMx 16 on package pin 51 */
-#define BUTTON_GPIO_PIN_PAUSE_PORT                                       (GPIOB)
-#define BUTTON_GPIO_PIN_PAUSE_IIDX                           (DL_GPIO_IIDX_DIO3)
-#define BUTTON_GPIO_PIN_PAUSE_PIN                                (DL_GPIO_PIN_3)
-#define BUTTON_GPIO_PIN_PAUSE_IOMUX                              (IOMUX_PINCM16)
-/* Defines for PIN_CLOCK_MODE: GPIOA.16 with pinCMx 38 on package pin 9 */
+// pins affected by this interrupt request:["PIN_START_RESTART","PIN_PAUSE","PIN_CLOCK_MODE","PIN_WHITE_MOVE","PIN_BLACK_MOVE"]
+#define BUTTON_GPIO_GPIOA_INT_IRQN                              (GPIOA_INT_IRQn)
+#define BUTTON_GPIO_GPIOA_INT_IIDX              (DL_INTERRUPT_GROUP1_IIDX_GPIOA)
+#define BUTTON_GPIO_PIN_START_RESTART_IIDX                  (DL_GPIO_IIDX_DIO16)
+#define BUTTON_GPIO_PIN_START_RESTART_PIN                       (DL_GPIO_PIN_16)
+#define BUTTON_GPIO_PIN_START_RESTART_IOMUX                      (IOMUX_PINCM38)
+/* Defines for PIN_PAUSE: GPIOA.27 with pinCMx 60 on package pin 31 */
+#define BUTTON_GPIO_PIN_PAUSE_PORT                                       (GPIOA)
+#define BUTTON_GPIO_PIN_PAUSE_IIDX                          (DL_GPIO_IIDX_DIO27)
+#define BUTTON_GPIO_PIN_PAUSE_PIN                               (DL_GPIO_PIN_27)
+#define BUTTON_GPIO_PIN_PAUSE_IOMUX                              (IOMUX_PINCM60)
+/* Defines for PIN_CLOCK_MODE: GPIOA.17 with pinCMx 39 on package pin 10 */
 #define BUTTON_GPIO_PIN_CLOCK_MODE_PORT                                  (GPIOA)
-#define BUTTON_GPIO_PIN_CLOCK_MODE_IIDX                     (DL_GPIO_IIDX_DIO16)
-#define BUTTON_GPIO_PIN_CLOCK_MODE_PIN                          (DL_GPIO_PIN_16)
-#define BUTTON_GPIO_PIN_CLOCK_MODE_IOMUX                         (IOMUX_PINCM38)
+#define BUTTON_GPIO_PIN_CLOCK_MODE_IIDX                     (DL_GPIO_IIDX_DIO17)
+#define BUTTON_GPIO_PIN_CLOCK_MODE_PIN                          (DL_GPIO_PIN_17)
+#define BUTTON_GPIO_PIN_CLOCK_MODE_IOMUX                         (IOMUX_PINCM39)
 /* Defines for PIN_WHITE_MOVE: GPIOA.24 with pinCMx 54 on package pin 25 */
 #define BUTTON_GPIO_PIN_WHITE_MOVE_PORT                                  (GPIOA)
 #define BUTTON_GPIO_PIN_WHITE_MOVE_IIDX                     (DL_GPIO_IIDX_DIO24)

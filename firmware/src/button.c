@@ -28,16 +28,16 @@
 
 static const uint32_t LenA = 5;
 static const uint32_t PinsA[] = {
-    BUTTON_GPIO_PIN_HINT_PIN, BUTTON_GPIO_PIN_START_RESTART_PIN,
+    BUTTON_GPIO_PIN_PAUSE_PIN, BUTTON_GPIO_PIN_START_RESTART_PIN,
     BUTTON_GPIO_PIN_CLOCK_MODE_PIN, BUTTON_GPIO_PIN_BLACK_MOVE_PIN,
     BUTTON_GPIO_PIN_WHITE_MOVE_PIN};
 static const enum button_num ButtonsA[] = {
-    button_num_hint, button_num_start_restart, button_num_clock_mode,
+    button_num_pause, button_num_start_restart, button_num_clock_mode,
     button_num_white_move, button_num_black_move};
 static const uint32_t LenB = 2;
 static const uint32_t PinsB[] = {BUTTON_GPIO_PIN_UNDO_PIN,
-                                 BUTTON_GPIO_PIN_PAUSE_PIN};
-static const enum button_num ButtonsB[] = {button_num_undo, button_num_pause};
+                                 BUTTON_GPIO_PIN_HINT_PIN};
+static const enum button_num ButtonsB[] = {button_num_undo, button_num_hint};
 
 void GROUP1_IRQHandler(void) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
