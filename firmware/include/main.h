@@ -59,7 +59,7 @@ typedef struct {
     };
 } MainThread_Message;
 
-#define MAX_POSSIBLE_MOVES 256
+#define MAX_POSSIBLE_MOVES (256)
 static union {
     NormalMove possible[MAX_POSSIBLE_MOVES];
     UndoMove undo[MAX_POSSIBLE_MOVES];

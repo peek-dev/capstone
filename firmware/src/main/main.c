@@ -165,6 +165,7 @@ static void vResetState() {
     state.state = game_state_notstarted;
     state.hint = game_hint_unknown;
     state.in_check = pdFALSE;
+    state.awaiting_undo = pdFALSE;
     prvMovesLen = 0;
     prvCurrentMoveIndex = 0;
     vBoardSetDefault(&state.last_move_state);
@@ -207,6 +208,13 @@ BaseType_t xMain_button_press_FromISR(enum button_num button,
     m.type = main_button_press;
     m.button = button;
     return xQueueSendFromISR(mainQueue, &m, pxHigherPriorityTaskWoken);
+}
+
+BaseType_t xMain_button_press(enum button_num button) {
+    MainThread_Message m;
+    m.type = main_button_press;
+    m.button = button;
+    return xQueueSend(mainQueue, &m, portMAX_DELAY);
 }
 
 BaseType_t xMain_uart_message(uint32_t move) {
@@ -336,6 +344,15 @@ static void prvHandleButtonPress(enum button_num button) {
         }
         break;
     case button_num_undo:
+        if (state.state == game_state_undo && state.awaiting_undo == pdTRUE) {
+            // If we're currently waiting for an undo message to be returned,
+            // we can't handle another undo press right now. Sleep for 1ms and re-queue.
+            // Hopefully, this will be enough time for the UART message to get sent
+            // but not enough to introduce any perceptible delay.
+            vTaskDelay(pdMS_TO_TICKS(1));
+            xMain_button_press(button_num_undo);
+            break;
+        }
         switch (state.state) {
         case game_state_paused:
         case game_state_running:
@@ -354,6 +371,11 @@ static void prvHandleButtonPress(enum button_num button) {
             state.hint = game_hint_unknown;
         // fall through
         case game_state_undo:
+            if (prvMovesLen == MAX_POSSIBLE_MOVES) {
+                // Ignore the button press if we're out of room
+                break;
+            }
+            state.awaiting_undo = pdTRUE;
             xClock_set_both_numbers(prvMovesLen + 1);
             xReturned = xUART_EncodeEvent(BUTTON_UNDO, 0);
             while (xReturned != pdPASS);
@@ -648,15 +670,19 @@ static void prvProcessMessage(MainThread_Message *message) {
                 if (prvMovesLen == 0) {
                     state.state = game_state_notstarted;
                     vSetClockState();
+                    // Pressing undo will have switched the turn, so this switches it back.
                     prvSwitchStateTurn(&state);
                     xUART_to_wire(SENTINEL_REQUEST_RESEND_MOVES);
                 }
                 break;
             }
             // We can't accept any more undo moves if we're over the limit.
-            if (prvMovesLen < 256) {
+            if (prvMovesLen < MAX_POSSIBLE_MOVES) {
+                state.awaiting_undo = pdFALSE;
                 prvMoves.undo[prvMovesLen] = message->move;
                 prvMovesLen++;
+            } else {
+                // TODO send back the move to prevent inconsistent state?
             }
         }
         // Check: are we currently listening for moves?
