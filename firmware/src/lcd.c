@@ -94,7 +94,7 @@ static void prvRenderTime(uint32_t *times, uint32_t *data) {
 static void prvRenderPause(uint32_t *data, game_turn turn, uint32_t *times) {
     prvRenderTime_oneside(times[turn] / 1000, data, turn);
     // This is the reverse of the usual offset.
-    uint8_t offset = TURN_OFFSET(turn);
+    uint8_t offset = 3 - TURN_OFFSET(turn);
     prvSetDigit(data, CLOCK_P, DIGITS[0 + offset][0]);
     prvSetDigit(data, CLOCK_A, DIGITS[1 + offset][1]);
     prvSetDigit(data, CLOCK_U, DIGITS[1 + offset][0]);
