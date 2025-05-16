@@ -17,7 +17,9 @@
  * You should have received a copy of the GNU General Public License along with
  * this program.  If not, see <https://www.gnu.org/licenses/>
  */
-#ifndef CAPSTONE_UTIL_H #define CAPSTONE_UTIL_H #include "game.h"
+#ifndef CAPSTONE_UTIL_H 
+#define CAPSTONE_UTIL_H 
+#include "game.h"
 
 uint16_t MedianOfFive(uint16_t *arr);
 #endif

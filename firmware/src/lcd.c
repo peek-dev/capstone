@@ -17,11 +17,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
 #include "config.h"
+#define DECLARE_PRIVATE_CLOCK_C
 #include "game.h"
 #include <task.h>
 #include <queue.h>
 #include "sensor_mutex.h"
-#define DELCLARE_PRIVATE_CLOCK_C
 #include "clock.h"
 #include "lcd.h"
 

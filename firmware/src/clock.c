@@ -27,7 +27,7 @@
 #include "ti/driverlib/dl_gpio.h"
 #include "ti/driverlib/dl_spi.h"
 
-#define DELCLARE_PRIVATE_CLOCK_C
+#define DECLARE_PRIVATE_CLOCK_C
 #include "clock.h"
 #include "lcd.h"
 
@@ -191,3 +191,5 @@ BaseType_t xClock_set_both_numbers(uint16_t number) {
     m.numbers[1] = number;
     return xQueueSend(clockQueue, &m, portMAX_DELAY);
 }
+
+__attribute__((weak)) BaseType_t xMain_time_up(void) {return pdTRUE;}
