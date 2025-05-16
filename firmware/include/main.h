@@ -71,7 +71,7 @@ static uint16_t max;
 static uint16_t min;
 #endif
 // IDK, maybe change this later. Profiling?
-#define QUEUE_SIZE 10
+#define QUEUE_SIZE 20
 static QueueHandle_t mainQueue;
 
 static TaskHandle_t thread_clock, thread_led, thread_sensor, thread_uart,
