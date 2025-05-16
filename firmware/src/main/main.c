@@ -210,11 +210,13 @@ BaseType_t xMain_button_press_FromISR(enum button_num button,
     return xQueueSendFromISR(mainQueue, &m, pxHigherPriorityTaskWoken);
 }
 
-BaseType_t xMain_button_press(enum button_num button) {
+BaseType_t prvMain_button_press(enum button_num button) {
     MainThread_Message m;
     m.type = main_button_press;
     m.button = button;
-    return xQueueSend(mainQueue, &m, portMAX_DELAY);
+    // This queue can only be dequeued by this thread, so we would
+    // prefer to just drop the packet if it can't fit.
+    return xQueueSend(mainQueue, &m, 0);
 }
 
 BaseType_t xMain_uart_message(uint32_t move) {
@@ -349,8 +351,14 @@ static void prvHandleButtonPress(enum button_num button) {
             // we can't handle another undo press right now. Sleep for 1ms and re-queue.
             // Hopefully, this will be enough time for the UART message to get sent
             // but not enough to introduce any perceptible delay.
-            vTaskDelay(pdMS_TO_TICKS(1));
-            xMain_button_press(button_num_undo);
+            // Actually, no reason to cycle through all of the delays for each time.
+            // Just re-queue it instantly.
+            //vTaskDelay(pdMS_TO_TICKS(1));
+            // To ensure there is sufficient space for the uart message, only re-queue if there is
+            // a good bit of space left.
+            if (uxQueueSpacesAvailable(mainQueue) > 4) {
+                prvMain_button_press(button_num_undo);
+            }
             break;
         }
         switch (state.state) {
@@ -666,7 +674,7 @@ static void prvProcessMessage(MainThread_Message *message) {
         // If we're in an undo state, append to the undo queue.
         if (state.state == game_state_undo) {
             if (message->move == SENTINEL_UNDO_EXHAUSTED) {
-                xClock_set_both_numbers(prvMovesLen);
+                //xClock_set_both_numbers(prvMovesLen);
                 if (prvMovesLen == 0) {
                     state.state = game_state_notstarted;
                     vSetClockState();
