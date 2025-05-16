@@ -141,8 +141,8 @@ void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn,
         prvRenderColons(data);
         break;
     case clock_state_notstarted:
-        prvRenderTime_oneside(times_ms[0] / 1000, data, game_turn_white);
-        prvRenderNumbers_oneside(inc / 1000, data, game_turn_black);
+        prvRenderTime_oneside(times_ms[0] / 1000, data, game_turn_black);
+        prvRenderNumbers_oneside(inc / 1000, data, game_turn_white);
         break;
     case clock_state_running:
         // Render the current times.
