@@ -1,6 +1,6 @@
-This directory needs to contain a compliant Texas Instruments driverlib
-installation to support the firmware. Such an installation may be obtained from
-TI's MSPM0 SDK (target: LP-MSPM0G3507) or similar repositories.
+This should contain a directory (or symlink) that contains a compliant Texas
+Instruments driverlib installation to support the firmware. Such an installation
+may be obtained from TI's MSPM0 SDK (target: LP-MSPM0G3507) or similar repositories.
 
 A compliant installation includes, but need not be limited to:
 * `dl_uart` source files and headers, including for `dl_uart_main` and
