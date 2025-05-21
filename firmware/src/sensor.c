@@ -29,10 +29,10 @@
 #include "game.h"
 #include "sensor.h"
 #include "main.h"
-#include "ti_msp_dl_config.h"
 #include "semphr.h"
 #include "util.h"
 #include "sensor_mutex.h"
+#include "private/sensor_private.h"
 
 #define SENSOR_DELAY_MS 20
 // Based on our filter step responses, we should wait 150us for a column switch.
@@ -41,29 +41,12 @@
 // Similarly, 50us for a row switch.
 #define ROW_SWITCH_LOAD (50U * 64U / 10U - 1U)
 
+// These would all be static, but interactive_sensors_nosweep needs
+// to call things from outside.
+
 // For the ADC: ADC samples are asynchronous, so we need to wakeup the task from
 // an ISR.
 TaskHandle_t xSensorTaskId = NULL;
-
-void prvSelectRow(uint8_t row) {
-    assert(row < 8);
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A0_PORT, MUX_GPIO_PIN_R_A0_PIN,
-                         MUX_GPIO_PIN_R_A0_PIN * !!(row & 1));
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A1_PORT, MUX_GPIO_PIN_R_A1_PIN,
-                         MUX_GPIO_PIN_R_A1_PIN * !!(row & 2));
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_R_A2_PORT, MUX_GPIO_PIN_R_A2_PIN,
-                         MUX_GPIO_PIN_R_A2_PIN * !!(row & 4));
-}
-
-void prvSelectColumn(uint8_t column) {
-    assert(column < 8);
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A0_PORT, MUX_GPIO_PIN_C_A0_PIN,
-                         MUX_GPIO_PIN_C_A0_PIN * !!(column & 1));
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A1_PORT, MUX_GPIO_PIN_C_A1_PIN,
-                         MUX_GPIO_PIN_C_A1_PIN * !!(column & 2));
-    DL_GPIO_writePinsVal(MUX_GPIO_PIN_C_A2_PORT, MUX_GPIO_PIN_C_A2_PIN,
-                         MUX_GPIO_PIN_C_A2_PIN * !!(column & 4));
-}
 
 uint16_t prvSingleADC(void) {
     DL_ADC12_startConversion(ADC_0_INST);

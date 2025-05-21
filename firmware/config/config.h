@@ -20,16 +20,22 @@
 #ifndef CAPSTONE_CONFIG_H
 #define CAPSTONE_CONFIG_H
 
+// Choose 1 or 2 to target the old or new board.
+#define HARDWARE_REVISION 2
+
 // For the moment, allow assertions despite the code size and memory overhead.
 #undef NDEBUG
 #define MAKEVISIBLE volatile
 #include <inttypes.h>
-#include "ti_msp_dl_config.h"
 #include "FreeRTOS.h"
 #include "FreeRTOSConfig.h"
 #include "projdefs.h"
 #include "portmacro.h"
 
-#define IS_MSP
+#if HARDWARE_REVISION == 1
+#include "v1/ti_msp_dl_config.h"
+#elif HARDWARE_REVISION == 2
+#include "v2/ti_msp_dl_config.h"
+#endif
 
 #endif

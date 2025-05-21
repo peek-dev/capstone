@@ -49,7 +49,7 @@ static void vResetState();
 
 void mainThread(void *arg0) {
     (void)arg0;
-    sensor_mutex = xSemaphoreCreateMutex();
+    vSensorMutex_Init();
     MainThread_Message message;
     BaseType_t xReturned;
 
@@ -179,7 +179,6 @@ static void vResetState() {
     xLED_commit();
 }
 
-SemaphoreHandle_t sensor_mutex;
 BaseType_t xMain_Init(void) {
     mainQueue = xQueueCreate(QUEUE_SIZE, sizeof(MainThread_Message));
     vResetState();
@@ -674,7 +673,7 @@ static void prvProcessMessage(MainThread_Message *message) {
         // If we're in an undo state, append to the undo queue.
         if (state.state == game_state_undo) {
             if (message->move == SENTINEL_UNDO_EXHAUSTED) {
-                //xClock_set_both_numbers(prvMovesLen);
+                xClock_set_both_numbers(prvMovesLen);
                 if (prvMovesLen == 0) {
                     state.state = game_state_notstarted;
                     vSetClockState();

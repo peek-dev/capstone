@@ -28,7 +28,7 @@
 #include "ti/driverlib/dl_spi.h"
 
 #include "clock.h"
-#include "clock_private.h"
+#include "private/clock_private.h"
 #include "lcd.h"
 
 #define QUEUE_SIZE 6

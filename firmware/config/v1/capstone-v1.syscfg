@@ -5,9 +5,9 @@
  * @v2CliArgs --board "/ti/boards/LP_MSPM0G3507" --product "mspm0_sdk@2.02.00.05"
  * @versions {"tool":"1.21.1+3772"}
  */
-scripting.excludeFromBuild("device_linker.lds");
+scripting.excludeFromBuild("device_linker.cmd");
+scripting.excludeFromBuild("device.opt");
 scripting.excludeFromBuild("device.cmd.genlibs");
-scripting.excludeFromBuild("device.lds.genlibs");
 scripting.excludeFromBuild("Event.dot");
 
 /**
@@ -80,7 +80,7 @@ GPIO2.associatedPins[0].direction         = "INPUT";
 GPIO2.associatedPins[0].interruptEn       = true;
 GPIO2.associatedPins[0].interruptPriority = "3";
 GPIO2.associatedPins[0].polarity          = "RISE";
-GPIO2.associatedPins[0].pin.$assign       = "boosterpack.10";
+GPIO2.associatedPins[0].pin.$assign       = "boosterpack.8";
 GPIO2.associatedPins[1].direction         = "INPUT";
 GPIO2.associatedPins[1].$name             = "PIN_UNDO";
 GPIO2.associatedPins[1].interruptEn       = true;
@@ -92,30 +92,30 @@ GPIO2.associatedPins[2].$name             = "PIN_START_RESTART";
 GPIO2.associatedPins[2].interruptEn       = true;
 GPIO2.associatedPins[2].polarity          = "RISE";
 GPIO2.associatedPins[2].interruptPriority = "3";
-GPIO2.associatedPins[2].pin.$assign       = "boosterpack.29";
+GPIO2.associatedPins[2].pin.$assign       = "boosterpack.28";
 GPIO2.associatedPins[3].$name             = "PIN_PAUSE";
 GPIO2.associatedPins[3].direction         = "INPUT";
 GPIO2.associatedPins[3].interruptEn       = true;
 GPIO2.associatedPins[3].interruptPriority = "3";
 GPIO2.associatedPins[3].polarity          = "RISE";
-GPIO2.associatedPins[3].pin.$assign       = "boosterpack.8";
+GPIO2.associatedPins[3].pin.$assign       = "boosterpack.10";
 GPIO2.associatedPins[4].$name             = "PIN_CLOCK_MODE";
 GPIO2.associatedPins[4].direction         = "INPUT";
 GPIO2.associatedPins[4].interruptEn       = true;
 GPIO2.associatedPins[4].interruptPriority = "3";
 GPIO2.associatedPins[4].polarity          = "RISE";
-GPIO2.associatedPins[4].pin.$assign       = "boosterpack.28";
+GPIO2.associatedPins[4].pin.$assign       = "boosterpack.29";
+GPIO2.associatedPins[5].$name             = "PIN_BLACK_MOVE";
 GPIO2.associatedPins[5].direction         = "INPUT";
 GPIO2.associatedPins[5].interruptEn       = true;
 GPIO2.associatedPins[5].interruptPriority = "3";
 GPIO2.associatedPins[5].polarity          = "RISE";
-GPIO2.associatedPins[5].$name             = "PIN_WHITE_MOVE";
 GPIO2.associatedPins[5].pin.$assign       = "boosterpack.27";
+GPIO2.associatedPins[6].$name             = "PIN_WHITE_MOVE";
 GPIO2.associatedPins[6].direction         = "INPUT";
 GPIO2.associatedPins[6].interruptEn       = true;
 GPIO2.associatedPins[6].interruptPriority = "3";
 GPIO2.associatedPins[6].polarity          = "RISE";
-GPIO2.associatedPins[6].$name             = "PIN_BLACK_MOVE";
 GPIO2.associatedPins[6].pin.$assign       = "boosterpack.30";
 
 GPIO3.$name                               = "MISC_GPIO";

@@ -19,11 +19,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
 #include "uart.h"
-#include "config.h"
 #include "game.h"
 #include "projdefs.h"
 #include "portmacro.h"
-#include "ti_msp_dl_config.h"
 #include <queue.h>
 #include "main.h"
 #include "uart_bidir_protocol.h"

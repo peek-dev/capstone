@@ -23,7 +23,6 @@
 
 #include "projdefs.h"
 #include "ti/driverlib/dl_spi.h"
-#include "ti_msp_dl_config.h"
 #include "sensor_mutex.h"
 
 #include "led.h"

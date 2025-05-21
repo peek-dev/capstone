@@ -22,13 +22,11 @@
 #include <queue.h>
 #include "sensor_mutex.h"
 #include "clock.h"
-#include "clock_private.h"
+#include "private/clock_private.h"
 #include "lcd.h"
 
 extern TaskHandle_t xClockTaskId;
 extern QueueHandle_t clockQueue;
-
-#define TURN_OFFSET(turn) ((turn == game_turn_black) ? 0 : 3)
 
 // [left, right], each element [ones, tens]
 static const uint8_t DIGITS[6][2] = {
@@ -114,8 +112,8 @@ static void prvRenderUndo(uint32_t *data, game_turn turn, uint16_t *numbers) {
     prvRenderNumbers_oneside(numbers[1 - turn], data, 1 - turn);
     uint8_t offset = TURN_OFFSET(turn);
     prvSetDigit(data, CLOCK_U, DIGITS[1 + offset][1]);
-    prvSetDigit(data, CLOCK_N, DIGITS[1 + offset][0]);
-    prvSetDigit(data, CLOCK_D, DIGITS[2 + offset][1]);
+    prvSetDigit(data, CLOCK_n, DIGITS[1 + offset][0]);
+    prvSetDigit(data, CLOCK_d, DIGITS[2 + offset][1]);
     prvSetDigit(data, CLOCK_o, DIGITS[2 + offset][0]);
 }
 
@@ -141,8 +139,8 @@ void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn,
         prvRenderColons(data);
         break;
     case clock_state_notstarted:
-        prvRenderTime_oneside(times_ms[0] / 1000, data, game_turn_black);
-        prvRenderNumbers_oneside(inc / 1000, data, game_turn_white);
+        prvRenderTime_oneside(times_ms[0] / 1000, data, TURN_LEFT);
+        prvRenderNumbers_oneside(inc / 1000, data, TURN_RIGHT);
         break;
     case clock_state_running:
         // Render the current times.

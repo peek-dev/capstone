@@ -383,7 +383,7 @@ BaseType_t xIlluminatePotentiallyOffCenter(BoardState *old, BoardState *new,
             p_old = xGetSquare(old, row, col);
             p_new = xGetSquare(new, row, col);
             if (
-#if CAPSTONE_REVISION == 2
+#if HARDWARE_REVISION == 2
                 p_new == PositioningError
 #else
                 p_old != EmptySquare && p_new != EmptySquare &&

@@ -37,14 +37,13 @@
 #define DECLARE_PRIVATE_MAIN_C
 #include "main.h"
 
-SemaphoreHandle_t sensor_mutex;
 
 void mainThread(void *arg0) {
     /* FIXME: declare task handle for UART task */
     TaskHandle_t thread_led, thread_sensor;
     BaseType_t xReturned;
-    sensor_mutex = xSemaphoreCreateMutex();
-
+    vSensorMutex_Init();
+    
     xReturned = xPortGetFreeHeapSize();
 
     /* Call driver init functions */

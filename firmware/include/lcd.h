@@ -24,6 +24,15 @@
 #include "game.h"
 #include "clock.h"
 
+#if HARDWARE_REVISION == 1
+#define TURN_LEFT (game_turn_white)
+#define TURN_RIGHT (game_turn_black)
+#elif HARDWARE_REVISION == 2
+#define TURN_LEFT (game_turn_black)
+#define TURN_RIGHT (game_turn_white)
+#endif
+#define TURN_OFFSET(turn) ((turn == TURN_LEFT) ? 0 : 3)
+
 void vLCD_RenderTime(uint32_t *times, uint32_t *data);
 void vLCD_WriteHardware(uint32_t *data);
 void vLCD_Init(void);
@@ -65,10 +74,10 @@ void vLCD_RenderState(uint32_t *data, clock_state state, game_turn turn,
 #define CLOCK_A                                                                \
     (SEVENSEG_A | SEVENSEG_B | SEVENSEG_C | SEVENSEG_E | SEVENSEG_F |          \
      SEVENSEG_G)
-#define CLOCK_D (SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_E | SEVENSEG_G)
+#define CLOCK_d (SEVENSEG_B | SEVENSEG_C | SEVENSEG_D | SEVENSEG_E | SEVENSEG_G)
 #define CLOCK_E (SEVENSEG_A | SEVENSEG_D | SEVENSEG_E | SEVENSEG_F | SEVENSEG_G)
 #define CLOCK_F (SEVENSEG_A | SEVENSEG_E | SEVENSEG_F | SEVENSEG_G)
-#define CLOCK_N (SEVENSEG_C | SEVENSEG_E | SEVENSEG_G)
+#define CLOCK_n (SEVENSEG_C | SEVENSEG_E | SEVENSEG_G)
 #define CLOCK_O SEVENSEG_0
 #define CLOCK_o (SEVENSEG_C | SEVENSEG_D | SEVENSEG_E | SEVENSEG_G)
 #define CLOCK_P (SEVENSEG_A | SEVENSEG_B | SEVENSEG_E | SEVENSEG_F | SEVENSEG_G)

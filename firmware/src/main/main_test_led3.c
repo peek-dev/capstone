@@ -25,11 +25,10 @@
 #include "led_translation.h"
 #include "main.h"
 
-SemaphoreHandle_t sensor_mutex;
 void mainThread(void *arg0) {
     TaskHandle_t thread_led;
     BaseType_t xReturned;
-    sensor_mutex = xSemaphoreCreateMutex();
+    vSensorMutex_Init();
 
     /* Call driver init functions */
     xReturned = xLED_Init();

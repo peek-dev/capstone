@@ -25,11 +25,10 @@
 
 uint16_t numbers[2] = {0};
 
-SemaphoreHandle_t sensor_mutex;
 void mainThread(void *arg0) {
     TaskHandle_t thread_clock;
     BaseType_t xReturned;
-    sensor_mutex = xSemaphoreCreateMutex();
+    vSensorMutex_Init();
 
     /* Call driver init functions */
     xReturned = xClock_Init();

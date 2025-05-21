@@ -20,6 +20,7 @@
 #ifndef CAPSTONE_LED_TRANSLATION_H
 #define CAPSTONE_LED_TRANSLATION_H
 
+#include "config.h"
 #include "game.h"
 
 typedef struct {

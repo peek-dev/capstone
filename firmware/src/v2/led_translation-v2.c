@@ -17,8 +17,9 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>
  */
-#include "config.h"
 #include "led_translation.h"
+#if HARDWARE_REVISION == 2
+
 #include "game.h"
 #include "assert.h"
 
@@ -44,12 +45,16 @@ ZeroToTwoInts LEDTrans_Ptype(PieceType p) {
 }
 
 uint8_t LEDTrans_Square(uint8_t row, uint8_t col) {
-//    assert(row < 8 && col < 8);
+    assert(row < 8 && col < 8);
+    // In the comments I will use one-based row numbers (like in chess), but in the
+    // code I will use zero-based row numbers.
     // Skip the first row of pieces, a pawn if row>=2, and another if row>=7
     uint8_t index = 8 + (row >= 1 ? 1 : 0) + (row >= 6 ? 1 : 0);
     // Offset by the number of rows.
     index += 8 * row;
-    // Even rows go forward, odd rows go backward.
-    index += (row % 2 == 0) ? col : 7 - col;
+    // Every other row goes backward, starting with row 2 (1).
+    index += (row % 2 != 0) ? (7 - col) : col;
     return index;
 }
+
+#endif

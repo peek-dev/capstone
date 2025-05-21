@@ -19,57 +19,45 @@
  * this program.  If not, see <https://www.gnu.org/licenses/>
  */
 #include "button.h"
-#include "config.h"
+#include "private/button_private.h"
 #include "portmacro.h"
 #include "projdefs.h"
 #include "ti/driverlib/dl_gpio.h"
-#include "ti_msp_dl_config.h"
 #include "main.h"
 
-static const uint32_t LenA = 5;
-static const uint32_t PinsA[] = {
-    BUTTON_GPIO_PIN_PAUSE_PIN, BUTTON_GPIO_PIN_START_RESTART_PIN,
-    BUTTON_GPIO_PIN_CLOCK_MODE_PIN, BUTTON_GPIO_PIN_BLACK_MOVE_PIN,
-    BUTTON_GPIO_PIN_WHITE_MOVE_PIN};
-static const enum button_num ButtonsA[] = {
-    button_num_pause, button_num_start_restart, button_num_clock_mode,
-    button_num_white_move, button_num_black_move};
-static const uint32_t LenB = 2;
-static const uint32_t PinsB[] = {BUTTON_GPIO_PIN_UNDO_PIN,
-                                 BUTTON_GPIO_PIN_HINT_PIN};
-static const enum button_num ButtonsB[] = {button_num_undo, button_num_hint};
+static uint32_t allPinsA = 0, allPinsB = 0;
 
 void GROUP1_IRQHandler(void) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    uint32_t allPinsA = 0, allPinsB = 0;
 
-    for (uint8_t i = 0; i < LenA; i++) {
-        allPinsA |= PinsA[i];
-    }
-    for (uint8_t i = 0; i < LenB; i++) {
-        allPinsB |= PinsB[i];
-    }
     uint32_t gpioA = DL_GPIO_getEnabledInterruptStatus(GPIOA, allPinsA);
     uint32_t gpioB = DL_GPIO_getEnabledInterruptStatus(GPIOB, allPinsB);
 
 #pragma clang loop unroll(enable)
-    for (uint8_t i = 0; i < LenA; i++) {
-        if ((gpioA & PinsA[i]) == PinsA[i]) {
-            xMain_button_press_FromISR(ButtonsA[i], &xHigherPriorityTaskWoken);
-            DL_GPIO_clearInterruptStatus(GPIOA, PinsA[i]);
+    for (uint8_t i = 0; i < PRVBUTTON_LENA; i++) {
+        if ((gpioA & prvButton_PinsA[i]) == prvButton_PinsA[i]) {
+            xMain_button_press_FromISR(prvButton_ButtonsA[i], &xHigherPriorityTaskWoken);
+            DL_GPIO_clearInterruptStatus(GPIOA, prvButton_PinsA[i]);
         }
     }
 #pragma clang loop unroll(enable)
-    for (uint8_t i = 0; i < LenB; i++) {
-        if ((gpioB & PinsB[i]) == PinsB[i]) {
-            xMain_button_press_FromISR(ButtonsB[i], &xHigherPriorityTaskWoken);
-            DL_GPIO_clearInterruptStatus(GPIOB, PinsB[i]);
+    for (uint8_t i = 0; i < PRVBUTTON_LENB; i++) {
+        if ((gpioB & prvButton_PinsB[i]) == prvButton_PinsB[i]) {
+            xMain_button_press_FromISR(prvButton_ButtonsB[i], &xHigherPriorityTaskWoken);
+            DL_GPIO_clearInterruptStatus(GPIOB, prvButton_PinsB[i]);
         }
     }
     portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 void vButton_Init(void) {
+    // Pre-compute this; it doesn't change over the program runtime.
+    for (uint8_t i = 0; i < PRVBUTTON_LENA; i++) {
+        allPinsA |= prvButton_PinsA[i];
+    }
+    for (uint8_t i = 0; i < PRVBUTTON_LENB; i++) {
+        allPinsB |= prvButton_PinsB[i];
+    }
     NVIC_ClearPendingIRQ(BUTTON_GPIO_GPIOA_INT_IRQN);
     NVIC_EnableIRQ(BUTTON_GPIO_GPIOA_INT_IRQN);
     NVIC_ClearPendingIRQ(BUTTON_GPIO_GPIOB_INT_IRQN);

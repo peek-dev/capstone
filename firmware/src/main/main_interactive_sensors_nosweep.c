@@ -46,7 +46,6 @@
 // Similarly, 50us for a row switch.
 #define ROW_SWITCH_LOAD (50U * 64U / 10U - 1U)
 
-SemaphoreHandle_t sensor_mutex;
 void vPeriodicPing_Thread(void *arg0);
 
 const Color dimwhite = {.brightness = 31, .red = 255, .green = 255, .blue = 255};
@@ -55,8 +54,8 @@ void mainThread(void *arg0) {
     /* FIXME: declare task handle for UART task */
     TaskHandle_t thread_led, thread_pings;
     BaseType_t xReturned;
-    sensor_mutex = xSemaphoreCreateMutex();
-
+    vSensorMutex_Init();
+    
     xReturned = xPortGetFreeHeapSize();
 
     /* Call driver init functions */
