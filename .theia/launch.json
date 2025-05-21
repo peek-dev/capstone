@@ -13,12 +13,6 @@
                     }
                 }
             }
-        },
-        {
-            "name": "freertos_builds_LP_MSPM0G3507_release_ticlang",
-            "type": "ccs-debug",
-            "request": "launch",
-            "project": "freertos_builds_LP_MSPM0G3507_release_ticlang"
         }
     ]
 }
